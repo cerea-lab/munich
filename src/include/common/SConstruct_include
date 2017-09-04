@@ -1,0 +1,88 @@
+# Copyright (C) 2007-2008, ENPC - INRIA - EDF R&D
+#     Author(s): Vivien Mallet
+#
+# This file is part of the air quality modeling system Polyphemus.
+#
+# Polyphemus is developed in the INRIA - ENPC joint project-team CLIME and in
+# the ENPC - EDF R&D joint laboratory CEREA.
+#
+# Polyphemus is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# Polyphemus is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# For more information, visit the Polyphemus web site:
+#      http://cerea.enpc.fr/polyphemus/
+
+
+import os, commands, sys, glob, re
+
+# Checks the version of SCons.
+EnsureSConsVersion(0, 98, 5)
+
+# Returns 'default' if the variable with name 'input_name' is not in the
+# global namespace; returns the variable otherwise.
+def create_variable(input_name, default):
+    exec("global " + input_name)
+    try:
+        exec("local_copy = " + input_name)
+        if local_copy is None:
+            return default
+        else:
+            return local_copy
+    except:
+        return default
+
+# Returns the input as a list of strings, if the input is a list of strings, a
+# string, None, or if the input can be converted to string. The input must be
+# provided as a string containing its name.
+def to_string_list(input_name):
+    exec("global " + input_name)
+    try:
+        exec("local_copy = " + input_name)
+    except:
+        return []
+    if local_copy is None:
+        return []
+    elif isinstance(local_copy, list):
+        return local_copy
+    else:
+        return Split(str(local_copy))
+
+# Returns a space separated concatenation of the variable named 'input_name'
+# from the global namespace and from the command line arguments, in this order.
+def create_flag_variable(input_name):
+    v = to_string_list(input_name)
+    v += Split(ARGUMENTS.get(input_name, ""))
+    return " ".join(v)
+
+# This function checks whether a supported argument has been provided, and it
+# sets the argument to its default value if the user has not given any value.
+def add_argument(name, value_list = None):
+    if value_list is None:
+        if not ARGUMENTS.has_key(name):
+            raise Exception, "The command line argument \"" + name + "\" is" \
+                  + " required, but it was not provided."
+    else:
+        ARGUMENTS[name] = ARGUMENTS.get(name, value_list[0])
+        if ARGUMENTS[name] not in value_list:
+            raise Exception, "Unsupported option \"" + ARGUMENTS[name] \
+                  + "\" for argument \"" + name + "\". Available options " \
+                  + "are: " \
+                  + ", ".join(["\"" + x + "\"" for x in value_list]) + "."
+
+# Returns the debug flags.
+def debug_flag(name):
+    if ARGUMENTS[name] == "-1":
+        return ""
+    elif ARGUMENTS[name] == "0":
+        return "-O2"
+    elif ARGUMENTS[name] == "1":
+        return "-g"
+    elif ARGUMENTS[name] == "2":
+        return "-O2 -g"

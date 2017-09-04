@@ -1,0 +1,44 @@
+# Copyright (C) 2016, CEREA - ENPC - EDF R&D
+#
+# This file is part of the air quality modeling system Polyphemus.
+#
+# Polyphemus is developed in the ENPC - EDF R&D joint laboratory CEREA.
+#
+# Polyphemus is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# Polyphemus is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# For more information, visit the Polyphemus web site:
+#      http://cerea.enpc.fr/polyphemus/
+
+# Put the path to Polyphemus.
+# Also editable from command line with option "polyphemus".
+polyphemus_path = "./"
+
+# Include paths: put the absolute paths, the relative paths or the paths into
+# the Polyphemus directory.
+include_path = """include/Talos
+                  include/SeldonData
+                  include/AtmoData
+                  include/models
+                  include/driver
+                  include/driver/output_saver
+                  include/modules/chemistry
+                  include/modules/chemistry/Common
+                  include/modules/chemistry/RACM
+                  include/modules/chemistry/RACM2
+                  include/modules/chemistry/CB05
+                  include/modules/chemistry/Leighton
+                  """
+
+# [Optional] Compiled library paths: put absolute paths, relative paths or
+# paths that are in the Polyphemus directory. Put the list of paths to
+# compiled libraries that may not be installed in your system root.
+
+execfile(polyphemus_path + "include/common/SConstruct")

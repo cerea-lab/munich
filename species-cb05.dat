@@ -1,0 +1,79 @@
+[species]
+
+O1D  ETOH CH4  ETHA  TOL
+XYL  SO2  SULF N2O5  PAN
+MEOH TO2  HNO4 PANX  HONO
+ROR  H2O2 HCO3 MEPX  FACD
+ROOH PACD ETH  OLE  IOLE
+TERP CRES OPEN MGLY CRO
+ISOP ISPD NTR  PAR  ALDX
+AACD CO   HNO3 XO2N MEO2
+FORM OH   O    NO3  ALD2
+CXO3 O3   NO   XO2  HO2
+C2O3 NO2
+
+
+[molecular_weight]
+
+# Unit: g / mol.
+
+O1D 	16.     ETOH  46.07	CH4   16.04  ETHA  30.07    TOL   92.14
+XYL 	106.16  SO2   64.06  	SULF  98.08  N2O5  108.01   PAN   121.05
+MEOH  	32.04 	TO2   141.15 	HNO4  79.01  PANX  120.04   HONO  47.01
+ROR   	16.	H2O2  34.01   	HCO3  63.03  MEPX  48.04    FACD  46.03
+ROOH  	47.03 	PACD  76.05  	ETH   28.05  OLE   27.05    IOLE  56.11
+TERP 	136.24 	CRES  108.14 	OPEN  48.04  MGLY  72.06    CRO   108.14
+ISOP  	68.18 	ISPD  70.09  	NTR   77.04  PAR   15.03    ALDX  43.04
+AACD  	60.05 	CO    28.01  	HNO3  63.01  XO2N  47.03    MEO2  47.03
+FORM  	30.03 	OH    17.01    	O     16.    NO3   62.01    ALD2  44.05
+CXO3  	74.04 	O3    48.      	NO    30.    XO2   47.03    HO2   33.01
+C2O3  	75.04 	NO2   46.
+
+
+[photolysis_reaction_index]
+
+NO2     0   O3O3P   7   O3O1D   8   NO3NO2 13
+NO3NO   14  HONO    23  H2O2    34  HNO4   49
+HNO3    50  N2O5    51  ORGNIT  60  HOP    62
+MHP     69  HCHOrad 72  HCHOmol 73  ALD    84
+PAN     88  PACD    94  C2CHO   99 PANX   103
+OPEN    133 MGLY    138 ISPD  146
+
+
+[diffusivity]
+
+# Gas-phase diffusivities: cm^2 / s.
+
+O3	 0.14	NO	 0.17   NO2	 0.14	H2O2 0.16
+FORM 0.17	ALD2 0.14   PAN	 0.08	HONO 0.14
+SO2  0.12   HNO3 0.12   MEPX 0.14	PACD 0.11
+FACD 0.14	CO	 0.18   N2O5 0.1
+
+
+[henry]
+
+# Henry constant: [mol / L / atm].
+# It must be effective Henry constant.
+
+O3   1.14e-2 NO        1.9e-3   NO2  1.2e-2     H2O2  1.02e5
+FORM 4.9e3   ALD2      15.0     PAN  5.         HONO  2.6e5
+SO2  2.65e5  HNO3      3.23e13	MEPX 9.5e2      PACD  5.4e2
+FACD 9.8e6   CO        1.e3	N2O5 1.e14
+
+
+[belot_below_cloud]
+
+# Coefficients a and b for the Belot parameterization (a * po^b)
+# where po is the rain intensity  [mm / h].
+
+# species       a       b
+  all           1.e-05  0.8
+
+
+[scavenging_coefficient]
+
+# Scavenging is applied above the following threshold over rain [mm / h].
+Scavenging_rain_threshold: 1.
+
+# Scavenging coefficient of the species: [s^{-1}].
+all     1.e-5

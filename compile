@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd src
+rm -rf .scon*
+scons -j8 munich
+
+cd ..
+ln -s src/munich .
