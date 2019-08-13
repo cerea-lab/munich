@@ -1,0 +1,35 @@
+# -*-sh-*-
+
+### Directories
+test
+
+### Binaries
+*.o
+*.a
+*.so
+*.os
+*.py[cod]
+*.mod
+*.nc
+
+### Temporary files
+*.log
+*.bck
+machine.pid
+core
+
+### SCons files
+*.scon*
+config.log
+*.cc
+
+### Git files
+*.orig
+*.
+*._\\d+
+
+### Emacs files
+*~
+\#*\#
+.\#*
+
