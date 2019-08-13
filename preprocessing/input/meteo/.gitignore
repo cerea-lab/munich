@@ -1,0 +1,8 @@
+# WRF simulation results are required in this folder.
+
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
+
+

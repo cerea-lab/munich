@@ -1,0 +1,87 @@
+Desciption
+----------
+
+This Python script is made to prepare input data of a MUNICH simulation.
+
+The input data consist of
+ - Traffic emission (which can be provided by a traffic model)
+ - Street canyon configuration: street width, building height
+ - Overlying background concentration
+ - Meteoroloigcal data (from WRF) 
+
+
+1. Traffic emission
+The script needs emission data for both the weekday and the weekend.
+For each type of data, hourly data are necessary. For example, the input file input/data-newref/EL.traf.2014032500 includes emission data for March 25 2014 at midnight.
+Because March 25 2014 is on Tuesday, this data is used for the weekday from
+Monday to Friday.
+
+2. Street canyon configuration (see input/street-geog-info.dat)
+The input file has beed manually prepared using QGIS with BDTopo database.
+The street width is calculated by the following formulation:
+
+street width = (mean lane width) x (number of lanes) + (mean larger of pavement)
+
+The builiding height is obtained using QGIS for each street segment. An
+averaged value is calculated for minor street segments.
+
+3. Overling background concentration (see
+   input/airparif_background_concentration.dat)
+Hourly concentrations are obtained using measured values at air monitoring
+stations.
+
+4. Meteoroloigcal data (see input/meteo/wrfout_d04_***)
+Hourly saved WRF output data are used. The prefix of the WRF data should be
+informed in sing_preproc.cfg file.
+
+Configuration file (sing_preproc.cfg)
+-------------------------------------
+t_min: begining hour
+Delta_t: time step
+Nt: number of iterations
+
+emission_dir_weekday: directory for emission data files on weekday
+emission_dir_weekend: directory for emission data files on weekend
+emission_species: list of speceis which are defined in the emission data
+files (see input/data-newref/EL.traf.2014032500).
+
+input_dir: directory for input files.
+geog_info: input file for street configurations.
+background_concentration: input file for background concentrations.
+meteo_dir: WRF output files for meteo data.
+wrfout_prefix: prefix of WRF files.
+
+Output_dir: directory for output files.
+
+Date_min_polair: begining hour of Polair3d simulation (used for SinG)
+Delta_t_polair : time step of Polair3d simulation (used for SinG)
+Nt_polair: number of iterations of Polair3d simulation (used for SinG)
+x_min, Delta_x, Nx, ymin, Delta_y, Ny: domain definition of Polair3d
+simulation (used for SinG)
+
+Run
+---
+
+> python sing_preproc.py sing_preproc.cfg
+
+
+Output files
+------------
+
+The script generates multiple output files in Output_dir of
+sing_preproc.cfg. They consisi of the following binary or test files:
+
+- grid-based emission data: all species (used for SinG)
+- background: NO, NO2 and O3
+- emission: all species
+- meteo
+  * for street canyons: Attenuation  SurfacePressure UST WindDirection WindSpeed LMO PBLH SpecificHumidity SurfaceTemperature
+  * for street intersection: LMOInter  PBLHInter USTInter WindDirectionInter WindSpeedInter
+- textfile
+  * emission-trafipollu-eff.20140630-23.txt: emission data for each hour.
+  * node-trafipollu-eff.txt: intersection coordinates
+  * These fils are necessary for the visualization of data (see the folder /postprocessing)
+
+The dimesion of data except the grid-based emission data is 
+  Number of street segment x number of iteration
+

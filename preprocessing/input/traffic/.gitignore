@@ -1,0 +1,15 @@
+# Traffic data are required in this folder. Data should be provided using the
+# following format:
+#
+# i idbrin typo xa ya xb yb  CH4       NMHC      CO        NOx       PA        FC         SO2       CO2       BE        EC         OM        NO2        TSP       PM10       PM25      PM1        IP        BkF          BbF          BghiP        Fl           BaP          Py           BjF          BaA          Chr          Phe          Ant          DahA         BeP          As           Cd           Cr           Cu           Hg           Ni           Pb           Se           Zn           Al           Ti           Fe           Ba           Si        
+#         1          1 20    663290.   6862779.    663303.   6862901.  0.53613E+07  0.67673E+08  0.35059E+09  0.17654E+09  0.16938E+08  0.18149E+11  0.36298E+06  0.57258E+11  0.32338E+07  0.50965E+07  0.49134E+07  0.53036E+08  0.21642E+08  0.16938E+08  0.12253E+08  0.77552E+07  0.40357E+03  0.38813E+03  0.48417E+03  0.84054E+03  0.64981E+04  0.43215E+03  0.59115E+04  0.11288E+03  0.70696E+03  0.12045E+04  0.13011E+05  0.69067E+03  0.89088E+02  0.14684E+04  0.30433E+03  0.28305E+03  0.11140E+05  0.22030E+06  0.11969E+03  0.17236E+04  0.27315E+05  0.14956E+03  0.94646E+05  0.97852E+04  0.16599E+05  0.90450E+06  0.16559E+06  0.29674E+06
+
+
+# Ignore everything in this directory
+*
+*/*
+
+# Except this file
+!.gitignore
+
+
