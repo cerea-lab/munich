@@ -708,6 +708,12 @@ def read_traffic_data(input_file, emis_species_list):
         node.connected_street.append(street_id)
         node_list.append(node)
 
+        # Check input data.
+        if ((lon1 == lon2) and (lat1 == lat2)):
+            sys.exit("Error: a street has two same intersection coordinate " + \
+                     "for the node " + str(node_id) + ", lon: " + str(lon1) + \
+                     ", lat: " + str(lat1))
+        
         # Street length
         length = distance_on_unit_sphere(lat1, lon1, lat2, lon2) # in meter
         width = 0.0
