@@ -17,6 +17,8 @@ test
 *.bck
 machine.pid
 core
+munich
+src/munich
 
 ### SCons files
 *.scon*
