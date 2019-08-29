@@ -1486,7 +1486,8 @@ namespace Polyphemus
                                                 sin(y1 * pi / 180.)));
         T dl = sqrt(pow(x_distance, 2) + pow(y_distance, 2));
         if (dl == 0.0)
-          throw string("Distance between the intersections is zero.");
+          throw string("Distance between the intersections is zero ") +
+            "for the street " + to_str(street->GetStreetID());
 
         //! gamma is arc cosine of input value, x.
         //! 0 < x < 1 and 0 < gamma < PI/2
