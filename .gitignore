@@ -35,3 +35,5 @@ config.log
 \#*\#
 .\#*
 
+### Result files
+processing/*/results/*.bin
