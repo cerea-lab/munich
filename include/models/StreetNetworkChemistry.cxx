@@ -349,17 +349,6 @@ namespace Polyphemus
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::ComputeStreetConcentrationNoStationary()
   {
-    
-    //LL: print data
-    bool isIsolated;
-    if(this->total_nstreet > 30)
-      isIsolated = false;
-    else
-      isIsolated = true;
-    
-    //LL teste initial concentration
-    int st_index = 0;
-    
     for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
          iter != this->StreetVector.end(); iter++)
       {
@@ -507,7 +496,6 @@ namespace Polyphemus
 	    T street_quantity_delta = conc_delta * street_volume; // ug
 	    street->SetStreetQuantityDelta(street_quantity_delta, s);
 	  }
-	st_index += 1.0;
       }
   }
 

@@ -42,14 +42,14 @@ namespace AtmoData
 #include "TimeDiagnosis.hxx"
 #include "Photolysis.hxx"
 #include "Emissions.hxx"
-#include "Megan.hxx"
+//#include "Megan.hxx"
 #include "Deposition.hxx"
 #include "CoordTransform.hxx"
 #include "Transform.hxx"
 #include "Polair.hxx"
 #include "Aerosol.hxx"
-#include "Optics.hxx"
-#include "InterpolationChimere.hxx"
+//#include "Optics.hxx"
+//#include "InterpolationChimere.hxx"
 
 #include "Format.hxx"
 
