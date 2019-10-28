@@ -20,7 +20,8 @@ C     For more information, visit the Polyphemus web site:
 C     http://cerea.enpc.fr/polyphemus/
 C------------------------------------------------------------------------
  
-      subroutine dimensions_cb05  (Ns, Nr, Nr_photolysis)
+      subroutine dimensions_cb05                   (
+     $    Ns, Nr, Nr_photolysis)
  
 C------------------------------------------------------------------------
 C

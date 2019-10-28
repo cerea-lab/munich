@@ -44,6 +44,7 @@ include/modules/chemistry/RACM/*.f*
 include/modules/chemistry/RACM2/*.f*
 include/modules/chemistry/*/species.spack.dat
 include/modules/chemistry/Leighton/*.f*
+include/modules/chemistry/Common/*.f*
 include/spack/src/LU_generator
 include/spack/src/find_perm
 include/spack/src/spack_generator
