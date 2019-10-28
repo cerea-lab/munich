@@ -28,17 +28,17 @@ namespace AtmoData
 
 #define SWAP_4(a) ((a >> 24) & 0xFF) | ((a >> 8) & 0xFF00) |	\
   ((a << 8) & 0x00FF0000) | ((a << 24) & 0xFF000000)
-  
+
   inline float swap(float& x)
   {
     return (*(unsigned *)&x = SWAP_4(*(unsigned *)&x));
   }
-  
+
   inline int swap(int& x)
   {
     return (*(unsigned *)&x = SWAP_4(*(unsigned *)&x));
   }
-  
+
   inline unsigned int swap(unsigned int& x)
   {
     return (*(unsigned *)&x = SWAP_4(*(unsigned *)&x));
@@ -48,11 +48,11 @@ namespace AtmoData
   {
     return (*(unsigned *)&x = SWAP_4(*(unsigned *)&x));
   }
-  
+
   template <class T, int N>
   inline void swap(Array<T, N>& A)
   {
-    for (int i=0; i<A.size(); i++)
+    for (int i = 0; i < (int) A.size(); i++)
       swap(A.data()[i]);
   }
 

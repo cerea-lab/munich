@@ -31,7 +31,7 @@ namespace SeldonData
   ////////////
   // FORMAT //
   ////////////
-  
+
   //! Default constructor.
   Format::Format()  throw()
   {
@@ -118,10 +118,9 @@ namespace SeldonData
   template<class T>
   template<class TG, int n>
   void FormatBinary<T>::Read(ifstream& FileStream,
-			     GeneralGrid<TG, n>& G) const
+                             GeneralGrid<TG, n>& G) const
   {
 
-    cout << FileStream << endl;
     this->Read(FileStream, G.GetArray());
 
   }
@@ -143,7 +142,7 @@ namespace SeldonData
   {
 
     this->Write(G.GetArray(), FileStream);
-    
+
   }
 
   //! Writes a binary file.
@@ -160,11 +159,11 @@ namespace SeldonData
   template<class T>
   template<class TG, int n>
   void FormatBinary<T>::Write(GeneralGrid<TG, n>& G,
-			      ofstream& FileStream) const
+                              ofstream& FileStream) const
   {
 
     this->Write(G.GetArray(), FileStream);
-    
+
   }
 
   //! Appends data to a binary file.
@@ -190,7 +189,7 @@ namespace SeldonData
   /********/
   /* Data */
   /********/
-  
+
   //! Reads a binary file.
   template<class T>
   template<class TD, int N, class TG>
@@ -225,7 +224,7 @@ namespace SeldonData
   template<class T>
   template<class TD, int N, class TG>
   void FormatBinary<T>::ReadSteps(string FileName, int steps,
-				  Data<TD, N, TG>& D) const
+                                  Data<TD, N, TG>& D) const
   {
 
     this->ReadSteps(FileName, steps, D.GetArray());
@@ -236,7 +235,7 @@ namespace SeldonData
   template<class T>
   template<class TD, int N, class TG>
   void FormatBinary<T>::ReadRecord(string FileName, int record,
-				   Data<TD, N, TG>& D) const
+                                   Data<TD, N, TG>& D) const
   {
 
     this->ReadRecord(FileName, record, D.GetArray());
@@ -289,7 +288,7 @@ namespace SeldonData
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatBinary<T>::Read(string FileName, Array<TA, N>& A)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Read(FileStream, A);
@@ -311,8 +310,8 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError(string("FormatBinary<T>::Read(ExtStream& FileStream, ")
-		    + "Array<T, N>& A)", string("Unable to read data in \"")
-		    + FileStream.GetFileName() + "\".");
+                    + "Array<T, N>& A)", string("Unable to read data in \"")
+                    + FileStream.GetFileName() + "\".");
 
     // Checks file length.
     streampos position;
@@ -322,24 +321,24 @@ namespace SeldonData
 
     if (position > FileStream.tellg())
       throw IOError(string("FormatBinary<T>::Read(ExtStream& FileStream,")
-		    + " Array<T, N>& A)", string("Unable to read ")
-		    + to_str(data_size) + string(" byte(s) in \"")
-		    + FileStream.GetFileName()
-		    + "\". The input stream is empty.");
+                    + " Array<T, N>& A)", string("Unable to read ")
+                    + to_str(data_size) + string(" byte(s) in \"")
+                    + FileStream.GetFileName()
+                    + "\". The input stream is empty.");
 
-    if (data_size>file_size)
+    if (data_size > file_size)
       throw IOError(string("FormatBinary<T>::Read(ExtStream& FileStream,")
-		    + " Array<T, N>& A)", string("Unable to read ")
-		    + to_str(data_size) + string(" byte(s) in \"")
-		    + FileStream.GetFileName()
-		    + string("\". The input stream is only ")
-		    + to_str(file_size) + " byte(s) long.");
+                    + " Array<T, N>& A)", string("Unable to read ")
+                    + to_str(data_size) + string(" byte(s) in \"")
+                    + FileStream.GetFileName()
+                    + string("\". The input stream is only ")
+                    + to_str(file_size) + " byte(s) long.");
 
     FileStream.seekg(position);
 #endif
 
     FileStream.read(reinterpret_cast<char*>(data), data_size);
-    
+
   }
 
   //! Reads a binary file.
@@ -355,8 +354,8 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatBinary<T>::Read"
-		    "(ifstream& FileStream, Array<T, N>& A)",
-		    "File is not ready.");
+                    "(ifstream& FileStream, Array<T, N>& A)",
+                    "File is not ready.");
 
     // Checks file length.
     streampos position;
@@ -366,22 +365,22 @@ namespace SeldonData
 
     if (position > FileStream.tellg())
       throw IOError("FormatBinary<T>::Read"
-		    "(ifstream& FileStream, Array<T, N>& A)",
-		    "Unable to read " + to_str(data_size) + " byte(s)." +
-		    " The input stream is empty.");
+                    "(ifstream& FileStream, Array<T, N>& A)",
+                    "Unable to read " + to_str(data_size) + " byte(s)." +
+                    " The input stream is empty.");
 
-    if (data_size>file_size)
+    if (data_size > file_size)
       throw IOError("FormatBinary<T>::Read"
-		    "(ifstream& FileStream, Array<T, N>& A)",
-		    "Unable to read " + to_str(data_size) + " byte(s)." +
-		    " The input stream is only " + to_str(file_size) +
-		    " byte(s) long.");
+                    "(ifstream& FileStream, Array<T, N>& A)",
+                    "Unable to read " + to_str(data_size) + " byte(s)." +
+                    " The input stream is only " + to_str(file_size) +
+                    " byte(s) long.");
 
     FileStream.seekg(position);
 #endif
 
     FileStream.read(reinterpret_cast<char*>(data), data_size);
-    
+
   }
 
   //! Reads a binary file.
@@ -401,8 +400,8 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError(string("FormatBinary<T>::Read(ExtStream& FileStream,")
-		    + " Array<TA, N>& A)", string("Unable to read data in \"")
-		    + FileStream.GetFileName() + "\".");
+                    + " Array<TA, N>& A)", string("Unable to read data in \"")
+                    + FileStream.GetFileName() + "\".");
 
     // Checks file length.
     streampos position;
@@ -412,18 +411,18 @@ namespace SeldonData
 
     if (position > FileStream.tellg())
       throw IOError(string("FormatBinary<T>::Read(ExtStream& FileStream,")
-		    + " Array<T, N>& A)", string("Unable to read ")
-		    + to_str(data_size) + string(" byte(s) in \"")
-		    + FileStream.GetFileName()
-		    + "\". The input stream is empty.");
+                    + " Array<T, N>& A)", string("Unable to read ")
+                    + to_str(data_size) + string(" byte(s) in \"")
+                    + FileStream.GetFileName()
+                    + "\". The input stream is empty.");
 
-    if (data_size>file_size)
+    if (data_size > file_size)
       throw IOError(string("FormatBinary<T>::Read(ExtStream& FileStream,")
-		    + " Array<TA, N>& A)", string("Unable to read ")
-		    + to_str(data_size) + string(" byte(s) in \"")
-		    + FileStream.GetFileName()
-		    + string("\". The input stream is only ")
-		    + to_str(file_size) + " byte(s) long.");
+                    + " Array<TA, N>& A)", string("Unable to read ")
+                    + to_str(data_size) + string(" byte(s) in \"")
+                    + FileStream.GetFileName()
+                    + string("\". The input stream is only ")
+                    + to_str(file_size) + " byte(s) long.");
 
     FileStream.seekg(position);
 #endif
@@ -432,18 +431,18 @@ namespace SeldonData
     int j = 0;
     for (i = 0; i < int(data_size / sizeof(T) / length); i++)
       {
-	FileStream.read(reinterpret_cast<char*>(data), length * sizeof(T));
-	for (j=0; j<int(length); j++)
-	  data_output[j + i*length] = data[j];
+        FileStream.read(reinterpret_cast<char*>(data), length * sizeof(T));
+        for (j = 0; j < int(length); j++)
+          data_output[j + i * length] = data[j];
       }
 
     if (data_size % (length * sizeof(T)) != 0)
       {
-	FileStream.read(reinterpret_cast<char*>(data),
-			data_size - i * length * sizeof(T));
-	for (j = 0; j < int((data_size % (length * sizeof(T))) / sizeof(T));
-	     j++)
-	  data_output[j + i*length] = data[j];
+        FileStream.read(reinterpret_cast<char*>(data),
+                        data_size - i * length * sizeof(T));
+        for (j = 0; j < int((data_size % (length * sizeof(T))) / sizeof(T));
+             j++)
+          data_output[j + i * length] = data[j];
       }
 
     delete [] data;
@@ -462,13 +461,13 @@ namespace SeldonData
     T* data = new T[length];
 
     TA* data_output = A.data();
-    
+
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatBinary<T>::Read"
-		    "(ifstream& FileStream, Array<TA, N>& A)",
-		    "File is not ready.");
+                    "(ifstream& FileStream, Array<TA, N>& A)",
+                    "File is not ready.");
 
     // Checks file length.
     streampos position;
@@ -478,36 +477,36 @@ namespace SeldonData
 
     if (position > FileStream.tellg())
       throw IOError("FormatBinary<T>::Read"
-		    "(ifstream& FileStream, Array<TA, N>& A)",
-		    "Unable to read " + to_str(data_size) + " byte(s)." +
-		    " The input stream is empty.");
+                    "(ifstream& FileStream, Array<TA, N>& A)",
+                    "Unable to read " + to_str(data_size) + " byte(s)." +
+                    " The input stream is empty.");
 
-    if (data_size>file_size)
+    if (data_size > file_size)
       throw IOError("FormatBinary<T>::Read"
-		    "(ifstream& FileStream, Array<TA, N>& A)",
-		    "Unable to read " + to_str(data_size) + " byte(s)." +
-		    " The input stream is only " + to_str(file_size)
-		    + " byte(s) long.");
+                    "(ifstream& FileStream, Array<TA, N>& A)",
+                    "Unable to read " + to_str(data_size) + " byte(s)." +
+                    " The input stream is only " + to_str(file_size)
+                    + " byte(s) long.");
 
     FileStream.seekg(position);
 #endif
 
     int i = 0;
     int j = 0;
-    for (i=0; i < int(data_size / sizeof(T) / length); i++)
+    for (i = 0; i < int(data_size / sizeof(T) / length); i++)
       {
-	FileStream.read(reinterpret_cast<char*>(data), length * sizeof(T));
-	for (j=0; j<int(length); j++)
-	  data_output[j + i*length] = data[j];
+        FileStream.read(reinterpret_cast<char*>(data), length * sizeof(T));
+        for (j = 0; j < int(length); j++)
+          data_output[j + i * length] = data[j];
       }
 
     if (data_size % (length * sizeof(T)) != 0)
       {
-	FileStream.read(reinterpret_cast<char*>(data),
-			data_size - i * length * sizeof(T));
-	for (j = 0; j < int((data_size % (length * sizeof(T))) / sizeof(T));
-	     j++)
-	  data_output[j + i*length] = data[j];
+        FileStream.read(reinterpret_cast<char*>(data),
+                        data_size - i * length * sizeof(T));
+        for (j = 0; j < int((data_size % (length * sizeof(T))) / sizeof(T));
+             j++)
+          data_output[j + i * length] = data[j];
       }
 
     delete [] data;
@@ -518,7 +517,7 @@ namespace SeldonData
   template<class T>
   template<class TA, int N>
   void FormatBinary<T>::ReadSteps(string FileName, int steps,
-				  Array<TA, N>& A) const
+                                  Array<TA, N>& A) const
   {
 
     ExtStream FileStream(FileName);
@@ -527,8 +526,8 @@ namespace SeldonData
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatBinary<T>::ReadSteps"
-		    "(string FileName, int steps, Array<TA, N>& A)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "(string FileName, int steps, Array<TA, N>& A)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     size_t pos = A.numElements() / A.extent(0);
@@ -539,9 +538,9 @@ namespace SeldonData
     // Checks whether all steps were skipped.
     if (!FileStream.good())
       throw IOError("FormatBinary<T>::ReadSteps"
-		    "(string FileName, int steps, Array<TA, N>& A)",
-		    string("Unable to skip ") + to_str(steps)
-		    + " steps in file \"" + FileName + "\".");
+                    "(string FileName, int steps, Array<TA, N>& A)",
+                    string("Unable to skip ") + to_str(steps)
+                    + " steps in file \"" + FileName + "\".");
 #endif
 
     this->Read(FileStream, A);
@@ -554,7 +553,7 @@ namespace SeldonData
   template<class T>
   template<class TA, int N>
   void FormatBinary<T>::ReadRecord(string FileName, int record,
-				   Array<TA, N>& A) const
+                                   Array<TA, N>& A) const
   {
 
     ExtStream FileStream(FileName);
@@ -563,8 +562,8 @@ namespace SeldonData
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatBinary<T>::ReadRecord"
-		    "(string FileName, int record, Array<TA, N>& A)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "(string FileName, int record, Array<TA, N>& A)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     size_t pos = record * sizeof(T) * A.numElements();
@@ -574,9 +573,9 @@ namespace SeldonData
     // Checks whether all steps were skipped.
     if (!FileStream.good())
       throw IOError("FormatBinary<T>::ReadRecord"
-		    "(string FileName, int record, Array<TA, N>& A)",
-		    string("Unable to skip ") + to_str(record)
-		    + " records in file \"" + FileName + "\".");
+                    "(string FileName, int record, Array<TA, N>& A)",
+                    string("Unable to skip ") + to_str(record)
+                    + " records in file \"" + FileName + "\".");
 #endif
 
     this->Read(FileStream, A);
@@ -598,14 +597,14 @@ namespace SeldonData
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatBinary<T>::"
-		    "Write(Array<TA, N>& A, string FileName)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "Write(Array<TA, N>& A, string FileName)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Write(A, FileStream);
 
     FileStream.close();
-    
+
   }
 
   //! Writes a binary file.
@@ -622,12 +621,12 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatBinary<T>::"
-		    "Write(Array<T, N>& A, ofstream& FileStream)",
-		    "File is not ready.");
+                    "Write(Array<T, N>& A, ofstream& FileStream)",
+                    "File is not ready.");
 #endif
 
     FileStream.write(reinterpret_cast<char*>(data), data_size);
-    
+
   }
 
   //! Writes a binary file.
@@ -647,26 +646,26 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatBinary<T>::"
-		    "Write(Array<TA, N>& A, ofstream& FileStream)",
-		    "File is not ready.");
+                    "Write(Array<TA, N>& A, ofstream& FileStream)",
+                    "File is not ready.");
 #endif
 
     int i = 0;
     int j = 0;
-    for (i=0; i < int(data_size / sizeof(T) / length); i++)
+    for (i = 0; i < int(data_size / sizeof(T) / length); i++)
       {
-	for (j=0; j<int(length); j++)
-	  data[j] = data_input[j+ i*length];
-	FileStream.write(reinterpret_cast<char*>(data), length * sizeof(T));
+        for (j = 0; j < int(length); j++)
+          data[j] = data_input[j + i * length];
+        FileStream.write(reinterpret_cast<char*>(data), length * sizeof(T));
       }
 
     if (data_size % (length * sizeof(T)) != 0)
       {
-	for (j = 0; j < int((data_size % (length * sizeof(T))) / sizeof(T));
-	     j++)
-	  data[j] = data_input[j + i*length];
-	FileStream.write(reinterpret_cast<char*>(data),
-			 data_size - i * length * sizeof(T));
+        for (j = 0; j < int((data_size % (length * sizeof(T))) / sizeof(T));
+             j++)
+          data[j] = data_input[j + i * length];
+        FileStream.write(reinterpret_cast<char*>(data),
+                         data_size - i * length * sizeof(T));
       }
 
     delete[] data;
@@ -686,14 +685,14 @@ namespace SeldonData
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatBinary<T>::"
-		    "Append(Array<TA, N>& A, string FileName)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "Append(Array<TA, N>& A, string FileName)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Write(A, FileStream);
 
     FileStream.close();
-    
+
   }
 
 
@@ -730,7 +729,7 @@ namespace SeldonData
 
   //! Constructor.
   FormatText::FormatText(fstream::fmtflags flags, streamsize precision,
-			 streamsize width, string separator)  throw()
+                         streamsize width, string separator)  throw()
   {
     separator_ = separator;
     flags_ = flags | fstream::skipws;
@@ -835,7 +834,7 @@ namespace SeldonData
   {
 
     this->Write(G.GetArray(), FileStream);
-    
+
   }
 
   //! Writes a text file.
@@ -853,13 +852,13 @@ namespace SeldonData
   {
 
     this->Write(G.GetArray(), FileStream);
-    
+
   }
 
   /********/
   /* Data */
   /********/
-  
+
   //! Reads a text file.
   template<class TD, int N, class TG>
   void FormatText::Read(string FileName, Data<TD, N, TG>& D) const
@@ -907,20 +906,20 @@ namespace SeldonData
 
     ifstream FileStream;
     FileStream.open(FileName.c_str(), ifstream::in);
-    
+
     FileStream.flags(flags_);
 
-    if (precision_!=-1)
+    if (precision_ != -1)
       FileStream.precision(precision_);
 
-    if (width_!=-1)
+    if (width_ != -1)
       FileStream.width(width_);
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatText::Read(string FileName, Array<TA, N>& A)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Read(FileStream, A);
@@ -948,37 +947,37 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatText::Read(ifstream& FileStream, Array<TA, N>& A)",
-		    "File is not ready.");
+                    "File is not ready.");
 #endif
 
     int nb_elements = A.numElements();
     char c;
     int i = 0;
 
-    while ( (i<nb_elements) && (FileStream.good()) )
+    while ((i < nb_elements) && (FileStream.good()))
       {
 
-	FileStream >> A(i);
+        FileStream >> A(i);
 
-	c = FileStream.peek();
-	while ( (FileStream.good())
-		&& ( (c<'0') || (c>'9') )
-		&& (c!='.') && (c!='-')
-		&& (c!='+') )
-	  {
-	    FileStream.ignore(1);
-	    c = FileStream.peek();
-	  }
+        c = FileStream.peek();
+        while ((FileStream.good())
+               && ((c < '0') || (c > '9'))
+               && (c != '.') && (c != '-')
+               && (c != '+'))
+          {
+            FileStream.ignore(1);
+            c = FileStream.peek();
+          }
 
-	i++;
+        i++;
       }
-    
+
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if all was read.
-    if (i!=nb_elements)
+    if (i != nb_elements)
       throw IOError("FormatText::Read(ifstream& FileStream, Array<TA, N>& A)",
-		    to_str(i) + " elements were read instead of "
-		    + to_str(nb_elements) + ".");
+                    to_str(i) + " elements were read instead of "
+                    + to_str(nb_elements) + ".");
 #endif
 
   }
@@ -990,20 +989,20 @@ namespace SeldonData
 
     ofstream FileStream;
     FileStream.open(FileName.c_str(), ofstream::out);
-     
+
     FileStream.flags(flags_);
-     
-    if (precision_!=-1)
+
+    if (precision_ != -1)
       FileStream.precision(precision_);
-     
-    if (width_!=-1)
+
+    if (width_ != -1)
       FileStream.width(width_);
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatText::Write(Array<TA, N>& A, string FileName)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Write(A, FileStream);
@@ -1021,8 +1020,8 @@ namespace SeldonData
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatText::Write"
-		    "(Array<TA, N>& A, ofstream& FileStream)",
-		    "File is not ready.");
+                    "(Array<TA, N>& A, ofstream& FileStream)",
+                    "File is not ready.");
 #endif
 
     int nb_elements = A.numElements();
@@ -1031,37 +1030,37 @@ namespace SeldonData
     int j;
     Array<int, 1> Index(10), Length(10);
 
-    for (j=0; j<10; j++)
+    for (j = 0; j < 10; j++)
       {
-	Index(j) = 0;
-	Length(j) = A.extent(j);
+        Index(j) = 0;
+        Length(j) = A.extent(j);
       }
 
-    j = N-1;
-    while ((i<nb_elements) && (FileStream.good()))
+    j = N - 1;
+    while ((i < nb_elements) && (FileStream.good()))
       {
 
-	FileStream << DA.Value(Index(0), Index(1), Index(2),
-			       Index(3), Index(4), Index(5),
-			       Index(6), Index(7), Index(8),
-			       Index(9));
+        FileStream << DA.Value(Index(0), Index(1), Index(2),
+                               Index(3), Index(4), Index(5),
+                               Index(6), Index(7), Index(8),
+                               Index(9));
 
-	j = N-1;
-	while ( (j>=0) && (Index(j)==Length(j)-1) )
-	  {
-	    Index(j) = 0;
-	    j--;
-	  }
-	 
-	if (j!=-1)
-	  Index(j)++;
+        j = N - 1;
+        while ((j >= 0) && (Index(j) == Length(j) - 1))
+          {
+            Index(j) = 0;
+            j--;
+          }
 
-	if ((j!=N-1) || (N==1))
-	  FileStream << '\n';
-	else
-	  FileStream << separator_;
-	 
-	i++;
+        if (j != -1)
+          Index(j)++;
+
+        if ((j != N - 1) || (N == 1))
+          FileStream << '\n';
+        else
+          FileStream << separator_;
+
+        i++;
       }
 
   }
@@ -1078,8 +1077,8 @@ namespace SeldonData
     \param delimiters characters used to delimit elements in the file.
   */
   FormatFormattedText::FormatFormattedText(string format,
-					   string comments,
-					   string delimiters):
+                                           string comments,
+                                           string delimiters):
     format_(format), comments_(comments), delimiters_(delimiters)
   {
     this->SetVectors();
@@ -1102,115 +1101,115 @@ namespace SeldonData
     vector<string> markup, desc;
 
     split(format_, markup, ">");
-    for (unsigned int i=0; i<markup.size(); i++)
+    for (unsigned int i = 0; i < markup.size(); i++)
       {
-	split(markup[i], desc, "<");
+        split(markup[i], desc, "<");
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	if (desc.size() == 0)
-	  throw IOError("FormatFormattedText::SetVectors()",
-			"Empty markup detected found.");
+        if (desc.size() == 0)
+          throw IOError("FormatFormattedText::SetVectors()",
+                        "Empty markup detected found.");
 #endif
-	split(desc[desc.size() - 1], desc, " \n\t-,|/");
+        split(desc[desc.size() - 1], desc, " \n\t-,|/");
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	if (desc.size() == 0)
-	  throw IOError("FormatFormattedText::SetVectors()",
-			"Empty markup found.");
+        if (desc.size() == 0)
+          throw IOError("FormatFormattedText::SetVectors()",
+                        "Empty markup found.");
 #endif
-	info_str.push_back(desc[0]);
+        info_str.push_back(desc[0]);
 
-	if (info_str[i] == "c")
-	  {
-
-#ifdef SELDONDATA_DEBUG_CHECK_IO
-	    if (desc.size() != 3)
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    string("Column descriptor must be followed by"
-				   " two numbers. ")
-			    + to_str(desc.size() - 1) + " elements were "
-			    "provided.");
-#endif
+        if (info_str[i] == "c")
+          {
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	    if (!is_unsigned_integer(desc[1]))
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    string("Column descriptor must be followed by two"
-				   " numbers. ")
-			    + "The first element that follows 'c' is not an"
-			    " unsigned integer.");
-	    if (!is_unsigned_integer(desc[2]))
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    string("Column descriptor must be followed by two"
-				   " numbers. ")
-			    + "The second number that follows 'c' is not an"
-			    " unsigned integer.");
+            if (desc.size() != 3)
+              throw IOError("FormatFormattedText::SetVectors()",
+                            string("Column descriptor must be followed by"
+                                   " two numbers. ")
+                            + to_str(desc.size() - 1) + " elements were "
+                            "provided.");
 #endif
 
-	    info_nb0.push_back(to_num<int>(desc[1]));
-	    info_nb1.push_back(to_num<int>(desc[2]));
-
-	  }
-	else if (info_str[i] == "e")
-	  {
-
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	    if ( (desc.size() != 1) && (desc.size() != 2) )
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    "Element descriptor must be followed by at most "
-			    "one number.");
-	    if ( (desc.size() == 2) && !is_unsigned_integer(desc[1]) )
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    "If followed by something, element descriptor"
-			    " must be followed an unsigned integer.");
+            if (!is_unsigned_integer(desc[1]))
+              throw IOError("FormatFormattedText::SetVectors()",
+                            string("Column descriptor must be followed by two"
+                                   " numbers. ")
+                            + "The first element that follows 'c' is not an"
+                            " unsigned integer.");
+            if (!is_unsigned_integer(desc[2]))
+              throw IOError("FormatFormattedText::SetVectors()",
+                            string("Column descriptor must be followed by two"
+                                   " numbers. ")
+                            + "The second number that follows 'c' is not an"
+                            " unsigned integer.");
 #endif
 
-	    if (desc.size() == 1)
-	      info_nb0.push_back(1);
-	    else
-	      info_nb0.push_back(to_num<int>(desc[1]));
+            info_nb0.push_back(to_num<int>(desc[1]));
+            info_nb1.push_back(to_num<int>(desc[2]));
 
-	    info_nb1.push_back(-1);
-	    
-	  }
-	else if (info_str[i] == "s")
-	  {
+          }
+        else if (info_str[i] == "e")
+          {
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	    if ( (desc.size() != 1) && (desc.size() != 2) )
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    "Skip descriptor must be followed by at most one"
-			    " number.");
-	    if ( (desc.size() == 2) && !is_unsigned_integer(desc[1]) )
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    "If followed by something, skip descriptor must"
-			    " be followed an unsigned integer.");
+            if ((desc.size() != 1) && (desc.size() != 2))
+              throw IOError("FormatFormattedText::SetVectors()",
+                            "Element descriptor must be followed by at most "
+                            "one number.");
+            if ((desc.size() == 2) && !is_unsigned_integer(desc[1]))
+              throw IOError("FormatFormattedText::SetVectors()",
+                            "If followed by something, element descriptor"
+                            " must be followed an unsigned integer.");
 #endif
 
-	    if (desc.size() == 1)
-	      info_nb0.push_back(1);
-	    else
-	      info_nb0.push_back(to_num<int>(desc[1]));
+            if (desc.size() == 1)
+              info_nb0.push_back(1);
+            else
+              info_nb0.push_back(to_num<int>(desc[1]));
 
-	    info_nb1.push_back(-1);
-	    
-	  }
-	else if (info_str[i] == "a" || info_str[i] == "A")
-	  {
+            info_nb1.push_back(-1);
+
+          }
+        else if (info_str[i] == "s")
+          {
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	    if (desc.size() != 1)
-	      throw IOError("FormatFormattedText::SetVectors()",
-			    "All descriptor must not be followed by"
-			    " anything.");
+            if ((desc.size() != 1) && (desc.size() != 2))
+              throw IOError("FormatFormattedText::SetVectors()",
+                            "Skip descriptor must be followed by at most one"
+                            " number.");
+            if ((desc.size() == 2) && !is_unsigned_integer(desc[1]))
+              throw IOError("FormatFormattedText::SetVectors()",
+                            "If followed by something, skip descriptor must"
+                            " be followed an unsigned integer.");
 #endif
 
-	    info_nb0.push_back(-1);
-	    info_nb1.push_back(-1);
-	    
-	  }
+            if (desc.size() == 1)
+              info_nb0.push_back(1);
+            else
+              info_nb0.push_back(to_num<int>(desc[1]));
+
+            info_nb1.push_back(-1);
+
+          }
+        else if (info_str[i] == "a" || info_str[i] == "A")
+          {
+
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	else
-	  throw IOError("FormatFormattedText::SetVectors()",
-			"Unknown delimiter.");
+            if (desc.size() != 1)
+              throw IOError("FormatFormattedText::SetVectors()",
+                            "All descriptor must not be followed by"
+                            " anything.");
+#endif
+
+            info_nb0.push_back(-1);
+            info_nb1.push_back(-1);
+
+          }
+#ifdef SELDONDATA_DEBUG_CHECK_IO
+        else
+          throw IOError("FormatFormattedText::SetVectors()",
+                        "Unknown delimiter.");
 #endif
 
       }
@@ -1218,108 +1217,108 @@ namespace SeldonData
 
   //! Skips data.
   void FormatFormattedText::SkipMarkup(ExtStream& FileStream,
-				       streampos pos, int i) const
+                                       streampos pos, int i) const
   {
     if (info_str[i] == "c")
       {
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	if (info_nb0[i] < pos)
-	  throw IOError("FormatFormattedText::SkipMarkup"
-			"(ExtStream& FileStream, streampos pos, int i)",
-			string("Unable to move forward to column #")
-			+ to_str(info_nb0[i] + "."));
+        if (info_nb0[i] < pos)
+          throw IOError("FormatFormattedText::SkipMarkup"
+                        "(ExtStream& FileStream, streampos pos, int i)",
+                        string("Unable to move forward to column #")
+                        + to_str(info_nb0[i] + "."));
 #endif
-	char* buf = new char[info_nb0[i] - pos];
-	FileStream.read(buf, info_nb0[i] - pos);
-	delete [] buf;
-	buf = new char[info_nb1[i] + 1];
-	FileStream.read(buf, info_nb1[i]);
-	buf[info_nb1[i]] = '\0';
-	delete [] buf;
+        char* buf = new char[info_nb0[i] - pos];
+        FileStream.read(buf, info_nb0[i] - pos);
+        delete [] buf;
+        buf = new char[info_nb1[i] + 1];
+        FileStream.read(buf, info_nb1[i]);
+        buf[info_nb1[i]] = '\0';
+        delete [] buf;
       }
     else if (info_str[i] == "e")
       {
-	for (int j=0; j<info_nb0[i]; j++)
-	  FileStream.GetElement();
+        for (int j = 0; j < info_nb0[i]; j++)
+          FileStream.GetElement();
       }
     else if (info_str[i] == "s")
       {
-	char* buf = new char[info_nb0[i]];
-	FileStream.read(buf, info_nb0[i]);
-	delete [] buf;
+        char* buf = new char[info_nb0[i]];
+        FileStream.read(buf, info_nb0[i]);
+        delete [] buf;
       }
     else if (info_str[i] == "a" || info_str[i] == "A")
       {
-	FileStream.GetFullLine();
-	FileStream.seekg(-1, ExtStream::cur);
+        FileStream.GetFullLine();
+        FileStream.seekg(-1, ExtStream::cur);
       }
   }
 
   //! Reads data.
   template <class T>
   int FormatFormattedText::ReadMarkup(ExtStream& FileStream,
-				      streampos pos, int i,
-				      T* value, int max_length) const
+                                      streampos pos, int i,
+                                      T* value, int max_length) const
   {
     if (info_str[i] == "c")
       {
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	if (info_nb0[i] < pos)
-	  throw IOError("FormatFormattedText::ReadMarkup<T>"
-			"(ExtStream& FileStream, streampos pos, int i,"
-			" T* value, int max_length)",
-			string("Unable to move forward to column #")
-			+ to_str(info_nb0[i] + "."));
+        if (info_nb0[i] < pos)
+          throw IOError("FormatFormattedText::ReadMarkup<T>"
+                        "(ExtStream& FileStream, streampos pos, int i,"
+                        " T* value, int max_length)",
+                        string("Unable to move forward to column #")
+                        + to_str(info_nb0[i] + "."));
 #endif
-	char* buf = new char[info_nb0[i] - pos];
-	FileStream.read(buf, info_nb0[i] - pos);
-	delete [] buf;
-	buf = new char[info_nb1[i] + 1];
-	FileStream.read(buf, info_nb1[i]);
-	buf[info_nb1[i]] = '\0';
-	string sbuf(buf);
-	convert(sbuf, *value);
-	delete [] buf;
-	return 1;
+        char* buf = new char[info_nb0[i] - pos];
+        FileStream.read(buf, info_nb0[i] - pos);
+        delete [] buf;
+        buf = new char[info_nb1[i] + 1];
+        FileStream.read(buf, info_nb1[i]);
+        buf[info_nb1[i]] = '\0';
+        string sbuf(buf);
+        convert(sbuf, *value);
+        delete [] buf;
+        return 1;
       }
     else if (info_str[i] == "e")
       {
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	if (max_length<info_nb0[i])
-	  throw IOError("FormatFormattedText::ReadMarkup<T>"
-			"(ExtStream& FileStream, streampos pos, int i,"
-			" T* value, int max_length)",
-			string("Unable to read ") + to_str(info_nb0[i])
-			+ " elements: data array is full.");
+        if (max_length < info_nb0[i])
+          throw IOError("FormatFormattedText::ReadMarkup<T>"
+                        "(ExtStream& FileStream, streampos pos, int i,"
+                        " T* value, int max_length)",
+                        string("Unable to read ") + to_str(info_nb0[i])
+                        + " elements: data array is full.");
 #endif
-	for (int j=0; j<info_nb0[i]; j++)
-	  FileStream.GetElement(value[j]);
-	return info_nb0[i];
+        for (int j = 0; j < info_nb0[i]; j++)
+          FileStream.GetElement(value[j]);
+        return info_nb0[i];
       }
     else if (info_str[i] == "s")
       {
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	throw IOError("FormatFormattedText::ReadMarkup<T>"
-		      "(ExtStream& FileStream, streampos pos, int i,"
-		      " T* value, int max_length)",
-		      "Attempted to read data supposed to be skipped.");
+        throw IOError("FormatFormattedText::ReadMarkup<T>"
+                      "(ExtStream& FileStream, streampos pos, int i,"
+                      " T* value, int max_length)",
+                      "Attempted to read data supposed to be skipped.");
 #endif
       }
     else if (info_str[i] == "a")
       {
-	convert(trim(FileStream.GetLine(), delimiters_), *value);
-	FileStream.seekg(-1, ExtStream::cur);
-	FileStream.GetFullLine();
-	FileStream.seekg(-1, ExtStream::cur);
-	pos = FileStream.tellg();
-	return 1;
+        convert(trim(FileStream.GetLine(), delimiters_), *value);
+        FileStream.seekg(-1, ExtStream::cur);
+        FileStream.GetFullLine();
+        FileStream.seekg(-1, ExtStream::cur);
+        pos = FileStream.tellg();
+        return 1;
       }
     else if (info_str[i] == "A")
       {
-	convert(FileStream.GetFullLine(), *value);
-	FileStream.seekg(-1, ExtStream::cur);
-	pos = FileStream.tellg();
-	return 1;
+        convert(FileStream.GetFullLine(), *value);
+        FileStream.seekg(-1, ExtStream::cur);
+        pos = FileStream.tellg();
+        return 1;
       }
     return 0;
   }
@@ -1386,7 +1385,7 @@ namespace SeldonData
   //! Reads a text file.
   template<class TG>
   void FormatFormattedText::Read(string FileName, string extract,
-				 RegularGrid<TG>& G) const
+                                 RegularGrid<TG>& G) const
   {
 
     this->Read(FileName, extract, G.GetArray());
@@ -1396,7 +1395,7 @@ namespace SeldonData
   //! Reads a text file.
   template<class TG>
   void FormatFormattedText::Read(ExtStream& FileStream, string extract,
-				 RegularGrid<TG>& G) const
+                                 RegularGrid<TG>& G) const
   {
 
     this->Read(FileStream, extract, G.GetArray());
@@ -1406,7 +1405,7 @@ namespace SeldonData
   //! Reads a text file.
   template<class TG, int n>
   void FormatFormattedText::Read(string FileName, string extract,
-				 GeneralGrid<TG, n>& G) const
+                                 GeneralGrid<TG, n>& G) const
   {
 
     this->Read(FileName, extract, G.GetArray());
@@ -1416,7 +1415,7 @@ namespace SeldonData
   //! Reads a text file.
   template<class TG, int n>
   void FormatFormattedText::Read(ExtStream& FileStream, string extract,
-				 GeneralGrid<TG, n>& G) const
+                                 GeneralGrid<TG, n>& G) const
   {
 
     this->Read(FileStream, extract, G.GetArray());
@@ -1426,11 +1425,11 @@ namespace SeldonData
   /********/
   /* Data */
   /********/
-  
+
   //! Reads a text file.
   template<class TD, int N, class TG>
   void FormatFormattedText::Read(string FileName, string extract,
-				 Data<TD, N, TG>& D) const
+                                 Data<TD, N, TG>& D) const
   {
 
     this->Read(FileName, extract, D.GetArray());
@@ -1440,7 +1439,7 @@ namespace SeldonData
   //! Reads a text file.
   template<class TD, int N, class TG>
   void FormatFormattedText::Read(ExtStream& FileStream, string extract,
-				 Data<TD, N, TG>& D) const
+                                 Data<TD, N, TG>& D) const
   {
 
     this->Read(FileStream, extract, D.GetArray());
@@ -1454,17 +1453,17 @@ namespace SeldonData
   //! Reads a text file.
   template<class TA, int N>
   void FormatFormattedText::Read(string FileName, string extract,
-				 Array<TA, N>& A) const
+                                 Array<TA, N>& A) const
   {
 
     ExtStream FileStream(FileName, comments_, delimiters_);
-    
+
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatFormattedText::Read"
-		    "(string FileName, string extract, Array<TA, N>& A)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "(string FileName, string extract, Array<TA, N>& A)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Read(FileStream, extract, A);
@@ -1476,20 +1475,20 @@ namespace SeldonData
   //! Reads a text file.
   template<class TA, int N>
   void FormatFormattedText::Read(ExtStream& FileStream, string extract,
-				 Array<TA, N>& A) const
+                                 Array<TA, N>& A) const
   {
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatFormattedText::Read(ExtStream& FileStream,"
-		    " string extract, Array<TA, N>& A)",
-		    "File is not ready.");
+                    " string extract, Array<TA, N>& A)",
+                    "File is not ready.");
 #endif
 
     string delimiters(FileStream.GetDelimiters()),
       comments(FileStream.GetComments());
-    
+
     FileStream.SetDelimiters(delimiters_);
     FileStream.SetComments(comments_);
 
@@ -1498,7 +1497,7 @@ namespace SeldonData
     streampos pos_beg = FileStream.tellg();
     streampos pos_cur(pos_beg);
     streampos position;
-    
+
     vector<int> markups;
     split(extract, markups, " \t\n,;:/|");
 
@@ -1508,82 +1507,83 @@ namespace SeldonData
     int k(0), l(0);
     bool newline;
 
-    while ((i<nb_elements) && !is_empty(FileStream))
+    while ((i < nb_elements) && !is_empty(FileStream))
       {
 
-	if (k<int(markups.size()))
-	  {
-	    while (l!=markups[k])
-	      {
-		this->SkipMarkup(FileStream, pos_cur - pos_beg, l);
-		newline = false;
-		while ( (!is_empty(FileStream))
-			&& FileStream.Discard(FileStream.
-					      PeekFullLine(position)) )
-		  {
-		    newline = true;
-		    FileStream.seekg(position);
-		  }
-		if (newline)
-		  {
-		    FileStream.seekg(-1, ExtStream::cur);
-		    pos_beg = FileStream.tellg();
-		  }
-		pos_cur = FileStream.tellg();
-		l++;
-	      }
+        if (k < int(markups.size()))
+          {
+            while (l != markups[k])
+              {
+                this->SkipMarkup(FileStream, pos_cur - pos_beg, l);
+                newline = false;
+                while ((!is_empty(FileStream))
+                       && FileStream.Discard(FileStream.
+                                             PeekFullLine(position)))
+                  {
+                    newline = true;
+                    FileStream.seekg(position);
+                  }
+                if (newline)
+                  {
+                    FileStream.seekg(-1, ExtStream::cur);
+                    pos_beg = FileStream.tellg();
+                  }
+                pos_cur = FileStream.tellg();
+                l++;
+              }
 
-	    i += this->ReadMarkup(FileStream, pos_cur - pos_beg, l,
-				  &data[i], nb_elements - i);
+            i += this->ReadMarkup(FileStream, pos_cur - pos_beg, l,
+                                  &data[i], nb_elements - i);
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
-	    // Checks if data was read.
-	    if (!FileStream.good())
-	      throw IOError("FormatFormattedText::Read(ExtStream& FileStream,"
-			    "string extract, Array<TA, N>& A)",
-			    string("Unable to read data associated with <")
-			    + info_str[l] + " " + to_str(info_nb0[l]) + " "
-			    + to_str(info_nb1[l]) + ">.");
+            // Checks if data was read.
+            if (!FileStream.good())
+              throw IOError("FormatFormattedText::Read(ExtStream& FileStream,"
+                            "string extract, Array<TA, N>& A)",
+                            string("Unable to read data associated with <")
+                            + info_str[l] + " " + to_str(info_nb0[l]) + " "
+                            + to_str(info_nb1[l]) + ">.");
 #endif
 
-	    newline = false;
-	    while ( !is_empty(FileStream)
-		    && FileStream.Discard(FileStream.PeekFullLine(position)) )
-	      {
-		newline = true;
-		FileStream.seekg(position);
-	      }
-	    if (newline)
-	      {
-		FileStream.seekg(-1, ExtStream::cur);
-		pos_beg = FileStream.tellg();
-	      }
-	    pos_cur = FileStream.tellg();
-	    
-	    k++;
-	    if (!is_empty(FileStream))
-	      l++;
-	  }
-	else
-	  {
-	    k = 0; l = 0;
-	    FileStream.GetFullLine();
-	    while ( (!is_empty(FileStream))
-		    && FileStream.Discard(FileStream.PeekFullLine(position)) )
-	      FileStream.seekg(position);
-	    pos_beg = pos_cur = FileStream.tellg();
-	  }
+            newline = false;
+            while (!is_empty(FileStream)
+                   && FileStream.Discard(FileStream.PeekFullLine(position)))
+              {
+                newline = true;
+                FileStream.seekg(position);
+              }
+            if (newline)
+              {
+                FileStream.seekg(-1, ExtStream::cur);
+                pos_beg = FileStream.tellg();
+              }
+            pos_cur = FileStream.tellg();
+
+            k++;
+            if (!is_empty(FileStream))
+              l++;
+          }
+        else
+          {
+            k = 0;
+            l = 0;
+            FileStream.GetFullLine();
+            while ((!is_empty(FileStream))
+                   && FileStream.Discard(FileStream.PeekFullLine(position)))
+              FileStream.seekg(position);
+            pos_beg = pos_cur = FileStream.tellg();
+          }
       }
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if data was read.
-    if (i<nb_elements)
+    if (i < nb_elements)
       throw IOError("FormatFormattedText::Read"
-		    "(ExtStream& FileStream, string extract,"
-		    " Array<TA, N>& A)",
-		    string("Only ") + to_str(i) +
-		    " elements were read instead of "
-		    + to_str(nb_elements) + ".");
+                    "(ExtStream& FileStream, string extract,"
+                    " Array<TA, N>& A)",
+                    string("Only ") + to_str(i) +
+                    " elements were read instead of "
+                    + to_str(nb_elements) + ".");
 #endif
 
     FileStream.SetDelimiters(delimiters);
@@ -1613,7 +1613,7 @@ namespace SeldonData
   ////////////////////////////////////////////////
   // Reads one variable in a netcdf format file //
   ////////////////////////////////////////////////
-  
+
   /********/
   /* Grid */
   /********/
@@ -1622,7 +1622,7 @@ namespace SeldonData
   template<class T>
   template<class TG>
   void FormatNetCDF<T>::Read(string FileName, string variable,
-			     RegularGrid<TG>& G) const
+                             RegularGrid<TG>& G) const
   {
 
     this->Read(FileName, variable, G.GetArray());
@@ -1633,7 +1633,7 @@ namespace SeldonData
   template<class T>
   template<class TG, int n>
   void FormatNetCDF<T>::Read(string FileName, string variable,
-			     GeneralGrid<TG, n>& G) const
+                             GeneralGrid<TG, n>& G) const
   {
 
     this->Read(FileName, variable, G.GetArray());
@@ -1643,12 +1643,12 @@ namespace SeldonData
   /********/
   /* Data */
   /********/
-  
+
   //! Reads a netCDF file.
   template<class T>
   template<class TD, int N, class TG>
   void FormatNetCDF<T>::Read(string FileName, string variable,
-			     Data<TD, N, TG>& D) const
+                             Data<TD, N, TG>& D) const
   {
 
     this->Read(FileName, variable, D.GetArray());
@@ -1663,7 +1663,7 @@ namespace SeldonData
   template<class T>
   template<class TA, int N>
   void FormatNetCDF<T>::Read(string FileName, string variable,
-			     Array<TA, N>& A) const
+                             Array<TA, N>& A) const
   {
 
     NcFile File(FileName.c_str());
@@ -1672,21 +1672,21 @@ namespace SeldonData
     // Checks if the file is valid.
     if (!File.is_valid())
       throw IOError("FormatNetCDF<T>::Read(string FileName, Array<TA, N>& A)",
-		    "\"" + FileName + "\" is not a valid netCDF file.");
+                    "\"" + FileName + "\" is not a valid netCDF file.");
 #endif
 
     int Nb_vars = File.num_vars();
 
     int i(0);
-    while ( (i<Nb_vars) && (string(File.get_var(i)->name()) != variable) )
+    while ((i < Nb_vars) && (string(File.get_var(i)->name()) != variable))
       i++;
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks whether the variable was found.
-    if (i==Nb_vars)
+    if (i == Nb_vars)
       throw IOError("FormatNetCDF<T>::Read(string FileName, Array<TA, N>& A)",
-		    "Unable to find variable \"" + variable
-		    + "\" in \"" + FileName + "\".");
+                    "Unable to find variable \"" + variable
+                    + "\" in \"" + FileName + "\".");
 #endif
 
     NcVar* var = File.get_var(i);
@@ -1695,27 +1695,27 @@ namespace SeldonData
     // Checks the dimension.
     if (var->num_dims() != N)
       throw WrongDim("FormatNetCDF<T>::"
-		     "Read(string FileName, Array<TA, N>& A)",
-		     "Data has " + to_str(N) +
-		     "dimensions, but stored data has "
-		     + to_str(var->num_dims()) + "dimensions.");
+                     "Read(string FileName, Array<TA, N>& A)",
+                     "Data has " + to_str(N) +
+                     "dimensions, but stored data has "
+                     + to_str(var->num_dims()) + "dimensions.");
 #endif
 
 #ifdef SELDONDATA_DEBUG_CHECK_INDICES
     long* input_dimensions = var->edges();
-    for (i=0; i<var->num_dims(); i++)
+    for (i = 0; i < var->num_dims(); i++)
       if (A.extent(i) > input_dimensions[i])
-	throw WrongIndex("FormatNetCDF<T>::"
-			 "Read(string FileName, Array<TA, N>& A)",
-			 "Array extent is " + to_str(A.extent(i))
-			 + " along dimension #" + to_str(i)
-			 + " , but it should not be strictly more than "
-			 + to_str(input_dimensions[i]) + ".");
+        throw WrongIndex("FormatNetCDF<T>::"
+                         "Read(string FileName, Array<TA, N>& A)",
+                         "Array extent is " + to_str(A.extent(i))
+                         + " along dimension #" + to_str(i)
+                         + " , but it should not be strictly more than "
+                         + to_str(input_dimensions[i]) + ".");
     delete[] input_dimensions;
 #endif
 
     long* extents = new long[N];
-    for (i=0; i<N; i++)
+    for (i = 0; i < N; i++)
       extents[i] = A.extent(i);
 
     bool op = var->get(A.data(), extents);
@@ -1726,7 +1726,7 @@ namespace SeldonData
     // Checks whether input operation succeeded.
     if (!op)
       throw IOError("FormatNetCDF<T>::Read(string FileName, Array<TA, N>& A)",
-		    "Data type doesn't match type of stored values.");
+                    "Data type doesn't match type of stored values.");
 #endif
 
   }
@@ -1739,7 +1739,7 @@ namespace SeldonData
   //! Reads the dim_num th dimension of the variable in a netCDF file.
   template<class T>
   void FormatNetCDF<T>::ReadDimension(string FileName, string variable,
-				      int dim_num, int& dim_value) const
+                                      int dim_num, int& dim_value) const
   {
 
     NcFile File(FileName.c_str());
@@ -1748,36 +1748,36 @@ namespace SeldonData
     // Checks if the file is valid.
     if (!File.is_valid())
       throw IOError("FormatNetCDF<T>::ReadDimension(string, string, int, int&)",
-		    "\"" + FileName + "\" is not a valid netCDF file.");
+                    "\"" + FileName + "\" is not a valid netCDF file.");
 #endif
 
     int Nb_vars = File.num_vars();
-	
+
     int i(0);
-    while ( (i<Nb_vars) && (string(File.get_var(i)->name()) != variable) )
+    while ((i < Nb_vars) && (string(File.get_var(i)->name()) != variable))
       i++;
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks whether the variable was found.
-    if (i==Nb_vars)
+    if (i == Nb_vars)
       throw IOError("FormatNetCDF<T>::ReadDimension(string, string, int, int&)",
-		    "Unable to find variable \"" + variable
-		    + "\" in \"" + FileName + "\".");
+                    "Unable to find variable \"" + variable
+                    + "\" in \"" + FileName + "\".");
 #endif
-	
+
     NcVar* var = File.get_var(i);
-	
+
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
     // Checks the dimension.
     if (var->num_dims() < dim_num)
       throw WrongDim("FormatNetCDF<T>::Read(string, string, int, int&)",
-		     "Variable has " + to_str(var->num_dims()) + " dimensions,"
-		     + "but requested dimension is " + to_str(dim_num));
+                     "Variable has " + to_str(var->num_dims()) + " dimensions,"
+                     + "but requested dimension is " + to_str(dim_num));
 #endif
-	
+
     long* shape = var->edges();
     dim_value = shape[dim_num];
-
+    delete[] shape;
   }
 
   /////////////////////////////////////////////////
@@ -1789,7 +1789,7 @@ namespace SeldonData
   //! and put the value of it in a float format.
   template<class T>
   void FormatNetCDF<T>::ReadAttribute(string FileName, string attribute,
-				      float& value) const
+                                      float& value) const
   {
 
     NcFile File(FileName.c_str());
@@ -1798,41 +1798,44 @@ namespace SeldonData
     // Checks if the file is valid.
     if (!File.is_valid())
       throw IOError("FormatNetCDF<T>::ReadAttribute(string, string, float&)",
-		    "\"" + FileName + "\" is not a valid netCDF file.");
+                    "\"" + FileName + "\" is not a valid netCDF file.");
 #endif
 
+    NcAtt* att = 0;
     int Nb_atts = File.num_atts();
-	
-    int i(0);
-    while ( (i<Nb_atts) && (string(File.get_att(i)->name()) != attribute) )
-      i++;
+    for (int i = 0; i < Nb_atts; ++i)
+      {
+        att = File.get_att(i);
+        if (attribute == att->name())
+          break;
+        delete att;
+        att = 0;
+      }
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks whether the attribute was found.
-    if (i==Nb_atts)
+    if (att == 0)
       throw IOError("FormatNetCDF<T>::ReadAttribute(string, string, float&)",
-		    "Unable to find global attribute \"" + attribute
-		    + "\" in \"" + FileName + "\".");
+                    "Unable to find global attribute \"" + attribute
+                    + "\" in \"" + FileName + "\".");
 #endif
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
     // Checks if the attribute value is a float.
-    if (File.get_att(i)->type() != ncFloat)
+    if (att->type() != ncFloat)
       throw IOError("FormatNetCDF<T>::ReadAttribute(string, string, float&)",
-		    "Attribute \"" + attribute + "\" is not a float"
-		    + " in \"" + FileName + "\".");
+                    "Attribute \"" + attribute + "\" is not a float"
+                    + " in \"" + FileName + "\".");
 #endif
-	
-    NcAtt* att = File.get_att(i);
     value = att->as_float(0);
-
+    delete att;
   }
 
   //! Reads the global attribute in a netCDF file
   //! and put the value of it in a int format.
   template<class T>
   void FormatNetCDF<T>::ReadAttribute(string FileName, string attribute,
-				      int& value) const
+                                      int& value) const
   {
 
     NcFile File(FileName.c_str());
@@ -1841,34 +1844,37 @@ namespace SeldonData
     // Checks if the file is valid.
     if (!File.is_valid())
       throw IOError("FormatNetCDF<T>::ReadAttribute(string, string, int&)",
-		    "\"" + FileName + "\" is not a valid netCDF file.");
+                    "\"" + FileName + "\" is not a valid netCDF file.");
 #endif
 
+    NcAtt* att = 0;
     int Nb_atts = File.num_atts();
-	
-    int i(0);
-    while ( (i<Nb_atts) && (string(File.get_att(i)->name()) != attribute) )
-      i++;
+    for (int i = 0; i < Nb_atts; ++i)
+      {
+        att = File.get_att(i);
+        if (attribute == att->name())
+          break;
+        delete att;
+        att = 0;
+      }
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks whether the attribute was found.
-    if (i==Nb_atts)
+    if (att == 0)
       throw IOError("FormatNetCDF<T>::ReadAttribute(string, string, int&)",
-		    "Unable to find global attribute \"" + attribute
-		    + "\" in \"" + FileName + "\".");
+                    "Unable to find global attribute \"" + attribute
+                    + "\" in \"" + FileName + "\".");
 #endif
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
     // Checks if the attribute value is a float.
-    if (File.get_att(i)->type() != ncInt)
+    if (att->type() != ncInt)
       throw IOError("FormatNetCDF<T>::ReadAttribute(string, string, int&)",
-		    "Attribute \"" + attribute + "\" is not a float"
-		    + " in \"" + FileName + "\".");
+                    "Attribute \"" + attribute + "\" is not a float"
+                    + " in \"" + FileName + "\".");
 #endif
-	
-    NcAtt* att = File.get_att(i);
     value = att->as_int(0);
-
+    delete att;
   }
 
 #endif
@@ -1897,7 +1903,7 @@ namespace SeldonData
   //! Reads a Grib file.
   template<class TG>
   void FormatGrib::Read(string FileName, int variable,
-			RegularGrid<TG>& G) const
+                        RegularGrid<TG>& G) const
   {
 
     this->Read(FileName, variable, G.GetArray());
@@ -1907,7 +1913,7 @@ namespace SeldonData
   //! Reads a Grib file.
   template<class TG, int n>
   void FormatGrib::Read(string FileName, int variable,
-			GeneralGrid<TG, n>& G) const
+                        GeneralGrid<TG, n>& G) const
   {
 
     this->Read(FileName, variable, G.GetArray());
@@ -1917,11 +1923,11 @@ namespace SeldonData
   /********/
   /* Data */
   /********/
-  
+
   //! Reads a Grib file.
   template<class TD, int N, class TG>
   void FormatGrib::Read(string FileName, int variable,
-			Data<TD, N, TG>& D) const
+                        Data<TD, N, TG>& D) const
   {
 
     this->Read(FileName, variable, D.GetArray());
@@ -1940,17 +1946,17 @@ namespace SeldonData
     int i, j, nx, ny;
     long int pos = 0;
     FILE *grib_file;
-   
+
     int status(0), param(0);
-    
+
     grib_file = fopen(FileName.c_str(), "r");
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file was opened.
     if (grib_file == NULL)
       throw IOError("FormatGrib::Read"
-		    "(string FileName, int variable, Array<TA, N>& A)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "(string FileName, int variable, Array<TA, N>& A)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     int nb_elements = A.numElements();
@@ -1960,55 +1966,186 @@ namespace SeldonData
     float *data;
 
     while (max_length != 0 &&
-	   (status = decode_grib(grib_file, &pos, &param, &data, &nx, &ny))
-	   == 0)
+           (status = decode_grib(grib_file, &pos, &param, &data, &nx, &ny))
+           == 0)
       {
-	j = nb_elements - max_length;
-	if (param == variable)
-	  {
-	    for(i = 0; i < nx * ny; i++)
-	      A.data()[j + i] = data[i];
-	    max_length -= nx * ny;
-	  }
-	nrec ++;
-	free(data);
+        j = nb_elements - max_length;
+        if (param == variable)
+          {
+            for (i = 0; i < nx * ny; i++)
+              A.data()[j + i] = data[i];
+            max_length -= nx * ny;
+          }
+        nrec ++;
+        free(data);
       }
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     if (status == 1)
       throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
-		    "Read error after " + to_str(nrec) + " records.");
+                    "Read error after " + to_str(nrec) + " records.");
 
     if (max_length != 0)
       {
-	if (status == -2)
-	  throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
-			"File \"" + FileName + "\" contains at least "
-			+ to_str(nb_elements - max_length + nx * ny)
-			+ " elements for field #" + to_str(variable)
-			+ ", but data has only " + to_str(nb_elements)
-			+ " elements. The current record (whose length is "
-			+ to_str(nx * ny)
-			+ " elements) must be completely read.");
-	
-	if (status == -1)
-	  throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
-			"End of file found. "
-			+ to_str(nb_elements - max_length)
-			+ " elements were read for field #"
-			+ to_str(variable)
-			+ " in file \"" + FileName + "\", but data has "
-			+ to_str(nb_elements) + " elements.");
+        if (status == -2)
+          throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
+                        "File \"" + FileName + "\" contains at least "
+                        + to_str(nb_elements - max_length + nx * ny)
+                        + " elements for field #" + to_str(variable)
+                        + ", but data has only " + to_str(nb_elements)
+                        + " elements. The current record (whose length is "
+                        + to_str(nx * ny)
+                        + " elements) must be completely read.");
 
-	throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
-		      "Cannot find all values. File \"" + FileName
-		      + "\" contains " + to_str(nb_elements - max_length)
-		      + " elements for field #" + to_str(variable)
-		      + ", but data has " + to_str(nb_elements)
-		      + " elements.");
+        if (status == -1)
+          throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
+                        "End of file found. "
+                        + to_str(nb_elements - max_length)
+                        + " elements were read for field #"
+                        + to_str(variable)
+                        + " in file \"" + FileName + "\", but data has "
+                        + to_str(nb_elements) + " elements.");
+
+        throw IOError("FormatGrib::Read(string FileName, Array<TA, N>& A)",
+                      "Cannot find all values. File \"" + FileName
+                      + "\" contains " + to_str(nb_elements - max_length)
+                      + " elements for field #" + to_str(variable)
+                      + ", but data has " + to_str(nb_elements)
+                      + " elements.");
       }
 #endif
 
+    fclose(grib_file);
+  }
+
+  // Format Grib2.
+  //! Default constructor.
+  FormatGrib2::FormatGrib2()  throw()
+  {
+  }
+
+  //! Destructor.
+  FormatGrib2::~FormatGrib2()  throw()
+  {
+  }
+
+  /********/
+  /* Grid */
+  /********/
+
+  //! Reads a Grib2 file.
+  template<class TG>
+  void FormatGrib2::Read(string FileName, int discipline, int parameterCategory,
+			 int parameterNumber, RegularGrid<TG>& G) const
+  {
+
+    this->Read(FileName, discipline, parameterCategory, parameterNumber,
+	       G.GetArray());
+
+  }
+
+  //! Reads a Grib2 file.
+  template<class TG, int n>
+  void FormatGrib2::Read(string FileName, int discipline, int parameterCategory,
+			 int parameterNumber, GeneralGrid<TG, n>& G) const
+  {
+
+    this->Read(FileName, discipline, parameterCategory, parameterNumber,
+	       G.GetArray());
+
+  }
+
+  /********/
+  /* Data */
+  /********/
+  
+  //! Reads a Grib2 file.
+  template<class TD, int N, class TG>
+  void FormatGrib2::Read(string FileName, int discipline, int parameterCategory,
+			 int parameterNumber, Data<TD, N, TG>& D) const
+  {
+
+    this->Read(FileName, discipline, parameterCategory, parameterNumber,
+	       D.GetArray());
+
+  }
+
+  /*********/
+  /* Array */
+  /*********/
+
+  //! Reads a Grib file.
+  template <class TA, int N>
+  void FormatGrib2::Read(string FileName, int discipline, int parameterCategory,
+			 int parameterNumber, Array<TA, N>& A) const
+  {
+    FILE* grib_file;
+ 
+    grib_file = fopen(FileName.c_str(), "r");
+    grib_multi_support_on(0);
+
+#ifdef SELDONDATA_DEBUG_CHECK_IO
+    // Checks if the file was opened.
+    if (grib_file == NULL)
+      throw IOError("FormatGrib2::Read(string FileName, int discipline, int parameterCategory, int parameterNumber, Array<TA, N>& A)",
+		    "Unable to open file \"" + FileName + "\".");
+#endif
+
+    int nb_elements = A.numElements();
+    int max_length(nb_elements);
+
+    int Nt = 1, Nz = 1;
+    if (A.dimensions() == 4)
+      {
+	Nt = A.shape()[0];
+	Nz = A.shape()[1];
+      }
+    else if (A.dimensions() == 3)
+      Nz = A.shape()[0];
+
+    RegularGrid<double> GridX(nb_elements / Nt / Nz);
+    Data<double, 1> data(GridX);
+    int data_size;
+
+    int err = 0;
+    long disc, paramCat, paramNum;
+    grib_handle *h = NULL;
+    size_t values_len = nb_elements / Nt / Nz;
+
+    while ((h = grib_handle_new_from_file(0, grib_file, &err)) != NULL)
+      {
+	GRIB_CHECK(err, 0);
+	GRIB_CHECK(grib_get_long(h, "discipline", &disc), 0);
+	GRIB_CHECK(grib_get_long(h, "parameterCategory", &paramCat), 0);
+	GRIB_CHECK(grib_get_long(h, "parameterNumber", &paramNum), 0);
+
+	if (disc == discipline && paramCat == parameterCategory \
+	    && paramNum == parameterNumber)
+	  {
+	    GRIB_CHECK(grib_get_double_array(h, "values", data.GetData(),
+					     &values_len), 0);
+
+	    int j = nb_elements - max_length;
+	    data_size = data.GetNbElements();
+	    for(int i = 0; i < data_size; i++)
+	      A.data()[j + i] = data(i);
+	    max_length -= data_size;
+	  }
+      }
+#ifdef SELDONDATA_DEBUG_CHECK_IO
+    if (max_length < 0)
+      throw IOError("FormatGrib2::Read(string FileName, Array<TA, N>& A)",
+		    "Cannot find all values. File \"" + FileName
+		    + "\" contains " + to_str(nb_elements - max_length)
+		    + " elements for field #" + to_str(discipline)
+		    + ", " + to_str(parameterCategory) + ", "
+		    + to_str(parameterCategory)
+		    + ", but data has " + to_str(nb_elements)
+		    + " elements.");
+
+#endif
+    grib_handle_delete(h);
+    data.Resize();
     fclose(grib_file);
   }
 
@@ -2057,11 +2194,11 @@ namespace SeldonData
   /********/
   /* Data */
   /********/
- 
+
   //! Reads a file in "Chimere" format.
   template<class TD, int N, class TG>
   void FormatChimere::Read(string FileName, Data<TD, N, TG>& D,
-			   int nb_lines) const
+                           int nb_lines) const
   {
 
     this->Read(FileName, D.GetArray(), nb_lines);
@@ -2071,7 +2208,7 @@ namespace SeldonData
   //! Reads a file in "Chimere" format.
   template<class TD, int N, class TG>
   void FormatChimere::Read(ifstream& FileStream, Data<TD, N, TG>& D,
-			   int nb_lines) const
+                           int nb_lines) const
   {
 
     this->Read(FileStream, D.GetArray(), nb_lines);
@@ -2085,7 +2222,7 @@ namespace SeldonData
   //! Reads a file in "Chimere" format.
   template<class TA, int N>
   void FormatChimere::Read(string FileName, Array<TA, N>& A,
-			   int nb_lines) const
+                           int nb_lines) const
   {
 
     ifstream FileStream;
@@ -2096,8 +2233,8 @@ namespace SeldonData
     // Checks if the file was opened.
     if (!FileStream.is_open())
       throw IOError("FormatChimere::Read"
-		    "(string FileName, Array<TA, N>& A, int nb_lines)",
-		    "Unable to open file \"" + FileName + "\".");
+                    "(string FileName, Array<TA, N>& A, int nb_lines)",
+                    "Unable to open file \"" + FileName + "\".");
 #endif
 
     this->Read(FileStream, A);
@@ -2109,15 +2246,15 @@ namespace SeldonData
   //! Reads a file in "Chimere" format.
   template<class TA, int N>
   void FormatChimere::Read(ifstream& FileStream, Array<TA, N>& A,
-			   int nb_lines) const
+                           int nb_lines) const
   {
 
 #ifdef SELDONDATA_DEBUG_CHECK_IO
     // Checks if the file ready.
     if (!FileStream.good())
       throw IOError("FormatChimere::Read"
-		    "(ifstream& FileStream, Array<TA, N>& A, int nb_lines)",
-		    "File is not ready.");
+                    "(ifstream& FileStream, Array<TA, N>& A, int nb_lines)",
+                    "File is not ready.");
 #endif
 
     int nb_elements = A.numElements();
@@ -2128,124 +2265,124 @@ namespace SeldonData
     int date, level;
     Array<int, 1> Index(10), Length(10);
 
-    for (j=0; j<10; j++)
+    for (j = 0; j < 10; j++)
       {
-	Index(j) = 0;
-	Length(j) = A.extent(j);
+        Index(j) = 0;
+        Length(j) = A.extent(j);
       }
 
-    int nb_elements_per_line = Length(N-1);
+    int nb_elements_per_line = Length(N - 1);
 
-    if (nb_lines==-1)
-      if (N==2)
-	nb_lines = 1;
-      else if (N==3)
-	nb_lines = Length(1);
+    if (nb_lines == -1)
+      if (N == 2)
+        nb_lines = 1;
+      else if (N == 3)
+        nb_lines = Length(1);
       else
-	nb_lines = nb_elements
-	  / nb_elements_per_line
-	  / Length(0)
-	  / Length(1);
+        nb_lines = nb_elements
+          / nb_elements_per_line
+          / Length(0)
+          / Length(1);
 
     fstream::fmtflags flags = FileStream.flags();
-     
+
     c = FileStream.peek();
-    while ( (FileStream.good())
-	    && ( (c<'0') || (c>'9') )
-	    && (c!='.') && (c!='-')
-	    && (c!='+') )
+    while ((FileStream.good())
+           && ((c < '0') || (c > '9'))
+           && (c != '.') && (c != '-')
+           && (c != '+'))
       {
-	FileStream.ignore(1);
-	c = FileStream.peek();
+        FileStream.ignore(1);
+        c = FileStream.peek();
       }
 
     FileStream.flags(ifstream::dec | fstream::skipws);
     FileStream >> date;
     FileStream.flags(flags);
 
-    reading = ((date_==-1) || (date==date_));
+    reading = ((date_ == -1) || (date == date_));
 
     string temp_str;
-    while ( (!reading) && (FileStream.good()) )
+    while ((!reading) && (FileStream.good()))
       {
-	for (i=0; i<nb_lines+1; i++)
-	  getline(FileStream, temp_str);
+        for (i = 0; i < nb_lines + 1; i++)
+          getline(FileStream, temp_str);
 
-	FileStream.flags(ifstream::dec | fstream::skipws);
-	FileStream >> date;
-	FileStream.flags(flags);
-	
-	reading = ((date_==-1) || (date==date_));
+        FileStream.flags(ifstream::dec | fstream::skipws);
+        FileStream >> date;
+        FileStream.flags(flags);
+
+        reading = ((date_ == -1) || (date == date_));
       }
 
     i = 0;
-    while ((i<nb_elements) && (FileStream.good()))
+    while ((i < nb_elements) && (FileStream.good()))
       {
 
-	// Reads level.
-	FileStream.flags(ifstream::dec | fstream::skipws);
-	FileStream >> level;
-	FileStream.flags(flags);
+        // Reads level.
+        FileStream.flags(ifstream::dec | fstream::skipws);
+        FileStream >> level;
+        FileStream.flags(flags);
 
-	k = 0;
-	j = N-1;
+        k = 0;
+        j = N - 1;
 
-	while ((k<nb_lines * nb_elements_per_line)
-	       && (FileStream.good()))
-	  {
+        while ((k < nb_lines * nb_elements_per_line)
+               && (FileStream.good()))
+          {
 
-	    c = FileStream.peek();
-	    while ( (FileStream.good())
-		    && ( (c<'0') || (c>'9') )
-		    && (c!='.') && (c!='-')
-		    && (c!='+') )
-	      {
-		FileStream.ignore(1);
-		c = FileStream.peek();
-	      }
-	     
-	    // Reads level.
-	    if (reading)
-	      FileStream >> A(Index(0), Index(1), Index(2),
-			      Index(3), Index(4), Index(5),
-			      Index(6), Index(7), Index(8),
-			      Index(9));
-	    else
-	      FileStream >> temp;
+            c = FileStream.peek();
+            while ((FileStream.good())
+                   && ((c < '0') || (c > '9'))
+                   && (c != '.') && (c != '-')
+                   && (c != '+'))
+              {
+                FileStream.ignore(1);
+                c = FileStream.peek();
+              }
 
-	    if (reading)
-	      {
-		j = N-1;
-		while ( (j>=0) && (Index(j)==Length(j)-1) )
-		  {
-		    Index(j) = 0;
-		    j--;
-		  }
-		 
-		if (j!=-1)
-		  Index(j)++;
-	      }
-	     
-	    k++;
-	  }
-	 
-	if (reading)
-	  i += k;
-	 
-	c = FileStream.peek();
-	while ( (FileStream.good())
-		&& ( (c<'0') || (c>'9') )
-		&& (c!='.') && (c!='-')
-		&& (c!='+') )
-	  {
-	    FileStream.ignore(1);
-	    c = FileStream.peek();
-	  }
-	FileStream.flags(ifstream::dec | fstream::skipws);
-	FileStream >> date;
-	FileStream.flags(flags);
+            // Reads level.
+            if (reading)
+              FileStream >> A(Index(0), Index(1), Index(2),
+                              Index(3), Index(4), Index(5),
+                              Index(6), Index(7), Index(8),
+                              Index(9));
+            else
+              FileStream >> temp;
 
-	reading = (reading || (date_==-1) || (date==date_));
+            if (reading)
+              {
+                j = N - 1;
+                while ((j >= 0) && (Index(j) == Length(j) - 1))
+                  {
+                    Index(j) = 0;
+                    j--;
+                  }
+
+                if (j != -1)
+                  Index(j)++;
+              }
+
+            k++;
+          }
+
+        if (reading)
+          i += k;
+
+        c = FileStream.peek();
+        while ((FileStream.good())
+               && ((c < '0') || (c > '9'))
+               && (c != '.') && (c != '-')
+               && (c != '+'))
+          {
+            FileStream.ignore(1);
+            c = FileStream.peek();
+          }
+        FileStream.flags(ifstream::dec | fstream::skipws);
+        FileStream >> date;
+        FileStream.flags(flags);
+
+        reading = (reading || (date_ == -1) || (date == date_));
 
       }
 
@@ -2253,14 +2390,14 @@ namespace SeldonData
     // Checks if all was read.
     if (!reading)
       throw IOError("FormatChimere::"
-		    "Read(ifstream& FileStream, Array<TA, N>& A)",
-		    "The date was not found.");
+                    "Read(ifstream& FileStream, Array<TA, N>& A)",
+                    "The date was not found.");
     // Checks if all was read.
-    if (i!=nb_elements)
+    if (i != nb_elements)
       throw IOError("FormatChimere::"
-		    "Read(ifstream& FileStream, Array<TA, N>& A)",
-		    to_str(i) + " elements were read instead of "
-		    + to_str(nb_elements) + ".");
+                    "Read(ifstream& FileStream, Array<TA, N>& A)",
+                    to_str(i) + " elements were read instead of "
+                    + to_str(nb_elements) + ".");
 #endif
 
   }

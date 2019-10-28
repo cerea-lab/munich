@@ -328,15 +328,189 @@ namespace Polyphemus
   void StreetNetworkChemistry<T, ClassChemistry>::Forward()
   {
     this->Transport();
-
-    if (this->option_process["with_chemistry"])
-      Chemistry();
-
+    if (this->option_process["with_stationary_hypothesis"])
+      {
+	if (this->option_process["with_chemistry"])
+	  Chemistry();
+      }
+    else //no stationary
+      {
+	if (this->option_process["with_chemistry"])
+	  ComputeStreetConcentrationNoStationary();
+      }
     this->SetStreetConcentration();
 
     this->AddTime(this->Delta_t);
     this->step++;
   }
+
+  //LL Remove stationary regime
+  //! Compute the concentrations in the street-canyon using the flux balance equation.
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::ComputeStreetConcentrationNoStationary()
+  {
+    
+    //LL: print data
+    bool isIsolated;
+    if(this->total_nstreet > 30)
+      isIsolated = false;
+    else
+      isIsolated = true;
+    
+    //LL teste initial concentration
+    int st_index = 0;
+    
+    for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
+         iter != this->StreetVector.end(); iter++)
+      {
+	Street<T>* street = *iter;
+
+	Array<T, 1> concentration_array(this->Ns);
+	Array<T, 1> concentration_array_tmp(this->Ns);
+	Array<T, 1> init_concentration_array(this->Ns);
+	Array<T, 1> background_concentration_array(this->Ns);
+	Array<T, 1> new_concentration_array(this->Ns);
+	Array<T, 1> emission_rate_array(this->Ns);
+	Array<T, 1> inflow_rate_array(this->Ns);
+	Array<T, 1> deposition_flux_array(this->Ns);
+
+	concentration_array = 0.0;
+	concentration_array_tmp = 0.0;
+	init_concentration_array = 0.0;
+	background_concentration_array = 0.0;
+	new_concentration_array = 0.0;
+	emission_rate_array = 0.0;
+	inflow_rate_array = 0.0;
+	deposition_flux_array = 0.0;
+	
+        T transfer_velocity = street->GetTransferVelocity(); // m/s
+	T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
+        T outgoing_flux = street->GetOutgoingFlux(); // m3/s
+        T street_volume = street->GetHeight() *
+          street->GetWidth() * street->GetLength(); // m3
+
+	for (int s = 0; s < this->Ns; ++s)
+          {
+	    concentration_array(s) = street->GetStreetConcentration(s);
+	    init_concentration_array(s) = street->GetStreetConcentration(s);
+	    background_concentration_array(s) = street->GetBackgroundConcentration(s);
+	    emission_rate_array(s) = street->GetEmission(s);
+	    inflow_rate_array(s) = street->GetInflowRate(s);
+	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume;
+	  }
+
+	T sub_delta_t_init, sub_delta_t, sub_delta_t_min;
+	sub_delta_t_min = 1.0;
+	Date current_date_tmp = this->current_date;
+
+	StreetNetworkTransport<T>::
+	  InitStep(sub_delta_t_init,
+		   sub_delta_t_min,
+		   transfer_velocity,
+		   temp,
+		   outgoing_flux,
+		   street_volume,
+		   concentration_array,
+		   background_concentration_array,
+		   emission_rate_array,
+		   inflow_rate_array,
+		   deposition_flux_array);
+
+	
+	Date next_date = this->current_date;
+	Date next_date_tmp = this->current_date;
+	next_date.AddSeconds(this->Delta_t);
+	next_date_tmp.AddSeconds(sub_delta_t_init);
+
+	while (current_date_tmp < next_date)
+	  {
+	    //! Get street concentrations.
+	    for (int s = 0; s < this->Ns; ++s)
+	      concentration_array(s) = street->GetStreetConcentration(s);
+
+	    StreetNetworkTransport<T>::
+	      ETRConcentration(transfer_velocity,
+			       temp,
+			       outgoing_flux,
+			       street_volume,
+			       concentration_array,
+			       concentration_array_tmp,
+			       background_concentration_array,
+			       emission_rate_array,
+			       inflow_rate_array,
+			       deposition_flux_array,
+			       new_concentration_array,
+			       sub_delta_t_init);
+            //! sub_delta_t_init corresponds to the time step being incremented
+            //! sub_delta_t corresponds to the time step that may be used in the next iteration
+
+	    //! Calculates the new sub_delta_t for the next iteration
+	    T sub_delta_t_max = next_date.GetSecondsFrom(next_date_tmp);
+	    StreetNetworkTransport<T>::
+	      AdaptTimeStep(new_concentration_array,
+			    concentration_array_tmp,
+			    sub_delta_t_init,
+			    sub_delta_t_min,
+			    sub_delta_t_max,
+			    sub_delta_t);
+	    
+	    //! Chemical reactions
+	    if (this->option_process["with_chemistry"])
+	      {
+		Array<T, 1> photolysis_rate(Nr_photolysis);
+
+		T attenuation_ = street->GetAttenuation();
+		T specific_humidity_ = street->GetSpecificHumidity();
+		T pressure_ = street->GetPressure();
+		T temperature_ = street->GetTemperature();
+		T longitude_ = street->GetLongitude();
+		T latitude_ = street->GetLatitude();
+
+		for (int r = 0; r < Nr_photolysis; r++)
+		  photolysis_rate(r) = street->GetPhotolysisRate(r);
+
+		Chemistry(current_date_tmp,
+			  new_concentration_array,
+			  attenuation_,
+			  specific_humidity_,
+			  pressure_,
+			  temperature_,
+			  longitude_,
+			  latitude_,
+			  photolysis_rate,
+			  sub_delta_t_init);
+	      }
+            
+	    
+	    
+	    //! Set the new concentrations.
+	    for (int s = 0; s < this->Ns; ++s)
+	      street->SetStreetConcentration(new_concentration_array(s), s);
+	    
+	    //! Actualises current_time_tmp
+	    current_date_tmp.AddSeconds(sub_delta_t_init);
+	    next_date_tmp.AddSeconds(sub_delta_t);
+
+	    //! Set the new sub_delta_t
+	    sub_delta_t_init = sub_delta_t;
+
+	  }
+	
+	for (int s = 0; s < this->Ns; ++s)
+	  {
+            T massflux_roof_to_background;
+	    massflux_roof_to_background = temp * (new_concentration_array(s) - background_concentration_array(s)); // ug/s
+	    
+	    street->SetMassfluxRoofToBackground(massflux_roof_to_background, s);
+   
+	    T conc_delta = new_concentration_array(s) - init_concentration_array(s);
+	    T street_quantity_delta = conc_delta * street_volume; // ug
+	    street->SetStreetQuantityDelta(street_quantity_delta, s);
+	  }
+	st_index += 1.0;
+      }
+  }
+
 
   //! Method called at each time step to initialize the model.
   /*!
@@ -388,8 +562,9 @@ namespace Polyphemus
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::InitStep()
   {
-    // cout << " InitStep in SNC.cxx !!" << endl;
     StreetNetworkTransport<T>::InitStep();
+    
+    InitPhotolysis(this->current_date);
 
     int st = 0;
     for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
@@ -405,6 +580,7 @@ namespace Polyphemus
                                       pressure(this->meteo_index, st),
                                       temperature(this->meteo_index, st));
           }
+	st += 1;
       }
 
   }
@@ -423,40 +599,72 @@ namespace Polyphemus
     Array<T, 1> concentration_array(this->Ns);
 
     source = 0.0;
-
+    
     for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin(); 
-         iter != this->StreetVector.end(); iter++)
+	 iter != this->StreetVector.end(); iter++)
       {
-        Street<T>* street = *iter;
+	Street<T>* street = *iter;
 
-        //! Get the concentrations.
-        for (int s = 0; s < this->Ns; ++s)
-          concentration_array(s) = street->GetStreetConcentration(s);
+	//! Get the concentrations.
+	for (int s = 0; s < this->Ns; ++s)
+	  concentration_array(s) = street->GetStreetConcentration(s);
 
-        T attenuation_ = street->GetAttenuation();
-        T specific_humidity_ = street->GetSpecificHumidity();
-        T pressure_ = street->GetPressure();
-        T temperature_ = street->GetTemperature();
-        T longitude_ = street->GetLongitude();
-        T latitude_ = street->GetLatitude();
+	T attenuation_ = street->GetAttenuation();
+	T specific_humidity_ = street->GetSpecificHumidity();
+	T pressure_ = street->GetPressure();
+	T temperature_ = street->GetTemperature();
+	T longitude_ = street->GetLongitude();
+	T latitude_ = street->GetLatitude();
 
-        for (int r = 0; r < Nr_photolysis; r++)
-          photolysis_rate(r) = street->GetPhotolysisRate(r);
+	for (int r = 0; r < Nr_photolysis; r++)
+	  photolysis_rate(r) = street->GetPhotolysisRate(r);
 
-        Chemistry_.Forward(T(this->current_date.GetNumberOfSeconds()),
-        		   attenuation_, specific_humidity_,
-        		   temperature_, pressure_, source,
-        		   photolysis_rate,
-        		   T(this->next_date.
-        		     GetSecondsFrom(this->current_date)),
-        		   attenuation_, specific_humidity_,
-        		   temperature_, pressure_, source,
-        		   photolysis_rate, longitude_,
-        		   latitude_, concentration_array);
+#ifndef POLYPHEMUS_WITH_AEROSOL_MODULE
+	Chemistry_.Forward(T(this->current_date.GetNumberOfSeconds()),
+			     attenuation_, specific_humidity_,
+			     temperature_, pressure_, source,
+			     photolysis_rate,
+			     T(this->next_date.
+			       GetSecondsFrom(this->current_date)),
+			     attenuation_, specific_humidity_,
+			     temperature_, pressure_, source,
+			     photolysis_rate, longitude_,
+			     latitude_, concentration_array);
 
-        for (int s = 0; s < this->Ns; ++s)
-          street->SetStreetConcentration(concentration_array(s), s);
+	for (int s = 0; s < this->Ns; ++s)
+	  street->SetStreetConcentration(concentration_array(s), s);
+#endif	
       }
+  }
+
+  //! Chemistry in no stationary regime.
+  /*!
+    \param 
+  */
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>
+  ::Chemistry(Date current_date_tmp,
+	      Array<T, 1>& concentration_array,
+	      T attenuation_,
+	      T specific_humidity_,
+	      T pressure_,
+	      T temperature_,
+	      T longitude_,
+	      T latitude_,
+	      Array<T, 1> photolysis_rate,
+	      T sub_delta_t)
+  {
+    Array<T, 1> source(this->Ns);
+    source = 0.0;
+    Chemistry_.Forward(T(current_date_tmp.GetNumberOfSeconds()),
+		       attenuation_, specific_humidity_,
+		       temperature_, pressure_, source,
+		       photolysis_rate,
+		       sub_delta_t,
+		       attenuation_, specific_humidity_,
+		       temperature_, pressure_, source,
+		       photolysis_rate, longitude_,
+		       latitude_, concentration_array);
   }
 
   /*! Initializes background concentrations and photolysis parameters.
@@ -500,7 +708,6 @@ namespace Polyphemus
   bool StreetNetworkChemistry<T, ClassChemistry>
   ::WithChemistry()
   {
-    // cout << "In WithChemistry()" << endl;
     return this->option_process["with_chemistry"];
   }
 
@@ -512,7 +719,6 @@ namespace Polyphemus
   {
     return option_chemistry;
   }
-
 
 
 } // namespace Polyphemus.

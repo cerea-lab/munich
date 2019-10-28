@@ -100,7 +100,7 @@ namespace Polyphemus
 
     //! List of background species concentrations (ug/m3).
     Array<T, 1> background_concentration_;
-
+   
     //! If all concentrations in the street reach the stationary state.
     bool is_stationary_;
 

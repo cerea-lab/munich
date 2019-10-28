@@ -1,23 +1,23 @@
 C-----------------------------------------------------------------------
 C     Copyright (C) 2006-2007, ENPC - INRIA - EDF R&D
 C     Author(s): Vivien Mallet, Edouard Debry
-C     
+C
 C     This file is part of AtmoData library, a tool for data processing
 C     in atmospheric sciences.
-C    
+C
 C     AtmoData is developed in the INRIA - ENPC joint project-team CLIME
 C     and in the ENPC - EDF R&D joint laboratory CEREA.
-C    
+C
 C     AtmoData is free software; you can redistribute it and/or modify
 C     it under the terms of the GNU General Public License as published
 C     by the Free Software Foundation; either version 2 of the License,
 C     or (at your option) any later version.
-C     
+C
 C     AtmoData is distributed in the hope that it will be useful, but
 C     WITHOUT ANY WARRANTY; without even the implied warranty of
 C     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 C     General Public License for more details.
-C     
+C
 C     For more information, visit the AtmoData home page:
 C          http://cerea.enpc.fr/polyphemus/atmodata.html
 C-----------------------------------------------------------------------
@@ -106,19 +106,19 @@ c     micrometers.
 
 
 c     Function: compute_collision_integral
-c     
+c
 c     Computes the "collision integral" for gas-phase diffusion, based
 c     on Lennard-Jones potential. Computation is based on tabulations
 c     from: Hirschfelder, J.O., Curtiss, C.O., and Bird, R.B, Molecular
 c     Theory of Gases and Liquids, Wiley, New York, 1954. See also
 c     Poling, B.E., Prausnitz, J.M., and O'Connell, J.P, The Properties
 c     of Gases and Liquids, McGraw-Hill, 2000.
-c     
+c
 c     Parameter:
 c     x - x is equal to "k T / e" where k is the Boltzmann constant, T
 c     is the temperature and e is the Lennard-Jones molecular
 c     interaction parameter.
-c     
+c
 c     Returns:
 c     omega - The collision integral.
       subroutine compute_collision_integral(x, omega)
@@ -283,7 +283,7 @@ c     concentration - Saturation concentration (microgram/m^3).
 c     Constant "0.120279047389945" is equal to 1 / R where R is the
 c     molar (perfect) gas constant (8.314 J/K/mol).
       ratio = 0.120279047389945d0 / temperature
-      
+
 c     Constant "4.03620964395788d-4" is equal to 1 / (298. * R) where
 c     298 K is the reference temperature.
       concentration = saturation_pressure * 1.d6 * weight * ratio

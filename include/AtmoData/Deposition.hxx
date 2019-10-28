@@ -28,9 +28,9 @@ namespace AtmoData
 
   template <class T>
   T ComputeWesely(T surface_temperature, T solar_radiation,
-		  string species, T reactivity, T diffusivity, T Henry,
-		  T Ri, T Rlu, T Rac, T RgsS, T RgsO, T RclS, T RclO,
-		  T limit = 1.e10, T D_H2O = 0.25);
+                  string species, T reactivity, T diffusivity, T Henry,
+                  T Ri, T Rlu, T Rac, T RgsS, T RgsO, T RclS, T RclO,
+                  T limit = 1.e10, T D_H2O = 0.25);
 
 }  // namespace AtmoData.
 

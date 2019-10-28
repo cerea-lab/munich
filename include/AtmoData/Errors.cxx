@@ -41,11 +41,11 @@ namespace AtmoData
     if 'test(data_ref(i), data_comp(i))' is true.
     \return The normalized gross error.
   */
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref NGE(Data<T_ref, N, TG_ref> data_ref,
-	    Data<T_comp, N, TG_comp>& data_comp,
-	    Function_Base<T_ref, bool>& test)
+            Data<T_comp, N, TG_comp>& data_comp,
+            Function_Base<T_ref, bool>& test)
   {
     T_ref nge;
 
@@ -55,23 +55,23 @@ namespace AtmoData
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
 
-    if (NbElements!=data_comp.GetNbElements())
+    if (NbElements != data_comp.GetNbElements())
       throw WrongDim("AtmoData::NGE(Data<T_ref, " + to_str(N) +
-		     ">&, Data<T_comp, " + to_str(N) +
-		     ">&, Function_Base<T_ref, bool>&)",
-		     "Data sizes differ.");
+                     ">&, Data<T_comp, " + to_str(N) +
+                     ">&, Function_Base<T_ref, bool>&)",
+                     "Data sizes differ.");
 
 #endif
-    
+
     int nb_elt = 0;
     nge = T_ref(0);
-    for (int i=0; i<NbElements; i++)
+    for (int i = 0; i < NbElements; i++)
       if (test(data_ref_arr[i], data_comp_arr[i]))
-	{
-	  nb_elt++;
-	  nge += abs( (data_ref_arr[i] - data_comp_arr[i])
-		      / data_ref_arr[i] );
-	}
+        {
+          nb_elt++;
+          nge += abs((data_ref_arr[i] - data_comp_arr[i])
+                     / data_ref_arr[i]);
+        }
     nge = nge / T_ref(nb_elt);
 
     return nge;
@@ -91,11 +91,11 @@ namespace AtmoData
     if 'test(data_ref(i), data_comp(i))' is true.
     \return The bias.
   */
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref Bias(Data<T_ref, N, TG_ref> data_ref,
-	     Data<T_comp, N, TG_comp>& data_comp,
-	     Function_Base<T_ref, bool>& test)
+             Data<T_comp, N, TG_comp>& data_comp,
+             Function_Base<T_ref, bool>& test)
   {
     T_ref bias;
 
@@ -105,22 +105,22 @@ namespace AtmoData
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
 
-    if (NbElements!=data_comp.GetNbElements())
+    if (NbElements != data_comp.GetNbElements())
       throw WrongDim("AtmoData::Bias(Data<T_ref, " + to_str(N) +
-		     ">&, Data<T_comp, " + to_str(N) +
-		     ">&, Function_Base<T_ref, bool>&)",
-		     "Data sizes differ.");
+                     ">&, Data<T_comp, " + to_str(N) +
+                     ">&, Function_Base<T_ref, bool>&)",
+                     "Data sizes differ.");
 
 #endif
-    
+
     int nb_elt = 0;
     bias = T_ref(0);
-    for (int i=0; i<NbElements; i++)
+    for (int i = 0; i < NbElements; i++)
       if (test(data_ref_arr[i], data_comp_arr[i]))
-	{
-	  nb_elt++;
-	  bias += data_ref_arr[i] - data_comp_arr[i];
-	}
+        {
+          nb_elt++;
+          bias += data_ref_arr[i] - data_comp_arr[i];
+        }
     bias = bias / T_ref(nb_elt);
 
     return bias;
@@ -140,11 +140,11 @@ namespace AtmoData
     if 'test(data_ref(i), data_comp(i))' is true.
     \return The root mean square.
   */
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref RMS(Data<T_ref, N, TG_ref> data_ref,
-	    Data<T_comp, N, TG_comp>& data_comp,
-	    Function_Base<T_ref, bool>& test)
+            Data<T_comp, N, TG_comp>& data_comp,
+            Function_Base<T_ref, bool>& test)
   {
     T_ref rms(0);
 
@@ -154,22 +154,22 @@ namespace AtmoData
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
 
-    if (NbElements!=data_comp.GetNbElements())
+    if (NbElements != data_comp.GetNbElements())
       throw WrongDim("AtmoData::RMS(Data<T_ref, " + to_str(N) +
-		     ">&, Data<T_comp, " + to_str(N) +
-		     ">&, Function_Base<T_ref, bool>&)",
-		     "Data sizes differ.");
+                     ">&, Data<T_comp, " + to_str(N) +
+                     ">&, Function_Base<T_ref, bool>&)",
+                     "Data sizes differ.");
 
 #endif
-    
+
     int nb_elt = 0;
-    for (int i=0; i<NbElements; i++)
+    for (int i = 0; i < NbElements; i++)
       if (test(data_ref_arr[i], data_comp_arr[i]))
-	{
-	  nb_elt++;
-	  rms += (data_ref_arr[i] - data_comp_arr[i])
-	    * (data_ref_arr[i] - data_comp_arr[i]);
-	}
+        {
+          nb_elt++;
+          rms += (data_ref_arr[i] - data_comp_arr[i])
+            * (data_ref_arr[i] - data_comp_arr[i]);
+        }
     rms = sqrt(rms / T_ref(nb_elt));
 
     return rms;
@@ -189,11 +189,11 @@ namespace AtmoData
     if 'test(data_ref(i), data_comp(i))' is true.
     \return The relative root mean square.
   */
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref RelativeRMS(Data<T_ref, N, TG_ref> data_ref,
-		    Data<T_comp, N, TG_comp>& data_comp,
-		    Function_Base<T_ref, bool>& test)
+                    Data<T_comp, N, TG_comp>& data_comp,
+                    Function_Base<T_ref, bool>& test)
   {
     T_ref relative_rms(0);
 
@@ -203,23 +203,23 @@ namespace AtmoData
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
 
-    if (NbElements!=data_comp.GetNbElements())
+    if (NbElements != data_comp.GetNbElements())
       throw WrongDim("AtmoData::RelativeRMS(Data<T_ref, " + to_str(N) +
-		     ">&, Data<T_comp, " + to_str(N) +
-		     ">&, Function_Base<T_ref, bool>&)",
-		     "Data sizes differ.");
+                     ">&, Data<T_comp, " + to_str(N) +
+                     ">&, Function_Base<T_ref, bool>&)",
+                     "Data sizes differ.");
 
 #endif
-    
+
     int nb_elt = 0;
-    for (int i=0; i<NbElements; i++)
+    for (int i = 0; i < NbElements; i++)
       if (test(data_ref_arr[i], data_comp_arr[i]))
-	{
-	  nb_elt++;
-	  relative_rms += (data_ref_arr[i] - data_comp_arr[i])
-	    * (data_ref_arr[i] - data_comp_arr[i])
-	    / (data_ref_arr[i] * data_ref_arr[i]);
-	}
+        {
+          nb_elt++;
+          relative_rms += (data_ref_arr[i] - data_comp_arr[i])
+            * (data_ref_arr[i] - data_comp_arr[i])
+            / (data_ref_arr[i] * data_ref_arr[i]);
+        }
     relative_rms = sqrt(relative_rms / T_ref(nb_elt));
 
     return relative_rms;
@@ -239,11 +239,11 @@ namespace AtmoData
     if 'test(data_ref(i), data_comp(i))' is true.
     \return The correlation.
   */
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref Corr(Data<T_ref, N, TG_ref> data_ref,
-	     Data<T_comp, N, TG_comp>& data_comp,
-	     Function_Base<T_ref, bool>& test)
+             Data<T_comp, N, TG_comp>& data_comp,
+             Function_Base<T_ref, bool>& test)
   {
     T_ref corr;
 
@@ -253,14 +253,14 @@ namespace AtmoData
 
 #ifdef SELDONDATA_DEBUG_CHECK_DIMENSIONS
 
-    if (NbElements!=data_comp.GetNbElements())
+    if (NbElements != data_comp.GetNbElements())
       throw WrongDim("AtmoData::Corr(Data<T_ref, " + to_str(N) +
-		     ">&, Data<T_comp, " + to_str(N) +
-		     ">&, Function_Base<T_ref, bool>&)",
-		     "Data sizes differ.");
+                     ">&, Data<T_comp, " + to_str(N) +
+                     ">&, Function_Base<T_ref, bool>&)",
+                     "Data sizes differ.");
 
 #endif
-    
+
     int nb_elt = 0;
     corr = T_ref(0);
     T_ref mean_ref = T_ref(0);
@@ -272,26 +272,26 @@ namespace AtmoData
     T_comp temp_comp;
 
     // Means.
-    for (int i=0; i<NbElements; i++)
+    for (int i = 0; i < NbElements; i++)
       if (test(data_ref_arr[i], data_comp_arr[i]))
-	{
-	  nb_elt++;
-	  mean_ref += data_ref_arr[i];
-	  mean_comp += data_comp_arr[i];
-	}
+        {
+          nb_elt++;
+          mean_ref += data_ref_arr[i];
+          mean_comp += data_comp_arr[i];
+        }
     mean_ref = mean_ref / T_ref(nb_elt);
     mean_comp = mean_comp / T_comp(nb_elt);
 
     // Co-variances.
-    for (int i=0; i<NbElements; i++)
+    for (int i = 0; i < NbElements; i++)
       if (test(data_ref_arr[i], data_comp_arr[i]))
-	{
-	  temp_ref = data_ref_arr[i] - mean_ref;
-	  temp_comp = data_comp_arr[i] - mean_comp;
-	  covar += temp_ref * temp_comp;
-	  var_ref += temp_ref * temp_ref;
-	  var_comp += temp_comp * temp_comp;
-	}
+        {
+          temp_ref = data_ref_arr[i] - mean_ref;
+          temp_comp = data_comp_arr[i] - mean_comp;
+          covar += temp_ref * temp_comp;
+          var_ref += temp_ref * temp_ref;
+          var_comp += temp_comp * temp_comp;
+        }
 
     corr = covar / sqrt(var_ref * var_comp);
 

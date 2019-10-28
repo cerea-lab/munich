@@ -69,7 +69,7 @@ namespace AtmoData
     const T dr = double(pi) / double(180.);
 
     // Converts latitude to radians.
-    rlt = lat*dr;
+    rlt = lat * dr;
 
     //Computes solar declination and equation of time (radians).
     ComputeDeclination(date, ut, rdecl, eqr);
@@ -93,9 +93,9 @@ namespace AtmoData
     // caz = (sin(rdecl) - sin(rlt) * cos(zr)) / (cos(rlt) * sin(zr));
     // raz = acos(caz);
     // azim = raz / dr;
-  
+
     return zen;
-  
+
   }
 
 
@@ -112,112 +112,112 @@ namespace AtmoData
   */
   template <class TH, class TL, class TMC, class THC, class T, class TG>
   void ComputeAttenuation_LWC(Data<TH, 4, TG>& Humidity, Data<TH, 4, TG>& CRH,
-			      Data<TL, 4, TG>& LiquidWaterContent,
-			      Data<TMC, 3, TG>& MediumCloudiness,
-			      Data<THC, 3, TG>& HighCloudiness,
-			      Date date_beg, T Delta_t,
-			      Data<T, 4, TG>& Attenuation)
+                              Data<TL, 4, TG>& LiquidWaterContent,
+                              Data<TMC, 3, TG>& MediumCloudiness,
+                              Data<THC, 3, TG>& HighCloudiness,
+                              Date date_beg, T Delta_t,
+                              Data<T, 4, TG>& Attenuation)
   {
     int h, k, j, i;
     int Nt(Attenuation.GetLength(0));
     int Nz(Attenuation.GetLength(1));
     int Ny(Attenuation.GetLength(2));
     int Nx(Attenuation.GetLength(3));
-    
+
     Date current_date = date_beg;
-    
+
     // Index "0" and "1" refer to two contiguous levels.
     T rh0, rh1, rhc, dz, delta_z,
       lwc0, lwc1, lw, w, tau, tr;
 
     for (h = 0; h < Nt; h++)
       {
-	for (j = 0; j < Ny; j++)
-	  for (i = 0; i <Nx; i++)
-	    {
-	      rh0 = Humidity(h, Nz-1, j, i);
-	      // kg/m^3 to g/m^3.
-	      lwc0 = 1000. * LiquidWaterContent(h, Nz-1, j, i);
+        for (j = 0; j < Ny; j++)
+          for (i = 0; i < Nx; i++)
+            {
+              rh0 = Humidity(h, Nz - 1, j, i);
+              // kg/m^3 to g/m^3.
+              lwc0 = 1000. * LiquidWaterContent(h, Nz - 1, j, i);
 
-	      w = 0;
-	    
-	      for (k = Nz-1; k >= 0; k--)
-		{
-		  if (k == Nz-1)
-		    dz = Attenuation[1].Value(h, Nz-1, j, i)
-		      - Attenuation[1].Value(h, Nz-2, j, i);
-		  else
-		    dz = Attenuation[1].Value(h, k+1, j, i)
-		      - Attenuation[1].Value(h, k, j, i);
+              w = 0;
 
-		  rh1 = Humidity(h, k, j, i);
-		  // kg/m^3 to g/m^3.
-		  lwc1 = 1000. * LiquidWaterContent(h, k, j, i);
+              for (k = Nz - 1; k >= 0; k--)
+                {
+                  if (k == Nz - 1)
+                    dz = Attenuation[1].Value(h, Nz - 1, j, i)
+                      - Attenuation[1].Value(h, Nz - 2, j, i);
+                  else
+                    dz = Attenuation[1].Value(h, k + 1, j, i)
+                      - Attenuation[1].Value(h, k, j, i);
 
-		  // Critical relative humidity.
-		  rhc = CRH(h, k, j, i);
+                  rh1 = Humidity(h, k, j, i);
+                  // kg/m^3 to g/m^3.
+                  lwc1 = 1000. * LiquidWaterContent(h, k, j, i);
 
-		  if (rh0 > rhc && rh1 > rhc)  // In a cloud.
-		    w += dz * (lwc0 + lwc1) / 2.0;
-		  else if (rh0 > rhc && rh1 < rhc)  // Below a cloud.
-		    {
-		      delta_z = dz * (rh0 - rhc) / (rh0 - rh1);
-		      w += lwc1 * delta_z + (lwc0 - lwc1) / dz * .5
-			* (2.0 * dz - delta_z) * delta_z;
-		    }
-		  else if (rh0 < rhc && rh1 > rhc)  // Above a cloud.
-		    {
-		      delta_z = dz * (rh1 - rhc) / (rh1 - rh0);
-		      w += lwc1 * delta_z + (lwc0 - lwc1) / dz * .5
-			* delta_z * delta_z;
-		    }
-		  // For the next level.
-		  rh0 = rh1;
-		  lwc0 = lwc1;
+                  // Critical relative humidity.
+                  rhc = CRH(h, k, j, i);
 
-		  // Computes liquid water path.
-		  if (w > 0.)
-		    lw = log10(w);
-		  else
-		    lw = 0.;
+                  if (rh0 > rhc && rh1 > rhc)  // In a cloud.
+                    w += dz * (lwc0 + lwc1) / 2.0;
+                  else if (rh0 > rhc && rh1 < rhc)  // Below a cloud.
+                    {
+                      delta_z = dz * (rh0 - rhc) / (rh0 - rh1);
+                      w += lwc1 * delta_z + (lwc0 - lwc1) / dz * .5
+                        * (2.0 * dz - delta_z) * delta_z;
+                    }
+                  else if (rh0 < rhc && rh1 > rhc)  // Above a cloud.
+                    {
+                      delta_z = dz * (rh1 - rhc) / (rh1 - rh0);
+                      w += lwc1 * delta_z + (lwc0 - lwc1) / dz * .5
+                        * delta_z * delta_z;
+                    }
+                  // For the next level.
+                  rh0 = rh1;
+                  lwc0 = lwc1;
 
-		  // Computes the cloud optical depth according
-		  // to Stephens (1978).
-		  if (lw <= 0.)
-		    tau = 0.;
-		  else
-		    tau = pow(10., 0.2633 + 1.7095 * log(lw));
+                  // Computes liquid water path.
+                  if (w > 0.)
+                    lw = log10(w);
+                  else
+                    lw = 0.;
 
-		  // Computes the cloud transmissivity.
-		  if (tau < 5.)
-		    tr = 1.;
-		  else
-		    tr = (5. - exp(-tau)) / (4. + 0.42*tau);
+                  // Computes the cloud optical depth according
+                  // to Stephens (1978).
+                  if (lw <= 0.)
+                    tau = 0.;
+                  else
+                    tau = pow(10., 0.2633 + 1.7095 * log(lw));
 
-		  // Zenith angle.
-		  T cos_zenith_angle;
-		  cos_zenith_angle =
-		    cos(ZenithAngle(Attenuation[3].Value(h, k, j, i),
-				    Attenuation[2].Value(h, k, j, i),
-				    current_date,
-				    Attenuation[0].Value(h, k, j, i))
-			* 0.0174532925199433 );
-		  cos_zenith_angle = abs(cos_zenith_angle);
+                  // Computes the cloud transmissivity.
+                  if (tau < 5.)
+                    tr = 1.;
+                  else
+                    tr = (5. - exp(-tau)) / (4. + 0.42 * tau);
 
-		  // Computes the attenuation coefficient.
-		  if (tr == 1)
-		    Attenuation(h, k, j, i) = 1.0
-		      + (min(1.0, MediumCloudiness(h, j, i)
-			     + HighCloudiness(h, j, i)))
-		      * (1.6 * cos_zenith_angle - 1.0);
-		  else
-		    Attenuation(h, k, j, i) = 1.0
-		      + (min(1.0, MediumCloudiness(h, j, i)
-			     + HighCloudiness(h, j, i)))
-		      * ( (1.-tr) * cos_zenith_angle );
-		}
-	    }
-	current_date.AddHours(int(Delta_t));
+                  // Zenith angle.
+                  T cos_zenith_angle;
+                  cos_zenith_angle =
+                    cos(ZenithAngle(Attenuation[3].Value(h, k, j, i),
+                                    Attenuation[2].Value(h, k, j, i),
+                                    current_date,
+                                    Attenuation[0].Value(h, k, j, i))
+                        * 0.0174532925199433);
+                  cos_zenith_angle = abs(cos_zenith_angle);
+
+                  // Computes the attenuation coefficient.
+                  if (tr == 1)
+                    Attenuation(h, k, j, i) = 1.0
+                      + (min(1.0, MediumCloudiness(h, j, i)
+                             + HighCloudiness(h, j, i)))
+                      * (1.6 * cos_zenith_angle - 1.0);
+                  else
+                    Attenuation(h, k, j, i) = 1.0
+                      + (min(1.0, MediumCloudiness(h, j, i)
+                             + HighCloudiness(h, j, i)))
+                      * ((1. - tr) * cos_zenith_angle);
+                }
+            }
+        current_date.AddHours(int(Delta_t));
       }
   }
 
@@ -244,13 +244,13 @@ namespace AtmoData
   */
   template <class TL, class TMC, class THC, class T, class TG>
   void ComputeAttenuation_LWC(Data<TL, 4, TG>& LiquidWaterContent,
-			      Data<int, 4> LowIndices,
-			      Data<int, 4> MediumIndices,
-			      Data<int, 4> HighIndices,
-			      Data<TMC, 3, TG>& MediumCloudiness,
-			      Data<THC, 3, TG>& HighCloudiness,
-			      Date date_beg, T Delta_t,
-			      Data<T, 4, TG>& Attenuation)
+                              Data<int, 4> LowIndices,
+                              Data<int, 4> MediumIndices,
+                              Data<int, 4> HighIndices,
+                              Data<TMC, 3, TG>& MediumCloudiness,
+                              Data<THC, 3, TG>& HighCloudiness,
+                              Date date_beg, T Delta_t,
+                              Data<T, 4, TG>& Attenuation)
   {
     int h, k, j, i;
     int Nt(Attenuation.GetLength(0));
@@ -259,7 +259,7 @@ namespace AtmoData
     int Nx(Attenuation.GetLength(3));
 
     Date current_date = date_beg;
- 
+
     Attenuation.Fill(1.);
 
     // Indices "0" and "1" refer to two contiguous levels.
@@ -271,172 +271,172 @@ namespace AtmoData
 
     for (h = 0; h < Nt; h++)
       {
-	for (j = 0; j < Ny; j++)
-	  for (i = 0; i < Nx; i++)
-	    {
-	    
-	      // Low clouds are between lb and lt.
-	      lb = LowIndices(h, j, i, 0);
-	      lt = LowIndices(h, j, i, 1);
-	      // Medium clouds are between mb and mt.
-	      mb = MediumIndices(h, j, i, 0);
-	      mt = MediumIndices(h, j, i, 1);
-	      // High clouds are between hb and ht.
-	      hb = HighIndices(h, j, i, 0);
-	      ht = HighIndices(h, j, i, 1);
+        for (j = 0; j < Ny; j++)
+          for (i = 0; i < Nx; i++)
+            {
 
-	      // Searches for the cloud basis.
-	      lower = -1;
-	      if (lb == 0)
-		if (mb == 0)
-		  lower = hb;
-		else
-		  lower = mb;
-	      else
-		lower = lb;
+              // Low clouds are between lb and lt.
+              lb = LowIndices(h, j, i, 0);
+              lt = LowIndices(h, j, i, 1);
+              // Medium clouds are between mb and mt.
+              mb = MediumIndices(h, j, i, 0);
+              mt = MediumIndices(h, j, i, 1);
+              // High clouds are between hb and ht.
+              hb = HighIndices(h, j, i, 0);
+              ht = HighIndices(h, j, i, 1);
 
-	      // Searches for the cloud top.
-	      upper = max(lt, mt);
-	      upper = max(upper, ht);
+              // Searches for the cloud basis.
+              lower = -1;
+              if (lb == 0)
+                if (mb == 0)
+                  lower = hb;
+                else
+                  lower = mb;
+              else
+                lower = lb;
 
-	      w = 0;
+              // Searches for the cloud top.
+              upper = max(lt, mt);
+              upper = max(upper, ht);
 
-	      // Starting from the top.
-	      for (k = Nz-1; k >= 0; k--)
-		{
-		  if (k == Nz-1)
-		    dz = Attenuation[1].Value(h, Nz-1, j, i)
-		      - Attenuation[1].Value(h, Nz-2, j, i);
-		  else
-		    dz = Attenuation[1].Value(h, k+1, j, i)
-		      - Attenuation[1].Value(h, k, j, i);
+              w = 0;
 
-		  if ( (k >= lb && k < lt) || (k >= mb && k < mt)
-		       || (k >= hb && k < ht))  // In a cloud.
-		    // kg/m^3 to g/m^3.
-		    w += dz * 1000. * LiquidWaterContent(h, k, j, i);
-		}
+              // Starting from the top.
+              for (k = Nz - 1; k >= 0; k--)
+                {
+                  if (k == Nz - 1)
+                    dz = Attenuation[1].Value(h, Nz - 1, j, i)
+                      - Attenuation[1].Value(h, Nz - 2, j, i);
+                  else
+                    dz = Attenuation[1].Value(h, k + 1, j, i)
+                      - Attenuation[1].Value(h, k, j, i);
 
-	      // Computes liquid water path.
-	      if (w > 0.)
-		lw = log10(w);
-	      else
-		lw = 0.;
-	    
-	      // Computes the cloud optical depth according to Stephens
-	      // (1978).
-	      if (lw <= 0.)
-		tau = 0.;
-	      else
-		tau = pow(10., 0.2633 + 1.7095 * log(lw));
-	    
-	      // Computes the cloud transmissivity.
-	      if (tau > 5.)
-		tr = (5. - exp(-tau)) / (4. + 0.42*tau);
-	    
-	      /*** Below clouds ***/
-	      // If tau <= 5., nothing is done.
-	      for (k = 0; k < lower && tau > 5.; k++)
-		{
-		  // Zenith angle.
-		  cos_zenith_angle =
-		    cos(ZenithAngle(Attenuation[3].Value(h, k, j, i),
-				    Attenuation[2].Value(h, k, j, i),
-				    current_date,
-				    Attenuation[0].Value(h, k, j, i))
-			* 0.0174532925199433 );
-		  cos_zenith_angle = abs(cos_zenith_angle);
+                  if ((k >= lb && k < lt) || (k >= mb && k < mt)
+                      || (k >= hb && k < ht))  // In a cloud.
+                    // kg/m^3 to g/m^3.
+                    w += dz * 1000. * LiquidWaterContent(h, k, j, i);
+                }
 
-		  // Computes the attenuation coefficient.
-		  Attenuation(h, k, j, i) = 1.0 + MediumCloudiness(h, j, i)
-		    * (1.6 * tr * cos_zenith_angle - 1.0);
-		}
+              // Computes liquid water path.
+              if (w > 0.)
+                lw = log10(w);
+              else
+                lw = 0.;
 
-	      /*** Above clouds ***/
-	      // If tau <= 5., nothing is done.
-	      // Note: the loop is safe because if upper == -1, then tau == 0.
-	      for (k = upper; k < Nz && tau > 5.; k++)
-		{
-		  // Zenith angle.
-		  cos_zenith_angle =
-		    cos(ZenithAngle(Attenuation[3].Value(h, k, j, i),
-				    Attenuation[2].Value(h, k, j, i),
-				    current_date,
-				    Attenuation[0].Value(h, k, j, i))
-			* 0.0174532925199433 );
-		  cos_zenith_angle = abs(cos_zenith_angle);
+              // Computes the cloud optical depth according to Stephens
+              // (1978).
+              if (lw <= 0.)
+                tau = 0.;
+              else
+                tau = pow(10., 0.2633 + 1.7095 * log(lw));
 
-		  // Computes the attenuation coefficient.
-		  Attenuation(h, k, j, i) = 1.0
-		    + MediumCloudiness(h, j, i) * (1. - tr)
-		    * cos_zenith_angle;
-		}
+              // Computes the cloud transmissivity.
+              if (tau > 5.)
+                tr = (5. - exp(-tau)) / (4. + 0.42 * tau);
 
-	      /*** In cloud ***/
-	      // Computes the cloud thickness and the attenuation at both
-	      // ends.
-	      // Takes into account special cases in which the cloud
-	      // reaches the bottom or the top.
-	      if (upper == Nz && lower != 0)
-		{
-		  href = Attenuation[1].Value(h, lower - 1, j, i);
-		  dist = 2. * Attenuation[1].Value(h, upper - 1, j, i)
-		    - Attenuation[1].Value(h, upper - 2, j, i) - href;
-		  up_att = 1.;
-		  low_att = Attenuation(h, lower - 1, j, i);
-		}
-	      else if (upper == Nz && lower == 0)
-		{
-		  href = Attenuation[1].Value(h, lower, j, i);
-		  dist = 2. * Attenuation[1].Value(h, upper - 1, j, i)
-		    - Attenuation[1].Value(h, upper - 2, j, i) - href;
-		  up_att = 1.;
-		  // Zenith angle.
-		  cos_zenith_angle =
-		    cos(ZenithAngle(Attenuation[3].Value(h, 0, j, i),
-				    Attenuation[2].Value(h, 0, j, i),
-				    current_date,
-				    Attenuation[0].Value(h, 0, j, i))
-			* 0.0174532925199433 );
-		  cos_zenith_angle = abs(cos_zenith_angle);
-		  // Computes the attenuation coefficient.
-		  low_att = 1.0 + MediumCloudiness(h, j, i)
-		    * (1.6 * tr * cos_zenith_angle - 1.0);
-		}
-	      else if (lower != 0)
-		{
-		  href = Attenuation[1].Value(h, lower - 1, j, i);
-		  dist = Attenuation[1].Value(h, upper, j, i) - href;
-		  up_att = Attenuation(h, upper, j, i);
-		  low_att = Attenuation(h, lower - 1, j, i);
-		}
-	      else
-		{
-		  href = Attenuation[1].Value(h, lower, j, i);
-		  dist = Attenuation[1].Value(h, upper, j, i) - href;
-		  up_att = Attenuation(h, upper, j, i);
-		  // Zenith angle.
-		  cos_zenith_angle =
-		    cos(ZenithAngle(Attenuation[3].Value(h, 0, j, i),
-				    Attenuation[2].Value(h, 0, j, i),
-				    current_date,
-				    Attenuation[0].Value(h, 0, j, i))
-			* 0.0174532925199433 );
-		  cos_zenith_angle = abs(cos_zenith_angle);
-		  // Computes the attenuation coefficient.
-		  low_att = 1.0 + MediumCloudiness(h, j, i)
-		    * (1.6 * tr * cos_zenith_angle - 1.0);
-		}
-	      // If tau <= 5., nothing is done.
-	      for (k = lower; k < upper && tau > 5.; k++)
-		{
-		  // Computes the attenuation coefficient.
-		  alpha = (Attenuation[1].Value(h, k, j, i) - href) / dist;
-		  Attenuation(h, k, j, i) = alpha * up_att
-		    + (1. - alpha) * low_att;
-		}
-	    }
-	current_date.AddHours(int(Delta_t));
+              /*** Below clouds ***/
+              // If tau <= 5., nothing is done.
+              for (k = 0; k < lower && tau > 5.; k++)
+                {
+                  // Zenith angle.
+                  cos_zenith_angle =
+                    cos(ZenithAngle(Attenuation[3].Value(h, k, j, i),
+                                    Attenuation[2].Value(h, k, j, i),
+                                    current_date,
+                                    Attenuation[0].Value(h, k, j, i))
+                        * 0.0174532925199433);
+                  cos_zenith_angle = abs(cos_zenith_angle);
+
+                  // Computes the attenuation coefficient.
+                  Attenuation(h, k, j, i) = 1.0 + MediumCloudiness(h, j, i)
+                    * (1.6 * tr * cos_zenith_angle - 1.0);
+                }
+
+              /*** Above clouds ***/
+              // If tau <= 5., nothing is done.
+              // Note: the loop is safe because if upper == -1, then tau == 0.
+              for (k = upper; k < Nz && tau > 5.; k++)
+                {
+                  // Zenith angle.
+                  cos_zenith_angle =
+                    cos(ZenithAngle(Attenuation[3].Value(h, k, j, i),
+                                    Attenuation[2].Value(h, k, j, i),
+                                    current_date,
+                                    Attenuation[0].Value(h, k, j, i))
+                        * 0.0174532925199433);
+                  cos_zenith_angle = abs(cos_zenith_angle);
+
+                  // Computes the attenuation coefficient.
+                  Attenuation(h, k, j, i) = 1.0
+                    + MediumCloudiness(h, j, i) * (1. - tr)
+                    * cos_zenith_angle;
+                }
+
+              /*** In cloud ***/
+              // Computes the cloud thickness and the attenuation at both
+              // ends.
+              // Takes into account special cases in which the cloud
+              // reaches the bottom or the top.
+              if (upper == Nz && lower != 0)
+                {
+                  href = Attenuation[1].Value(h, lower - 1, j, i);
+                  dist = 2. * Attenuation[1].Value(h, upper - 1, j, i)
+                    - Attenuation[1].Value(h, upper - 2, j, i) - href;
+                  up_att = 1.;
+                  low_att = Attenuation(h, lower - 1, j, i);
+                }
+              else if (upper == Nz && lower == 0)
+                {
+                  href = Attenuation[1].Value(h, lower, j, i);
+                  dist = 2. * Attenuation[1].Value(h, upper - 1, j, i)
+                    - Attenuation[1].Value(h, upper - 2, j, i) - href;
+                  up_att = 1.;
+                  // Zenith angle.
+                  cos_zenith_angle =
+                    cos(ZenithAngle(Attenuation[3].Value(h, 0, j, i),
+                                    Attenuation[2].Value(h, 0, j, i),
+                                    current_date,
+                                    Attenuation[0].Value(h, 0, j, i))
+                        * 0.0174532925199433);
+                  cos_zenith_angle = abs(cos_zenith_angle);
+                  // Computes the attenuation coefficient.
+                  low_att = 1.0 + MediumCloudiness(h, j, i)
+                    * (1.6 * tr * cos_zenith_angle - 1.0);
+                }
+              else if (lower != 0)
+                {
+                  href = Attenuation[1].Value(h, lower - 1, j, i);
+                  dist = Attenuation[1].Value(h, upper, j, i) - href;
+                  up_att = Attenuation(h, upper, j, i);
+                  low_att = Attenuation(h, lower - 1, j, i);
+                }
+              else
+                {
+                  href = Attenuation[1].Value(h, lower, j, i);
+                  dist = Attenuation[1].Value(h, upper, j, i) - href;
+                  up_att = Attenuation(h, upper, j, i);
+                  // Zenith angle.
+                  cos_zenith_angle =
+                    cos(ZenithAngle(Attenuation[3].Value(h, 0, j, i),
+                                    Attenuation[2].Value(h, 0, j, i),
+                                    current_date,
+                                    Attenuation[0].Value(h, 0, j, i))
+                        * 0.0174532925199433);
+                  cos_zenith_angle = abs(cos_zenith_angle);
+                  // Computes the attenuation coefficient.
+                  low_att = 1.0 + MediumCloudiness(h, j, i)
+                    * (1.6 * tr * cos_zenith_angle - 1.0);
+                }
+              // If tau <= 5., nothing is done.
+              for (k = lower; k < upper && tau > 5.; k++)
+                {
+                  // Computes the attenuation coefficient.
+                  alpha = (Attenuation[1].Value(h, k, j, i) - href) / dist;
+                  Attenuation(h, k, j, i) = alpha * up_att
+                    + (1. - alpha) * low_att;
+                }
+            }
+        current_date.AddHours(int(Delta_t));
       }
   }
 
@@ -456,10 +456,10 @@ namespace AtmoData
   */
   template <class TMC, class THC, class TG, class TH, class T>
   void ComputeAttenuation_ESQUIF(Data<TMC, 3, TG>& MediumCloudiness,
-				 Data<THC, 3, TG>& HighCloudiness,
-				 Data<TH, 4, TG>& RelativeHumidity,
-				 Data<T, 4, TG>& Attenuation,
-				 T a, T b, T c)
+                                 Data<THC, 3, TG>& HighCloudiness,
+                                 Data<TH, 4, TG>& RelativeHumidity,
+                                 Data<T, 4, TG>& Attenuation,
+                                 T a, T b, T c)
   {
     int Nt(Attenuation.GetLength(0));
     int Nz(Attenuation.GetLength(1));
@@ -472,28 +472,76 @@ namespace AtmoData
 
     for (h = 0; h < Nt ; h++)
       for (j = 0; j < Ny ; j++)
-	for (i = 0; i < Nx ; i++)
-	  {
-	    // Calculation of B.
-	    for (k = 0 ; k < Nz && RelativeHumidity[1].Value(h, k, j, i)
-		   < 1500 ; k++)
-	      {
-		dz = RelativeHumidity[1].Value(h, k + 1, j, i)
-		  - RelativeHumidity[1].Value(h, k, j, i);
+        for (i = 0; i < Nx ; i++)
+          {
+            // Calculation of B.
+            for (k = 0 ; k < Nz && RelativeHumidity[1].Value(h, k, j, i)
+                   < 1500 ; k++)
+              {
+                dz = RelativeHumidity[1].Value(h, k + 1, j, i)
+                  - RelativeHumidity[1].Value(h, k, j, i);
 
-		if (RelativeHumidity(h, k, j, i) > 0.7)
-		  B += (RelativeHumidity(h, k, j, i) - 0.7) * dz;
+                if (RelativeHumidity(h, k, j, i) > 0.7)
+                  B += (RelativeHumidity(h, k, j, i) - 0.7) * dz;
 
-		norm += (1. - 0.7) * dz;
-	      }
-	    // Normalization.
-	    B /= norm;
+                norm += (1. - 0.7) * dz;
+              }
+            // Normalization.
+            B /= norm;
 
-	    for (k = 0 ; k < Nz ; k++)
-	      Attenuation (h, k, j, i) = (1. - a * HighCloudiness(h, j, i))
-		* (1. - b * MediumCloudiness(h, j, i))
-		* exp(-c * B);
-	  }
+            for (k = 0 ; k < Nz ; k++)
+              Attenuation(h, k, j, i) = (1. - a * HighCloudiness(h, j, i))
+                * (1. - b * MediumCloudiness(h, j, i))
+                * exp(-c * B);
+          }
+  }
+
+  // Computes the extinction for optical depth.
+  // (OD is the integration of the extinction over the vertical).
+  // The formula is based on  Pozzoli et al., 08 (JGR),
+  // himself based on based on Rockel et al., 1991.
+  /*!
+    \param LiquidWaterContent liquid water content (kg/m^3).
+    \param IceWaterContent Ice water content (kg/m^3).
+    \param LiquidWaterExtinction (output) liquid cloud extinction .
+    \param IceOpticalDepth (output) ice cloud extinction .
+  */
+  template <class TL, class T, class TG>
+  void ComputeExtinction(const Data<TL, 4, TG>& LiquidWaterContent,
+                         const Data<TL, 4, TG>& IceWaterContent,
+                         Data<T, 4, TG>& LiquidWaterExtinction,
+                         Data<T, 4, TG>& IceWaterExtinction)
+  {
+    double cf;
+
+    int Nt(IceWaterContent.GetLength(0));
+    int Nz(IceWaterContent.GetLength(1));
+    int Ny(IceWaterContent.GetLength(2));
+    int Nx(IceWaterContent.GetLength(3));
+
+    LiquidWaterExtinction.Fill(0.);
+    IceWaterExtinction.Fill(0.);
+
+    T al = 1.488;
+    T bl = -0.9374;
+    T rleff = 12;
+    T ai = 1.911;
+    T bi = -1.0631;
+    T rieff = 50;
+
+    for (int h = 0; h < Nt; h++)
+      for (int j = 0; j < Ny; j++)
+        for (int i = 0; i < Nx; i++)
+          // Starting from the top.
+          for (int k = 0; k < Nz; k++)
+            {
+              // kg/m^3 to g/m^3.
+              T tau = al * 1000. * LiquidWaterContent(h, k, j, i) * pow(rleff, bl);
+              T icetau = ai * 1000. * IceWaterContent(h, k, j, i) * pow(rieff, bi);
+
+              LiquidWaterExtinction(h, k, j, i) = tau;
+              IceWaterExtinction(h, k, j, i) = icetau;
+            }
   }
 
 }  // namespace AtmoData.

@@ -44,6 +44,7 @@ namespace Polyphemus
   StreetNetworkTransport<T>::StreetNetworkTransport(string config_file):
     BaseModel<T>(config_file)
   {
+    this->D2_map["StreetConcentration"] = &StreetConcentration;
   }
   
 
@@ -101,7 +102,9 @@ namespace Polyphemus
 
     this->config.PeekValue("With_local_data",
 			   this->option_process["with_local_data"]);
-
+    this->config.PeekValue("With_stationary_hypothesis",
+			   this->option_process["with_stationary_hypothesis"]);
+    
     /*** Input files ***/
 
     //! The configuration-file path is the field "Data_description" in the main
@@ -313,13 +316,30 @@ namespace Polyphemus
       {
         StreetStream.GetLine(line);
         v = split(line, ";");
-        id_street(i) = to_num<T>(v[0]);
+	id_street(i) = to_num<T>(v[0]);
         begin_inter(i) = to_num<T>(v[1]);
         end_inter(i) = to_num<T>(v[2]);
         length(i) = to_num<T>(v[3]);
         width(i) = to_num<T>(v[4]);
         height(i) = to_num<T>(v[5]);
+	
+        // id_street(i) = to_num<T>(v[1]);
+        // begin_inter(i) = to_num<T>(v[2]);
+        // end_inter(i) = to_num<T>(v[3]);
+        // length(i) = to_num<T>(v[4]);
+        // width(i) = to_num<T>(v[5]);
+        // height(i) = to_num<T>(v[6]);
 
+	// cout<<" id_street(i) = "<<id_street(i)
+	//     <<" begin_inter(i) = "<<begin_inter(i)
+	//     <<" end_inter(i) = "<<end_inter(i)
+	//     <<" length(i) = "<<length(i)
+	//     <<" width(i) = "<<width(i)
+	//     <<" height(i) = "<<height(i)
+	//     <<endl;
+	// throw;
+	//LL********************************************
+	
         //! Check if a zero value exists.
         if (length(i) == 0.0)
           throw string("Street length is zero for the street ") + to_str(i + 1) + ".";
@@ -413,7 +433,10 @@ namespace Polyphemus
         for (int i = 0; i < this->Ns; ++i)
           for (int j = 0; j < Ns_emis; ++j)
             if (this->species_list[i] == species_list_emis[j])
-              emission_rate(i) = emission(j, emis_index, st);
+	      { 
+		emission_rate(i) = emission(j, emis_index, st);
+	      }
+	//throw;
         street->SetEmission(emission_rate);
 
         if (this->option_process["with_local_data"])
@@ -660,8 +683,9 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::ClearStreetVector()
   {
-    for (int i = 0; i < int(StreetVector.size()); i++)
-      EraseStreet();
+    for (typename vector<Street<T>* >:: iterator iter = StreetVector.begin();
+         iter != StreetVector.end(); iter++)
+      delete (*iter);
     StreetVector.clear();
   }
 
@@ -712,7 +736,7 @@ namespace Polyphemus
         if (ndata != nstreet(i) + 4)
           throw string("Number of data is invalid in ") + file_intersection + 
             + ". " + to_str(nstreet(i) + 4) + " are needed but " 
-            + to_str(ndata) + " are given.";
+            + to_str(ndata) + " are given. Intersection " + to_str(id_inter(i)) ;
 
         for (int j = 0; j < nstreet(i); ++j)
           street_list(i, j) = to_num<T>(v[4 + j]);
@@ -753,8 +777,9 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::ClearIntersectionVector()
   {
-    for (int i = 0; i < int(IntersectionVector.size()); i++)
-      EraseIntersection();
+    for (typename vector<Intersection<T>* >:: iterator iter = IntersectionVector.begin();
+         iter != IntersectionVector.end(); iter++)
+      delete (*iter);
     IntersectionVector.clear();
   }
 
@@ -820,26 +845,38 @@ namespace Polyphemus
 
     SetInitialStreetConcentration();
 
-    int niter = 0;
-    const int niter_max = 1000;
-    while (niter < niter_max and (!is_stationary))
+    if (this->option_process["with_stationary_hypothesis"])
       {
-        InitInflowRate();
+	int niter = 0;
+	const int niter_max = nintersection;
+	while (niter < niter_max and (!is_stationary))
+	  {
+	    InitInflowRate();
 
-        //        cout << " ----> Iteration No " << niter << endl;
-        ComputeInflowRateExtended();
+	    cout << " ----> MUNICH Iteration No " << niter << endl;
+	    ComputeInflowRateExtended();
 
-        //! Compute the concentrations in the street-canyon.
-        ComputeStreetConcentration();
+	    //! Compute the concentrations in the street-canyon.
+	    ComputeStreetConcentration();
 
-        IsStationary(is_stationary);
+	    IsStationary(is_stationary);
 
-        ++niter;
+	    ++niter;
+	  }
+
+	if (!is_stationary)
+	  throw("Error: stationarity is not achieved. Please increase the number of iterations.");
       }
+    else //non stationary calcul
+      {
+	InitInflowRate();
 
-    if (!is_stationary)
-      throw("Error: stationarity is not achieved. Please increase the number of iterations.");
+	ComputeInflowRateExtended();
 
+	//! Compute the concentrations in the street-canyon.
+	if (this->option_process["with_chemistry"] == false)
+	  ComputeStreetConcentrationNoStationary();
+      }
   }
 
 
@@ -1119,9 +1156,9 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::ComputeStreetConcentration()
   {
-
+    
     const T delta_concentration_min = 0.01;
-
+    
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin();
          iter != StreetVector.end(); iter++)
       {
@@ -1137,7 +1174,7 @@ namespace Polyphemus
           {
             T street_conc = street->GetStreetConcentration(s); // ug/m3
             T init_street_conc = street->GetInitialStreetConcentration(s); // ug/m3
-            T emission_rate = street->GetEmission(s); //  ug/s
+	    T emission_rate = street->GetEmission(s); //  ug/s
             T inflow_rate = street->GetInflowRate(s); // ug/s
             T deposition_rate = street->GetDepositionRate(); // 1/s
             T deposition_flux = deposition_rate * street_volume; // m3/s
@@ -1152,7 +1189,6 @@ namespace Polyphemus
                 //! in Munich which uses a steady-state approximation.
                 //! In this case, the concentrations are assumed to be constant
                 //! because the total incoming flux should be equal to zero.
-                // street_conc_new = street_conc; // !!!! TEST YK
                 street_conc_new = (emission_rate * this->Delta_t) / street_volume
                   + init_street_conc;
               }
@@ -1190,8 +1226,133 @@ namespace Polyphemus
         street->SetStationary(is_stationary_local);
       }
   }
-    
 
+  //LL: Remove stationary regime
+  //! Compute the concentrations in the street-canyon using the flux balance equation.
+  template<class T>
+  void StreetNetworkTransport<T>::ComputeStreetConcentrationNoStationary()
+  {
+    
+    for (typename vector<Street<T>* >::iterator iter = StreetVector.begin();
+         iter != StreetVector.end(); iter++)
+      {
+	Street<T>* street = *iter;
+
+	Array<T, 1> concentration_array(this->Ns);
+	Array<T, 1> concentration_array_tmp(this->Ns);
+	Array<T, 1> init_concentration_array(this->Ns);
+	Array<T, 1> background_concentration_array(this->Ns);
+	Array<T, 1> new_concentration_array(this->Ns);
+	Array<T, 1> emission_rate_array(this->Ns);
+	Array<T, 1> inflow_rate_array(this->Ns);
+	Array<T, 1> deposition_flux_array(this->Ns);
+
+	concentration_array = 0.0;
+	concentration_array_tmp = 0.0;
+	init_concentration_array = 0.0;
+	background_concentration_array = 0.0;
+	new_concentration_array = 0.0;
+	emission_rate_array = 0.0;
+	inflow_rate_array = 0.0;
+	deposition_flux_array = 0.0;
+	
+        T transfer_velocity = street->GetTransferVelocity(); // m/s
+	T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
+        T outgoing_flux = street->GetOutgoingFlux(); // m3/s
+        T street_volume = street->GetHeight() *
+          street->GetWidth() * street->GetLength(); // m3
+
+	for (int s = 0; s < this->Ns; ++s)
+          {
+	    concentration_array(s) = street->GetStreetConcentration(s);
+	    init_concentration_array(s) = street->GetStreetConcentration(s);
+	    background_concentration_array(s) = street->GetBackgroundConcentration(s);
+	    emission_rate_array(s) = street->GetEmission(s);
+	    inflow_rate_array(s) = street->GetInflowRate(s);
+	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume;
+	  }
+
+	T sub_delta_t_init, sub_delta_t, sub_delta_t_min;
+	sub_delta_t_min = 1.0;	
+	
+	InitStep(sub_delta_t_init,
+		 sub_delta_t_min,
+		 transfer_velocity,
+		 temp,
+		 outgoing_flux,
+		 street_volume,
+		 concentration_array,
+		 background_concentration_array,
+		 emission_rate_array,
+		 inflow_rate_array,
+		 deposition_flux_array);
+
+	Date current_date_tmp = this->current_date;
+	Date next_date = this->current_date;
+	Date next_date_tmp = this->current_date;
+	next_date.AddSeconds(this->Delta_t);
+	next_date_tmp.AddSeconds(sub_delta_t_init);
+	
+	while (current_date_tmp < next_date)
+	  {
+	    //! Get street concentrations.
+	    for (int s = 0; s < this->Ns; ++s)
+	      concentration_array(s) = street->GetStreetConcentration(s);
+
+	    //cout<<"sub_delta_t que vai para o ETR = "<<sub_delta_t_init<<endl;
+	    //! Use the ETR method to calculates new street concentrations.
+	    ETRConcentration(transfer_velocity,
+			     temp,
+			     outgoing_flux,
+			     street_volume,
+			     concentration_array,
+			     concentration_array_tmp,
+			     background_concentration_array,
+			     emission_rate_array,
+			     inflow_rate_array,
+			     deposition_flux_array,
+			     new_concentration_array,
+			     sub_delta_t_init);
+
+	    //! Set the new concentrations.
+	    for (int s = 0; s < this->Ns; ++s)
+	      street->SetStreetConcentration(new_concentration_array(s), s);
+
+	    //! Calculates the new sub_delta_t for the next iteration
+	    T sub_delta_t_max = next_date.GetSecondsFrom(next_date_tmp); 
+	    sub_delta_t_max = max(sub_delta_t_max, 0.0);
+	    AdaptTimeStep(new_concentration_array,
+			  concentration_array_tmp,
+			  sub_delta_t_init,
+			  sub_delta_t_min,
+			  sub_delta_t_max,
+			  sub_delta_t);
+	    //cout<<"sub_delta_t after AdaptTimeStep = "<<sub_delta_t<<endl;
+
+	    //! Actualises current_time_tmp
+	    current_date_tmp.AddSeconds(sub_delta_t_init);
+	    next_date_tmp.AddSeconds(sub_delta_t);
+	    
+	    //! Set the new sub_delta_t
+	    sub_delta_t_init = sub_delta_t;
+
+	  }
+	
+	for (int s = 0; s < this->Ns; ++s)
+	  {
+            T massflux_roof_to_background;
+	    massflux_roof_to_background = temp * (new_concentration_array(s) - background_concentration_array(s)); // ug/s
+	    
+	    street->SetMassfluxRoofToBackground(massflux_roof_to_background, s);
+   
+	    T conc_delta = new_concentration_array(s) - init_concentration_array(s);
+	    T street_quantity_delta = conc_delta * street_volume; // ug
+	    street->SetStreetQuantityDelta(street_quantity_delta, s);
+
+	  }
+      }
+  
+  }
   //! Compute the concentrations in the street-canyon using the flux balance equation.
   template<class T>
   void StreetNetworkTransport<T>::SetInitialStreetConcentration()
@@ -1486,8 +1647,7 @@ namespace Polyphemus
                                                 sin(y1 * pi / 180.)));
         T dl = sqrt(pow(x_distance, 2) + pow(y_distance, 2));
         if (dl == 0.0)
-          throw string("Distance between the intersections is zero ") +
-            "for the street " + to_str(street->GetStreetID());
+          throw string("Distance between the intersections is zero.");
 
         //! gamma is arc cosine of input value, x.
         //! 0 < x < 1 and 0 < gamma < PI/2
@@ -1647,6 +1807,13 @@ namespace Polyphemus
     z.resize(nz);
     ustreet_z.resize(nz);
 
+    //LL: print data
+    bool isIsolated;
+    if(total_nstreet > 30)
+      isIsolated = false;
+    else
+      isIsolated = true;
+
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
       {
         Street<T>* street = *iter;
@@ -1708,7 +1875,7 @@ namespace Polyphemus
         else
           throw("Wrong option given. Choose Lemonsu or Sirane");
 
-        street->SetStreetWindSpeed(max(ustreet, ustreet_min)); 
+        street->SetStreetWindSpeed(max(ustreet, ustreet_min));
       }
   }
 
@@ -1822,8 +1989,6 @@ namespace Polyphemus
                     //! Compute the flux at the intersection.
                     ComputeIntersection(theta(i), intersection);
 
-                    // if (intersection->GetID() == inspectedInterID)
-                    //   cout << i << " step: " << step << " gaussian : " << gaussian(i) << endl;
                     ComputeGaussianFluxMatrix(step * gaussian(i), intersection);
 
                   }
@@ -2023,16 +2188,16 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::InitOutputSaver()
   {
-
     /*** Output configuration ***/
 
     this->config.SetSection("[output]");
     this->config.PeekValue("Configuration_file", output_config);
 
     ConfigStream output_stream(output_config);
+    
+    output_stream.PeekValue("Result_dir", output_dir);
     // Section "[save]".
     output_stream.SetSection("[save]");
-    output_stream.PeekValue("Output_dir", output_dir);
     output_stream.PeekValue("Text_file", text_file);
   }
 
@@ -2072,6 +2237,254 @@ namespace Polyphemus
   Date StreetNetworkTransport<T>::GetDateMin() const
   {
     return this->Date_min;
+  }
+
+  // //LL: Remove stationary regime
+
+  //LL: Remove stationary hypothesis
+  //! This subroutine solves a system of Ordinary Differential Equations  
+  //!  with the Explicit Trapezoidal Rule algorithm (ETR).
+  /*!
+    \param transfer_velocity Transfer velocity between the roof and the atmosphere [m/s]
+    \param temp Transfer velocity x Width x length [m3/s]
+    \param outgoing_flux Outgoing flux in a street [m3/s]
+    \param street_volume Street volume (lenght x width x hight) [m3]
+    \param init_street_conc Street concentration at the previous time step [mug/m3]
+    \param street_conc Street concentration of a determined species [mug/m3]
+    \param emission_rate Emission rate of a determined species in a street [mug/s]
+    \param inflow_rate Inflow rate in a street [mug/s]
+    \param deposition_flux Deposition flux in a street [m3/s]
+    \param conc_bg Background concentration of a determined species in a street [mug/m3]
+    \param street_conc_new New street concentration of a determined species [mug/m3]
+  */
+  template<class T>
+  void StreetNetworkTransport<T>
+  ::ETRConcentration(const T transfer_velocity,
+		     const T temp,
+		     const T outgoing_flux,
+		     const T street_volume,
+		     const Array<T, 1> concentration_array,
+		     Array<T, 1>& concentration_array_tmp,
+		     const Array<T, 1> background_concentration_array,
+		     const Array<T, 1> emission_rate_array,
+		     const Array<T, 1> inflow_rate_array,
+		     const Array<T, 1> deposition_flux_array,
+		     Array<T, 1>& new_concentration_array,
+		     const T sub_delta_t)
+  {
+    T dtetr;
+    Array<T, 1> dc1dt(this->Ns);
+    Array<T, 1> dc2dt(this->Ns);
+    dc1dt = 0.0;
+    dc2dt = 0.0;
+    //First time step
+    CalculDCDT(transfer_velocity,
+	       temp,
+	       outgoing_flux,
+	       street_volume,
+	       concentration_array,
+	       background_concentration_array,
+	       emission_rate_array,
+	       inflow_rate_array,
+	       deposition_flux_array,
+	       dc1dt);
+    //Update concentrations
+    for (int s = 0; s < this->Ns; s++)
+      {
+	concentration_array_tmp(s) = concentration_array(s) + dc1dt(s)*sub_delta_t;
+	concentration_array_tmp(s) = max(concentration_array_tmp(s), 0.0);
+      }
+    //Second time step
+    CalculDCDT(transfer_velocity,
+	       temp,
+	       outgoing_flux,
+	       street_volume,
+	       concentration_array_tmp,
+	       background_concentration_array,
+	       emission_rate_array,
+	       inflow_rate_array,
+	       deposition_flux_array,
+	       dc2dt);
+    dtetr = sub_delta_t/2.0;
+    for (int s = 0; s < this->Ns; s++)
+      {
+	new_concentration_array(s) = concentration_array(s) + (dc1dt(s) + dc2dt(s))*dtetr;
+	new_concentration_array(s) = max(new_concentration_array(s), 0.0);
+      }
+  }
+
+
+  //! This subroutine solves a system of Ordinary Differential Equations  
+  //!  with the Explicit Trapezoidal Rule algorithm (ETR).
+  /*!
+    \param transfer_velocity Transfer velocity between the roof and the atmosphere [m/s]
+    \param temp Transfer velocity x Width x length [m3/s]
+    \param outgoing_flux Outgoing flux in a street [m3/s]
+    \param street_volume Street volume (lenght x width x hight) [m3]
+    \param init_street_conc Street concentration at the previous time step [mug/m3]
+    \param street_conc Street concentration of a determined species [mug/m3]
+    \param emission_rate Emission rate of a determined species in a street [mug/s]
+    \param inflow_rate Inflow rate in a street [mug/s]
+    \param deposition_flux Deposition flux in a street [m3/s]
+    \param conc_bg Background concentration of a determined species in a street [mug/m3]
+    \param street_conc_new New street concentration of a determined species [mug/m3]
+  */
+  template<class T>
+  void StreetNetworkTransport<T>
+  ::InitStep(T& sub_delta_t,
+	     const T sub_delta_t_min,
+	     const T transfer_velocity,
+	     const T temp,
+	     const T outgoing_flux,
+	     const T street_volume,
+	     const Array<T, 1> concentration_array,
+	     const Array<T, 1> background_concentration_array,
+	     const Array<T, 1> emission_rate_array,
+	     const Array<T, 1> inflow_rate_array,
+	     const Array<T, 1> deposition_flux_array)
+
+  {
+    Array<T, 1> dcdt(this->Ns);
+    dcdt = 0.0;
+    Array<T, 1> sub_delta_t_sp(this->Ns);
+    sub_delta_t_sp = 0.0;
+    Array<T, 1> concentration_array_tmp(this->Ns);
+    concentration_array_tmp = 0.0;
+    
+    if(this->current_date == this->Date_min)
+      {
+	Array<T, 1> dcdt0(this->Ns);
+	dcdt0 = 0.0;
+	Array<T, 1> dcdtmin(this->Ns);
+	dcdtmin = 0.0;
+
+	CalculDCDT(transfer_velocity,
+		   temp,
+		   outgoing_flux,
+		   street_volume,
+		   concentration_array,
+		   background_concentration_array,
+		   emission_rate_array,
+		   inflow_rate_array,
+		   deposition_flux_array,
+		   dcdt0);
+	
+	for (int s = 0; s < this->Ns; s++)
+	  {
+	    concentration_array_tmp(s) = concentration_array(s) + dcdt0(s)*sub_delta_t_min;
+	    concentration_array_tmp(s) = max(0.0, concentration_array_tmp(s));
+	  }
+	
+	CalculDCDT(transfer_velocity,
+		   temp,
+		   outgoing_flux,
+		   street_volume,
+		   concentration_array_tmp,
+		   background_concentration_array,
+		   emission_rate_array,
+		   inflow_rate_array,
+		   deposition_flux_array,
+		   dcdtmin);
+	for (int s = 0; s < this->Ns; s++)
+	  sub_delta_t_sp(s) = dcdt0(s)/dcdtmin(s) * sub_delta_t_min;
+      }
+    else
+      {
+	CalculDCDT(transfer_velocity,
+		   temp,
+		   outgoing_flux,
+		   street_volume,
+		   concentration_array,
+		   background_concentration_array,
+		   emission_rate_array,
+		   inflow_rate_array,
+		   deposition_flux_array,
+		   dcdt);
+	for (int s = 0; s < this->Ns; s++)
+	  {
+	    T tmp = concentration_array(s) * dcdt(s);
+	    if (tmp != 0.0)
+	      {
+		T tscale = concentration_array(s)/abs(dcdt(s));
+		sub_delta_t_sp(s) = min(tscale, this->Delta_t);
+		sub_delta_t_sp(s) = max(tscale, sub_delta_t_min);
+	      }
+	  }
+      }
+    sub_delta_t = min(sub_delta_t_sp);
+    sub_delta_t = max(sub_delta_t, sub_delta_t_min);
+  }
+
+  //! This subroutine solves a system of Ordinary Differential Equations  
+  //!  with the Explicit Trapezoidal Rule algorithm (ETR).
+  /*!
+    \param transfer_velocity Transfer velocity between the roof and the atmosphere [m/s]
+    \param temp Transfer velocity x Width x length [m3/s]
+    \param outgoing_flux Outgoing flux in a street [m3/s]
+    \param street_volume Street volume (lenght x width x hight) [m3]
+    \param init_street_conc Street concentration at the previous time step [mug/m3]
+    \param street_conc Street concentration of a determined species [mug/m3]
+    \param emission_rate Emission rate of a determined species in a street [mug/s]
+    \param inflow_rate Inflow rate in a street [mug/s]
+    \param deposition_flux Deposition flux in a street [m3/s]
+    \param conc_bg Background concentration of a determined species in a street [mug/m3]
+    \param street_conc_new New street concentration of a determined species [mug/m3]
+  */
+  template<class T>
+  void StreetNetworkTransport<T>
+  ::CalculDCDT(const T transfer_velocity,
+	       const T temp,
+	       const T outgoing_flux,
+	       const T street_volume,
+	       const Array<T, 1> concentration_array,
+	       const Array<T, 1> background_concentration_array,
+	       const Array<T, 1> emission_rate_array,
+	       const Array<T, 1> inflow_rate_array,
+	       const Array<T, 1> deposition_flux_array,
+	       Array<T, 1>& dcdt)
+  {
+    for (int s = 0; s < this->Ns; s++)
+      dcdt(s) = (emission_rate_array(s) + inflow_rate_array(s) - outgoing_flux*concentration_array(s) - deposition_flux_array(s)*concentration_array(s) - temp*(concentration_array(s) - background_concentration_array(s)))/street_volume;
+  }
+
+  template<class T>
+  void StreetNetworkTransport<T>
+  ::AdaptTimeStep(const Array<T, 1> new_concentration_array,
+		  const Array<T, 1>concentration_array_tmp,
+		  const T sub_delta_t_init,
+		  const T sub_delta_t_min,
+		  const T sub_delta_t_max,
+		  T& sub_delta_t)
+  {
+    T tmp, R;
+    T EPSER = 0.01; //relative error precision
+    //zero init
+    T n2err = 0.0;
+    
+    //local error estimation
+    for (int s = 0; s < this->Ns; s++)
+      if(new_concentration_array(s) > 0.0)
+	{
+	  tmp = (new_concentration_array(s) - concentration_array_tmp(s))/new_concentration_array(s);
+	  n2err = n2err + tmp*tmp;
+	}
+    n2err = sqrt(n2err);
+
+    //******compute new time step
+                                // ! first we constrain norm2 error
+                                // ! in order to prevent division by zero
+                                // ! and to keep new time step between
+                                // ! sub_delta_t_min and Delta_t defined 
+
+    R = (1.0e2/1.0e-5);
+    tmp = R*R;
+    n2err = min(n2err, EPSER*tmp);
+    n2err = max(EPSER/tmp, n2err);
+
+    //formula to compute new time step
+    sub_delta_t = sub_delta_t_init*sqrt(EPSER/n2err);
+    sub_delta_t = min(sub_delta_t, sub_delta_t_max);
+    sub_delta_t = max(sub_delta_t, sub_delta_t_min);
   }
 
 } // namespace Polyphemus.

@@ -54,9 +54,9 @@ namespace AtmoData
   */
   template <class T>
   inline T ComputeWesely(T surface_temperature, T solar_radiation,
-			 string species, T reactivity, T diffusivity, T Henry,
-			 T Ri, T Rlu, T Rac, T RgsS, T RgsO, T RclS, T RclO,
-			 T limit, T D_H2O)
+                         string species, T reactivity, T diffusivity, T Henry,
+                         T Ri, T Rlu, T Rac, T RgsS, T RgsO, T RclS, T RclO,
+                         T limit, T D_H2O)
   {
 
     T Rsx, Rmx, Rlux, Rdc, Rclx, Rgx;
@@ -64,12 +64,12 @@ namespace AtmoData
     surface_temperature -= 273.15;
 
     // Stomatal resistance.
-    if ( (surface_temperature<0.01) || (surface_temperature>39.99))
+    if ((surface_temperature < 0.01) || (surface_temperature > 39.99))
       Rsx = 1.e30;
     else
       Rsx = Ri * (1. + 400. / ((solar_radiation + 0.1)
-			       * (solar_radiation + 0.1)))
-	* (400. / (surface_temperature * (40. - surface_temperature)));
+                               * (solar_radiation + 0.1)))
+        * (400. / (surface_temperature * (40. - surface_temperature)));
     Rsx *= D_H2O / diffusivity;
 
     // Mesophyll resistance.
@@ -82,17 +82,17 @@ namespace AtmoData
     Rdc = 100. * (1. + 1000. / (solar_radiation + 10.));
 
     // Rclx.
-    if (species=="O3")
+    if (species == "O3")
       Rclx = RclO;
-    else if (species=="SO2")
+    else if (species == "SO2")
       Rclx = RclS;
     else
       Rclx = 1. / (1.e-5 * Henry / RclS + reactivity / RclO);
 
     // Rgx.
-    if (species=="O3")
+    if (species == "O3")
       Rgx = RgsO;
-    else if (species=="SO2")
+    else if (species == "SO2")
       Rgx = RgsS;
     else
       Rgx = 1. / (1.e-5 * Henry / RgsS + reactivity / RgsO);
@@ -104,10 +104,10 @@ namespace AtmoData
     if (Rdc > limit) Rdc = limit;
     if (Rclx > limit) Rclx = limit;
     if (Rgx > limit) Rgx = limit;
-    
+
     // Rc.
-    return  1. / (1./(Rsx + Rmx) + 1./Rlux
-		  + 1./(Rdc + Rclx) + 1./(Rac + Rgx));
+    return  1. / (1. / (Rsx + Rmx) + 1. / Rlux
+                  + 1. / (Rdc + Rclx) + 1. / (Rac + Rgx));
 
   }
 

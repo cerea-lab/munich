@@ -20,23 +20,23 @@
 
 namespace SeldonData
 {
-  
-  template<int N, class TIn, class TGIn,
-	   class TOut, class TGOut>
-  void LinearInterpolationRegular(Data<TIn, N, TGIn>& dataIn,
-				  Data<TOut, N, TGOut>& dataOut);
 
-  template<int N, class TIn, class TGIn,
-	   class TOut, class TGOut>
+  template < int N, class TIn, class TGIn,
+             class TOut, class TGOut >
+  void LinearInterpolationRegular(Data<TIn, N, TGIn>& dataIn,
+                                  Data<TOut, N, TGOut>& dataOut);
+
+  template < int N, class TIn, class TGIn,
+             class TOut, class TGOut >
   void LinearInterpolationOneGeneral(Data<TIn, N, TGIn>& dataIn,
-				     Data<TOut, N, TGOut>& dataOut,
-				     int dim);
-  
-  template<int N, class TIn, class TGIn,
-	   class TOut, class TGOut>
+                                     Data<TOut, N, TGOut>& dataOut,
+                                     int dim);
+
+  template < int N, class TIn, class TGIn,
+             class TOut, class TGOut >
   void LinearInterpolationPoint(Data<TIn, N, TGIn>& dataIn,
-				Array<TGOut, 1>& Coord, TOut& dataOut);
-  
+                                Array<TGOut, 1>& Coord, TOut& dataOut);
+
 }  // namespace SeldonData.
 
 #define FILE_SELDONDATA_FUNCTIONS_HXX

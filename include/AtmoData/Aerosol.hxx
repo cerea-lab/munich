@@ -23,6 +23,26 @@
 
 #ifndef ATMODATA_FILE_AEROSOL_HXX
 
+namespace AtmoData
+{
+  template<class T>
+  T wpower(T a, T b);
+
+  template<class T>
+  T compute_Hanel_diameter(T dry_radius, T relative_humidity);
+
+  template<class T>
+  T compute_Gerber_diameter(T dry_diameter, T relative_humidity,
+                            T temperature);
+
+  template<class T>
+  T compute_wet_diameter_from_water_content(T dry_diameter,
+                                            T dry_aerosol_concentration,
+                                            T water_concentration);
+} // namespace AtmoData.
+
+
+// Fortran functions.
 #ifdef POLYPHEMUS_SINGLE_UNDERSCORE
 #undef POLYPHEMUS_DOUBLE_UNDERSCORE
 #elif defined(__GNUG__) && __GNUG__ < 4 && !defined(__INTEL_COMPILER)
@@ -57,21 +77,21 @@
 extern "C"
 {
   void _compute_gas_diffusivity(const double*, const double*, const double*,
-				const double*, const double*, double*);
+                                const double*, const double*, double*);
   void _gerber_wet_diameter(const double*, const double*, const double*,
-			    const double*);
+                            const double*);
   void _compute_collision_integral(const double*, const double*);
   void _compute_condensation_transfer_rate(const double*, const double*,
-					   const double*, const double*,
-					   double*);
+                                           const double*, const double*,
+                                           double*);
   void _compute_quadratic_mean_velocity(const double*, const double*,
-					double*);
+                                        double*);
   void _compute_saturation_concentration(const double*, const double*,
-					 const double*, const double*,
-					 double*);
+                                         const double*, const double*,
+                                         double*);
   void _compute_kelvin_coefficient(const double*, const double*,
-				   const double*, const double*,
-				   const double*, double*);
+                                   const double*, const double*,
+                                   const double*, double*);
 }
 
 #define ATMODATA_FILE_AEROSOL_HXX

@@ -50,8 +50,8 @@ namespace AtmoData
   */
   template<class TU, class TV, class TTp, class T, class TG>
   void ComputeLouisKz(Data<TU, 4, TG>& U, Data<TV, 4, TG>& V,
-		      Data<TTp, 4, TG>& Tp, Data<T, 4, TG>& Kz,
-		      T L0, T B, T C, T D, T z0, T a, T b, T delta_z0, T Ka)
+                      Data<TTp, 4, TG>& Tp, Data<T, 4, TG>& Kz,
+                      T L0, T B, T C, T D, T z0, T a, T b, T delta_z0, T Ka)
   {
 
     int h, i, j, k;
@@ -70,75 +70,74 @@ namespace AtmoData
 
     Kz.SetZero();
 
-    for (h=0; h<Nt; h++)
-      for (k=1; k<Nz; k++)
-	for (j=0; j<Ny; j++)
-	  for (i=0; i<Nx; i++)
-	    {
+    for (h = 0; h < Nt; h++)
+      for (k = 1; k < Nz; k++)
+        for (j = 0; j < Ny; j++)
+          for (i = 0; i < Nx; i++)
+            {
 
-	      /*********************/
-	      /* l = Ka * ---- ... */
-	      
-	      L = L0;
-	      
-	      l = Ka * (Levels(k)+z0) / (1.0 + Ka * (Levels(k)+z0) / L);
-	      
-	      /* l = Ka * ---- ... */
-	      /*********************/
+              /*********************/
+              /* l = Ka * ---- ... */
 
-	      /**************/
-	      /* dWind / dz */
+              L = L0;
 
-	      dz = Nodes(k) - Nodes(k-1);
+              l = Ka * (Levels(k) + z0) / (1.0 + Ka * (Levels(k) + z0) / L);
 
-	      // dU/dz.
+              /* l = Ka * ---- ... */
+              /*********************/
 
-	      derivative = ( U(h, k, j, i+1) + U(h, k, j, i)
-			     - U(h, k-1, j, i+1) - U(h, k-1, j, i) )
-		/ dz * 0.5;
+              /**************/
+              /* dWind / dz */
 
-	      derivative = derivative * derivative;
-	      dWind_dz = derivative;
+              dz = Nodes(k) - Nodes(k - 1);
 
-	      // dV/dz.
+              // dU/dz.
 
-	      derivative = ( V(h, k, j+1, i) + V(h, k, j, i)
-			     - V(h, k-1, j+1, i) - V(h, k-1, j, i) )
-		/ dz * 0.5;
-	      
-	      derivative = derivative * derivative;
-	      dWind_dz += derivative;
+              derivative = (U(h, k, j, i + 1) + U(h, k, j, i)
+                            - U(h, k - 1, j, i + 1) - U(h, k - 1, j, i))
+                / dz * 0.5;
 
-	      dWind_dz = sqrt(dWind_dz);
+              derivative = derivative * derivative;
+              dWind_dz = derivative;
 
-	      /* dWind / dz */
-	      /**************/
+              // dV/dz.
 
-	      /***********/
-	      /* F(R, z) */
+              derivative = (V(h, k, j + 1, i) + V(h, k, j, i)
+                            - V(h, k - 1, j + 1, i) - V(h, k - 1, j, i))
+                / dz * 0.5;
 
-              derivative = ( Tp(h, k, j, i) - Tp(h, k-1, j, i) )
-                / (dz * Tp(h, k-1, j, i));
+              derivative = derivative * derivative;
+              dWind_dz += derivative;
 
-	      R = min(g * derivative / ( dWind_dz * dWind_dz ),
-		      a * pow(dz / delta_z0, b));
+              dWind_dz = sqrt(dWind_dz);
 
-	      if (R>=0)
-		F = 1.0 / ( 1.0 + 3.0 * B * R * sqrt(1.0+D*R) );
-	      else
-		{
-		  F = 1.0 + 3.0 * B * C * sqrt(fabs(R)/27.0) *
-		    (l * l) / ( (Levels(k) + z0) * (Levels(k) + z0) );
-		  F = 1.0 - 3.0 * B * R / F;
-		}
+              /* dWind / dz */
+              /**************/
 
-	      /* F(R, z) */
-	      /***********/
+              /***********/
+              /* F(R, z) */
+
+              derivative = (Tp(h, k, j, i) - Tp(h, k - 1, j, i))
+                / (dz * Tp(h, k - 1, j, i));
+
+              R = min(g * derivative / (dWind_dz * dWind_dz),
+                      a * pow(dz / delta_z0, b));
+
+              if (R >= 0)
+                F = 1.0 / (1.0 + 3.0 * B * R * sqrt(1.0 + D * R));
+              else
+                {
+                  F = 1.0 + 3.0 * B * C * sqrt(fabs(R) / 27.0) *
+                    (l * l) / ((Levels(k) + z0) * (Levels(k) + z0));
+                  F = 1.0 - 3.0 * B * R / F;
+                }
+
+              /* F(R, z) */
+              /***********/
 
               Kz(h, k, j, i) = l * l * dWind_dz * F;
-              //Kz(h, k, j, i) = dWind_dz;
 
-	    }
+            }
 
   }
 
@@ -155,11 +154,11 @@ namespace AtmoData
   */
   template<class TU, class TTp, class T, class TG>
   void ComputeLMO(const Data<TU, 3, TG>& FrictionModule,
-		  const Data<TTp, 3, TG>& SurfacePotentialTemperature,
-		  const Data<TTp, 4, TG>& PotentialTemperature,
-		  const Data<T, 3, TG>& SensibleHeat,
-		  const Data<T, 3, TG>& Evaporation,
-		  Data<T, 3, TG>& LMO, T Ka)
+                  const Data<TTp, 3, TG>& SurfacePotentialTemperature,
+                  const Data<TTp, 4, TG>& PotentialTemperature,
+                  const Data<T, 3, TG>& SensibleHeat,
+                  const Data<T, 3, TG>& Evaporation,
+                  Data<T, 3, TG>& LMO, T Ka)
   {
 
     int h, i, j;
@@ -170,21 +169,17 @@ namespace AtmoData
 
     const T g(9.81);
 
-    for (h=0; h<Nt; h++)
-      for (j=0; j<Ny; j++)
-	for (i=0; i<Nx; i++)
-	  {
-	    float u_star = FrictionModule(h, j, i);
-	    float theta_m = 0.5 * (SurfacePotentialTemperature(h, j, i)
-				   + PotentialTemperature(h, 0, j, i));
-	    // cout << "theta_m:" << theta_m << endl;
-
-	    LMO(h, j, i) = - u_star * u_star * u_star * theta_m
-	      / (Ka * g * (SensibleHeat(h, j, i)
-			   + 0.608 * theta_m * Evaporation(h, j, i)));
-	    // cout << "LMO: " << LMO(h,j,i) << endl;
-	    // cout << "ustar:  " << u_star << " " << SensibleHeat(h,j,i) << " " << Evaporation(h,j,i) << endl;
-	  }
+    for (h = 0; h < Nt; h++)
+      for (j = 0; j < Ny; j++)
+        for (i = 0; i < Nx; i++)
+          {
+            float u_star = FrictionModule(h, j, i);
+            float theta_m = 0.5 * (SurfacePotentialTemperature(h, j, i)
+                                   + PotentialTemperature(h, 0, j, i));
+            LMO(h, j, i) = - u_star * u_star * u_star * theta_m
+              / (Ka * g * (SensibleHeat(h, j, i)
+                           + 0.608 * theta_m * Evaporation(h, j, i)));
+          }
   }
 
 
@@ -207,89 +202,89 @@ namespace AtmoData
   */
   template<class TT, class TTp, class TU, class T, class TG>
   void ComputePBLH_TM(const Data<TT, 3, TG>& SurfaceTemperature,
-		      const Data<TTp, 3, TG>& SurfacePotentialTemperature,
-		      const Data<TTp, 4, TG>& PotentialTemperature,
-		      const Data<TU, 3, TG>& FrictionModule,
-		      const Data<TU, 4, TG>& WindModule,
-		      const Data<T, 3, TG>& SensibleHeat,
-		      const Data<T, 3, TG>& LMO,
-		      const Grid<TG>& GridZ_interf,
-		      Data<T, 3, TG>& BoundaryHeight,
-		      T SBL, T Ric, T C, T Ka)
+                      const Data<TTp, 3, TG>& SurfacePotentialTemperature,
+                      const Data<TTp, 4, TG>& PotentialTemperature,
+                      const Data<TU, 3, TG>& FrictionModule,
+                      const Data<TU, 4, TG>& WindModule,
+                      const Data<T, 3, TG>& SensibleHeat,
+                      const Data<T, 3, TG>& LMO,
+                      const Grid<TG>& GridZ_interf,
+                      Data<T, 3, TG>& BoundaryHeight,
+                      T SBL, T Ric, T C, T Ka)
   {
 
     int h, i, j, k;
-    
+
     int Nx = BoundaryHeight.GetLength(2);
     int Ny = BoundaryHeight.GetLength(1);
     int Nt = BoundaryHeight.GetLength(0);
 
     int Nz = WindModule.GetLength(1);
     const Grid<TG>& Levels = WindModule[1];
-    
+
     T l_MO, u_star, w_star, ws, qv0;
     T buoyancy_temp,
       atm_pot_temp, prev_pot_temp,
       curr_pot_temp(0);
 
     const T g(9.81);
-    
-    for (h=0; h<Nt; h++)
-      for (j=0; j<Ny; j++)
-	for (i=0; i<Nx; i++)
-	  {
-	    
-	    u_star = FrictionModule(h, j, i);
-	    l_MO = LMO(h, j, i);
-	    qv0 = SensibleHeat(h, j, i);
 
-	    if (l_MO < 0.)
-	      w_star = pow(Levels(1)
-			   * g / SurfaceTemperature(h, j, i) * qv0,
-			   T(1./3.));
-	    else
-	      w_star = 0.;
-	      
-	    ws = pow(u_star * u_star * u_star + 7. * SBL * Ka
-		     * w_star * w_star * w_star, 1./3.);
-	      
-	    buoyancy_temp = ( SurfacePotentialTemperature(h, j, i)
-			      + PotentialTemperature(h, 0, j, i) ) / 2.0;
-	    prev_pot_temp = atm_pot_temp
-	      = PotentialTemperature(h, 0, j, i) + C * qv0 / ws;
-	      
-	    // Boundary-layer height.
-	    k = 1;
-	    while ( (k < Nz-1)
-		    && (PotentialTemperature(h, k, j, i)
-			< (curr_pot_temp = atm_pot_temp
-			   + Ric * WindModule(h, k, j, i)
-			   * WindModule(h, k, j, i)
-			   / (Levels(k) * g) * buoyancy_temp)) )
-	      {
-		k++;
-		prev_pot_temp = curr_pot_temp;
-		if (l_MO < 0.)
-		  w_star = pow(Levels(k)
-			       * g / SurfaceTemperature(h, j, i) * qv0,
-			       T(1./3.));
-		else
-		  w_star = 0.;
-		ws = pow(u_star * u_star * u_star + 7. * SBL * Ka
-			 * w_star * w_star * w_star, 1./3.);
-		atm_pot_temp = PotentialTemperature(h, 0, j, i)
-		  + C * qv0 / ws;
-	      }
-	    if (k == 1)
-	      BoundaryHeight(h, j, i) = GridZ_interf(1);
-	    else
-	      BoundaryHeight(h, j, i) = Levels(k-1)
-		+ (PotentialTemperature(h, k-1, j, i) - prev_pot_temp)
-		/ (curr_pot_temp - prev_pot_temp
-		   + PotentialTemperature(h, k-1, j, i)
-		   - PotentialTemperature(h, k, j, i))
-		* (Levels(k) - Levels(k-1));
-	  }
+    for (h = 0; h < Nt; h++)
+      for (j = 0; j < Ny; j++)
+        for (i = 0; i < Nx; i++)
+          {
+
+            u_star = FrictionModule(h, j, i);
+            l_MO = LMO(h, j, i);
+            qv0 = SensibleHeat(h, j, i);
+
+            if (l_MO < 0.)
+              w_star = pow(Levels(1)
+                           * g / SurfaceTemperature(h, j, i) * qv0,
+                           T(1. / 3.));
+            else
+              w_star = 0.;
+
+            ws = pow(u_star * u_star * u_star + 7. * SBL * Ka
+                     * w_star * w_star * w_star, 1. / 3.);
+
+            buoyancy_temp = (SurfacePotentialTemperature(h, j, i)
+                             + PotentialTemperature(h, 0, j, i)) / 2.0;
+            prev_pot_temp = atm_pot_temp
+              = PotentialTemperature(h, 0, j, i) + C * qv0 / ws;
+
+            // Boundary-layer height.
+            k = 1;
+            while ((k < Nz - 1)
+                   && (PotentialTemperature(h, k, j, i)
+                       < (curr_pot_temp = atm_pot_temp
+                          + Ric * WindModule(h, k, j, i)
+                          * WindModule(h, k, j, i)
+                          / (Levels(k) * g) * buoyancy_temp)))
+              {
+                k++;
+                prev_pot_temp = curr_pot_temp;
+                if (l_MO < 0.)
+                  w_star = pow(Levels(k)
+                               * g / SurfaceTemperature(h, j, i) * qv0,
+                               T(1. / 3.));
+                else
+                  w_star = 0.;
+                ws = pow(u_star * u_star * u_star + 7. * SBL * Ka
+                         * w_star * w_star * w_star, 1. / 3.);
+                atm_pot_temp = PotentialTemperature(h, 0, j, i)
+                  + C * qv0 / ws;
+              }
+            if (k == 1)
+              BoundaryHeight(h, j, i) = GridZ_interf(1);
+            else
+              BoundaryHeight(h, j, i) = Levels(k - 1)
+                + (PotentialTemperature(h, k - 1, j, i) - prev_pot_temp)
+                / (curr_pot_temp - prev_pot_temp
+                   + PotentialTemperature(h, k - 1, j, i)
+                   - PotentialTemperature(h, k, j, i))
+                * (Levels(k) - Levels(k - 1));
+          }
   }
 
 
@@ -302,39 +297,39 @@ namespace AtmoData
   */
   template<class T, class TG>
   void ComputePBLH_Richardson(const Data<T, 4, TG>& Richardson,
-			      const Grid<TG>& GridZ_interf,
-			      Data<T, 3, TG>& BoundaryHeight,
-			      T Ric)
+                              const Grid<TG>& GridZ_interf,
+                              Data<T, 3, TG>& BoundaryHeight,
+                              T Ric)
   {
 
     int h, i, j, k;
-    
+
     int Nx = BoundaryHeight.GetLength(2);
     int Ny = BoundaryHeight.GetLength(1);
     int Nt = BoundaryHeight.GetLength(0);
 
     int Nz = Richardson.GetLength(1);
     const Grid<TG>& Levels = Richardson[1];
-    
-    for (h=0; h<Nt; h++)
-      for (j=0; j<Ny; j++)
-	for (i=0; i<Nx; i++)
-	  {
-	    k = 0;
-	    while ( (k < Nz-1) && (Richardson(h, k, j, i) < Ric) )
-	      k++;
-	    if (k == 0)
-	      BoundaryHeight(h, j, i) = GridZ_interf(1);
-	    else if (k == Nz-1)
-	      BoundaryHeight(h, j, i) = Levels(k);
-	    else
-	      BoundaryHeight(h, j, i) = Levels(k - 1)
-		+ (Ric - Richardson(h, k-1, j, i))
-		* (Levels(k) - Levels(k-1))
-		/ (Richardson(h, k, j, i) - Richardson(h, k-1, j, i));
-	  }
+
+    for (h = 0; h < Nt; h++)
+      for (j = 0; j < Ny; j++)
+        for (i = 0; i < Nx; i++)
+          {
+            k = 0;
+            while ((k < Nz - 1) && (Richardson(h, k, j, i) < Ric))
+              k++;
+            if (k == 0)
+              BoundaryHeight(h, j, i) = GridZ_interf(1);
+            else if (k == Nz - 1)
+              BoundaryHeight(h, j, i) = Levels(k);
+            else
+              BoundaryHeight(h, j, i) = Levels(k - 1)
+                + (Ric - Richardson(h, k - 1, j, i))
+                * (Levels(k) - Levels(k - 1))
+                / (Richardson(h, k, j, i) - Richardson(h, k - 1, j, i));
+          }
   }
-  
+
 
   //! Computes vertical diffusion according to the Troen and Mahrt (1986).
   /*!
@@ -349,16 +344,16 @@ namespace AtmoData
     \param SBL Ratio between the SBL and the PBL. Default: 0.1.
     \param p Troen & Mahrt coefficient. Default: 2.0.
     \param Ka Von Karman constant. Default: 0.4.
-    
+
   */
   template<class TU, class TT, class T, class TG>
   void ComputeTM_Kz(const Data<TT, 3, TG>& SurfaceTemperature,
-		    const Data<TU, 3, TG>& FrictionModule,
-		    const Data<T, 3, TG>& SensibleHeat,
-		    const Data<T, 3, TG>& LMO,
-		    const Data<T, 3, TG>& BoundaryHeight,
-		    Data<T, 4, TG>& Kz,
-		    bool TM_stable, T SBL, T p, T Ka)
+                    const Data<TU, 3, TG>& FrictionModule,
+                    const Data<T, 3, TG>& SensibleHeat,
+                    const Data<T, 3, TG>& LMO,
+                    const Data<T, 3, TG>& BoundaryHeight,
+                    Data<T, 4, TG>& Kz,
+                    bool TM_stable, T SBL, T p, T Ka)
   {
 
     int h, i, j, k;
@@ -371,50 +366,50 @@ namespace AtmoData
     Grid<TG>& GridZ_interf = Kz[1];
 
     const T g(9.81);
-  
+
     T l_MO, u_star, w_star, ws, qv0, boundary_height, Phi_m;
 
-    for (h=0; h<Nt; h++)
-      for (j=0; j<Ny; j++)
-	for (i=0; i<Nx; i++)
-	  {
-	  
-	    u_star = FrictionModule(h, j, i);
-	    l_MO = LMO(h, j, i);
-	    qv0 = SensibleHeat(h, j, i);
-	    boundary_height = BoundaryHeight(h, j, i);
+    for (h = 0; h < Nt; h++)
+      for (j = 0; j < Ny; j++)
+        for (i = 0; i < Nx; i++)
+          {
 
-	    // Computes ws according to the new boundary height.
-	    if (l_MO < 0.)
-	      w_star = pow(boundary_height * g / SurfaceTemperature(h, j, i) *
-			   abs(qv0), T(1./3.));
-	    else
-	      w_star = 0.;
-	    ws = pow(u_star * u_star * u_star + 7. * SBL * Ka
-		     * w_star * w_star * w_star, 1./3.);
+            u_star = FrictionModule(h, j, i);
+            l_MO = LMO(h, j, i);
+            qv0 = SensibleHeat(h, j, i);
+            boundary_height = BoundaryHeight(h, j, i);
 
-	    // Computes the nondimensional shear Phi_m and Kz.
-	    if (l_MO < 0)
-	      for (k=1; k<Nz; k++)
-		{
-		  if (GridZ_interf(k) < SBL * boundary_height)
-		    Phi_m = pow(1.0 - 7.0 * GridZ_interf(k) / l_MO, -1.0/3.0);
-		  else
-		    Phi_m = u_star / ws;
-		  if (GridZ_interf(k) < boundary_height)
-		    Kz(h, k, j, i) = u_star * Ka * GridZ_interf(k) / Phi_m
-		      * pow(T(1.0) - GridZ_interf(k) / boundary_height, p);
-		}
-	    else if (TM_stable)
-	      for (k=1; k<Nz; k++)
-		if (GridZ_interf(k) < boundary_height)
-		  {
-		    Phi_m = 1.0 + 4.7 * GridZ_interf(k) / l_MO;
-		    Kz(h, k, j, i) = u_star * Ka * GridZ_interf(k) / Phi_m
-		      * pow(T(1.0) - GridZ_interf(k) / boundary_height, p);
-		  }
+            // Computes ws according to the new boundary height.
+            if (l_MO < 0.)
+              w_star = pow(boundary_height * g / SurfaceTemperature(h, j, i) *
+                           abs(qv0), T(1. / 3.));
+            else
+              w_star = 0.;
+            ws = pow(u_star * u_star * u_star + 7. * SBL * Ka
+                     * w_star * w_star * w_star, 1. / 3.);
 
-	  }
+            // Computes the nondimensional shear Phi_m and Kz.
+            if (l_MO < 0)
+              for (k = 1; k < Nz; k++)
+                {
+                  if (GridZ_interf(k) < SBL * boundary_height)
+                    Phi_m = pow(1.0 - 7.0 * GridZ_interf(k) / l_MO, -1.0 / 3.0);
+                  else
+                    Phi_m = u_star / ws;
+                  if (GridZ_interf(k) < boundary_height)
+                    Kz(h, k, j, i) = u_star * Ka * GridZ_interf(k) / Phi_m
+                      * pow(T(1.0) - GridZ_interf(k) / boundary_height, p);
+                }
+            else if (TM_stable)
+              for (k = 1; k < Nz; k++)
+                if (GridZ_interf(k) < boundary_height)
+                  {
+                    Phi_m = 1.0 + 4.7 * GridZ_interf(k) / l_MO;
+                    Kz(h, k, j, i) = u_star * Ka * GridZ_interf(k) / Phi_m
+                      * pow(T(1.0) - GridZ_interf(k) / boundary_height, p);
+                  }
+
+          }
   }
 
 }  // namespace AtmoData.

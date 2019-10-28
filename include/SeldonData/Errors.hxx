@@ -19,252 +19,170 @@
 #ifndef FILE_SELDONDATA_ERRORS_HXX
 
 #include <iostream>
-using std::cout;
-using std::endl;
+#include <sstream>
 #include <string>
 
 namespace SeldonData
 {
-  
+
   ///////////
   // ERROR //
   ///////////
 
   //! Base class.
-  class Error
+  class Error : public std::exception
   {
 
   protected:
-    //! Name of the function where the error occured.
-    string function;
-    //! Comment about the error.
-    string comment;
+    //! Formatted message for the end user.
+    string message_;
 
   public:
-    //! Default Constructor.
-    Error()
-    {
-      cout << "ERROR!" << endl;
-      function = "";
-      comment = "";
-    }
     //! Constructor.
-    /*!
-      \param f name of the function where the error occured.
-    */
-    Error(string f)
+    Error (const string& function = "", const string& comment = "",
+           const string& description = "An unknown error occurred")
     {
-      cout << "ERROR!" << endl;
-      function = f;
-      comment = "";
-    }
-    //! Constructor.
-    /*!
-      \param f name of the function where the error occured.
-      \param c comment about the error.
-    */
-    Error(string f, string c)
-    {
-      cout << "ERROR!" << endl;
-      function = f;
-      comment = c;
+      cerr << "ERROR!" << endl;
+
+      stringstream s;
+      s << description;
+      if (!function.empty ())
+        s << " in '" << function << "'";
+      s << "." << endl;
+      if (!comment.empty ())
+        s << "   " << comment << endl;
+      s << endl;
+
+      message_ = s.str ();
     }
 
     //! Destructor.
-    virtual ~Error()
+    virtual
+    ~Error () throw ()
     {
     }
 
     //! Displays error description.
-    virtual void What()
+    void
+    What ()
     {
-      cout << "An unknown error occured";
-      if (function.length()!=0)
-	cout << " in " << function;
-      cout << "." << endl;
-      if (comment.length()!=0)
-	cout << "   " << comment << endl;
-      cout << endl;
+      cerr << message_;
     }
+
+    //! Returns an error description, overridden from 'std::exception'.
+    virtual const char*
+    what ()
+    {
+      return message_.c_str ();
+    }
+
   };
-
-
 
   //////////////
   // NOMEMORY //
   //////////////
 
-
   //! No memory available.
-  class NoMemory: public Error
+  class NoMemory : public Error
   {
 
   public:
-    //! Main constructor.
-    NoMemory(string f, string c): Error(f, c)
-    {
-    }
     //! Constructor.
-    NoMemory(string f): Error(f)
+    NoMemory (const string& function = "", const string& comment = "") :
+        Error (function, comment, "No more memory is available")
     {
-    }
-
-    //! Displays error description.
-    virtual void What()
-    {
-      cout << "No more memory is available";
-      if (this->function!="")
-	cout << " in " << this->function;
-      cout << "." << endl;
-      if (this->comment!="")
-	cout << "   " << this->comment << endl;
-      cout << endl;
+      // Nothing
     }
 
   };
-  
-
 
   //////////////
   // WRONGDIM //
   //////////////
 
-
   //! Wrong dimension.
   /*!
-    Dimensions do not match.
-  */
-  class WrongDim: public Error
+   Dimensions do not match.
+   */
+  class WrongDim : public Error
   {
 
   public:
-    //! Main constructor.
-    WrongDim(string f, string c): Error(f, c)
+    //! Constructor.
+    WrongDim (const string& function = "", const string& comment = "") :
+        Error (function, comment, "Wrong dimension")
     {
-    }
-
-    //! Displays error description.
-    virtual void What()
-    {
-      cout << "Wrong dimension";
-      if (this->function!="")
-	cout << " in " << this->function;
-      cout << "." << endl;
-      if (this->comment!="")
-	cout << "   " << this->comment << endl;
-      cout << endl;
+      // Nothing
     }
 
   };
-  
-
 
   ////////////////
   // WRONGINDEX //
   ////////////////
 
-
   //! Wrong index.
   /*!
-    The index is out of range.
-  */
-  class WrongIndex: public Error
+   The index is out of range.
+   */
+  class WrongIndex : public Error
   {
 
   public:
-    //! Constructor.
-    WrongIndex(string f): Error(f)
+    WrongIndex (const string& function = "", const string& comment = "") :
+        Error (function, comment, "Index out of range")
     {
-    }
-    //! Main constructor.
-    WrongIndex(string f, string c): Error(f, c)
-    {
-    }
-
-    //! Displays error description.
-    virtual void What()
-    {
-      cout << "Index out of range";
-      if (this->function!="")
-	cout << " in " << this->function;
-      cout << "." << endl;
-      if (this->comment!="")
-	cout << "   " << this->comment << endl;
-      cout << endl;
+      // Nothing
     }
 
   };
-  
-
 
   /////////////
   // IOERROR //
   /////////////
 
-
   //! An input/output operation failed.
-  class IOError: public Error
+  class IOError : public Error
   {
 
   public:
-    //! Main constructor.
-    IOError(string f, string c): Error(f, c)
+    IOError (const string& function = "", const string& comment = "") :
+        Error (function, comment, "An input/output operation failed")
     {
-    }
-
-    //! Displays error description.
-    virtual void What()
-    {
-      cout << "An input/output operation failed";
-      if (this->function!="")
-	cout << " in " << this->function;
-      cout << "." << endl;
-      if (this->comment!="")
-	cout << "   " << this->comment << endl;
-      cout << endl;
+      // Nothing
     }
 
   };
-
-
 
   ///////////////
   // UNDEFINED //
   ///////////////
 
-
   //! Undefined function.
-  class Undefined: public Error
+  class Undefined : public Error
   {
 
   public:
-    //! Main constructor.
-    Undefined(string f): Error(f)
+    Undefined (const string& function = "", const string& comment = "") :
+        Error ("", comment, Description (function))
     {
-    }
-    //! Constructor.
-    Undefined(string f, string c): Error(f, c)
-    {
+      // Nothing
     }
 
-    //! Displays error description.
-    virtual void What()
+  private:
+    //! Returns an error description.
+    string
+    Description (const string& function)
     {
-      if (this->function!="")
-	cout << "Call to undefined function " << this->function;
+      if (!function.empty ())
+        return string ("Call to undefined function '") + function + "'";
       else
-	cout << "An undefined function was called";
-      cout << "." << endl;
-      if (this->comment!="")
-	cout << "   " << this->comment << endl;
-      cout << endl;
+        return "An undefined function was called";
     }
 
   };
 
-  
 }  // namespace SeldonData.
-
 
 #define FILE_SELDONDATA_ERRORS_HXX
 #endif

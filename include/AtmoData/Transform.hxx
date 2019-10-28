@@ -26,12 +26,12 @@
 namespace AtmoData
 {
 
-  
+
   template <class T, int N, class TG>
   void Decumulate(Data<T, N, TG>& data, int length,
-		  int start = 0);
+                  int start = 0);
 
-  
+
 }  // namespace AtmoData.
 
 #define ATMODATA_FILE_TRANSFORM_HXX

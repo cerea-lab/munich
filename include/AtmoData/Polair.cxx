@@ -48,13 +48,13 @@ namespace AtmoData
     int Ny = ZonalWind.GetLength(2);
     int Nz = ZonalWind.GetLength(1);
     int Nt = ZonalWind.GetLength(0);
-    
-    for (h=0; h<Nt; h++)
-      for (k=0; k<Nz; k++)
-	for (j=0; j<Ny; j++)
-	  for (i=0; i<Nx; i++)
-	    ZonalWind(h, k, j, i) /= cos(ZonalWind[2].Value(h, k, j, i)
-					 * ratio);
+
+    for (h = 0; h < Nt; h++)
+      for (k = 0; k < Nz; k++)
+        for (j = 0; j < Ny; j++)
+          for (i = 0; i < Nx; i++)
+            ZonalWind(h, k, j, i) /= cos(ZonalWind[2].Value(h, k, j, i)
+                                         * ratio);
 
   }
 
@@ -78,13 +78,13 @@ namespace AtmoData
     int Ny = MeridionalWind.GetLength(2);
     int Nz = MeridionalWind.GetLength(1);
     int Nt = MeridionalWind.GetLength(0);
-    
-    for (h=0; h<Nt; h++)
-      for (k=0; k<Nz; k++)
-	for (j=0; j<Ny; j++)
-	  for (i=0; i<Nx; i++)
-	    MeridionalWind(h, k, j, i)
-	      *= cos(MeridionalWind[2].Value(h, k, j, i) * ratio);
+
+    for (h = 0; h < Nt; h++)
+      for (k = 0; k < Nz; k++)
+        for (j = 0; j < Ny; j++)
+          for (i = 0; i < Nx; i++)
+            MeridionalWind(h, k, j, i)
+              *= cos(MeridionalWind[2].Value(h, k, j, i) * ratio);
 
   }
 

@@ -1,5 +1,5 @@
 // Copyright (C) 2006-2007, ENPC - INRIA - EDF R&D
-// Author(s): Irène Korsakissok
+// Author(s): IrÃ¨ne Korsakissok
 //
 // This file is part of AtmoData library, a tool for data processing in
 // atmospheric sciences.
@@ -124,7 +124,7 @@ namespace AtmoData
   */
   template<class T>
   void ComputeSunHour(T lon, T lat, int idate,
-		      T& sunrise_hour, T& sunset_hour)
+                      T& sunrise_hour, T& sunset_hour)
   {
     T declination, time_equation, eqh;
     T csh,  h, lmtr, lmts;
@@ -140,26 +140,26 @@ namespace AtmoData
     csh = -tan(lat * pi / 180.) * tan(declination);
     if (csh > 1.)
       {
-	sunrise_hour = 0.;
-	sunset_hour = 0.;
+        sunrise_hour = 0.;
+        sunset_hour = 0.;
       }
     else if (csh < -1.)
       {
-	sunrise_hour = 1.;
-	sunset_hour = 1.;
+        sunrise_hour = 1.;
+        sunset_hour = 1.;
       }
     else
       {
-	// Computes the hour angle in hours.
-	h = acos(csh) * 24. / (2. * pi);
+        // Computes the hour angle in hours.
+        h = acos(csh) * 24. / (2. * pi);
 
-	// Computes the local mean time of sunrise and sunset in hours.
-	lmtr = 12. - h - eqh;
-	lmts = 12. + h - eqh;
+        // Computes the local mean time of sunrise and sunset in hours.
+        lmtr = 12. - h - eqh;
+        lmts = 12. + h - eqh;
 
-	// Computes the universal time of sunrise and sunset in hours.
-	sunrise_hour = lmtr - lon / 15.;
-	sunset_hour = lmts - lon / 15.;
+        // Computes the universal time of sunrise and sunset in hours.
+        sunrise_hour = lmtr - lon / 15.;
+        sunset_hour = lmts - lon / 15.;
       }
   }
 

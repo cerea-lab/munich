@@ -38,25 +38,25 @@ namespace AtmoData
 
     // Data.
 
-    template<class TD, int N, class TG,
-	     class TS, class TGS>
+    template < class TD, int N, class TG,
+               class TS, class TGS >
     void Read(string FileName, Data<TD, N, TG>& D,
-	      Data<TS, 1, TGS>& S) const;
-    template<class TD, int N, class TG,
-	     class TS, class TGS>
+              Data<TS, 1, TGS>& S) const;
+    template < class TD, int N, class TG,
+               class TS, class TGS >
     void Read(ifstream& FileStream, Data<TD, N, TG>& D,
-	      Data<TS, 1, TGS>& S) const;
+              Data<TS, 1, TGS>& S) const;
 
     // Array.
 
-    template<class TA, int N,
-	     class TS, class TGS>
+    template < class TA, int N,
+               class TS, class TGS >
     void Read(string FileName, Array<TA, N>& A,
-	      Data<TS, 1, TGS>& S) const;
-    template<class TA, int N,
-	     class TS, class TGS>
+              Data<TS, 1, TGS>& S) const;
+    template < class TA, int N,
+               class TS, class TGS >
     void Read(ifstream& FileStream, Array<TA, N>& A,
-	      Data<TS, 1, TGS>& S) const;
+              Data<TS, 1, TGS>& S) const;
 
   };
 
@@ -113,11 +113,11 @@ namespace AtmoData
 
     // Big header.
     void ReadBigHeader(string FileName,
-		       Array<int, 2>& BHI, Array<float, 2>& BHR,
-		       Array<string, 2>& BHIC, Array<string, 2>& BHRC) const;
+                       Array<int, 2>& BHI, Array<float, 2>& BHR,
+                       Array<string, 2>& BHIC, Array<string, 2>& BHRC) const;
     void ReadBigHeader(ifstream& FileStream,
-		       Array<int, 2>& BHI, Array<float, 2>& BHR,
-		       Array<string, 2>& BHIC, Array<string, 2>& BHRC) const;
+                       Array<int, 2>& BHI, Array<float, 2>& BHR,
+                       Array<string, 2>& BHIC, Array<string, 2>& BHRC) const;
     void ReadBigHeader(ifstream& FileStream) const;
 
     // Sub-header.
@@ -127,24 +127,24 @@ namespace AtmoData
     // Field.
     template <int N, class TG>
     void ReadWholeField(string FileName, string FieldName,
-			Data<float, N, TG>& A) const;
+                        Data<float, N, TG>& A) const;
     template <int N>
     void ReadWholeField(string FileName, string FieldName,
-			Array<float, N>& A) const;
+                        Array<float, N>& A) const;
     template <int N, class TG>
     void ReadWholeField(ifstream& FileStream, string FieldName,
-			Data<float, N, TG>& A) const;
+                        Data<float, N, TG>& A) const;
     template <int N>
     void ReadWholeField(ifstream& FileStream, string FieldName,
-			Array<float, N>& A) const;
+                        Array<float, N>& A) const;
     template <int N>
     void ReadField(ifstream& FileStream, bool cross,
-		   Array<float, N>& A) const;
+                   Array<float, N>& A) const;
     template <int N, class TG>
     void ReadField(ifstream& FileStream, Data<float, N, TG>& A) const;
     template <int N>
     void ReadField(ifstream& FileStream, MM5SubHeader& SH,
-		   Array<float, N>& A) const;
+                   Array<float, N>& A) const;
     template <int N>
     void ReadField(ifstream& FileStream, Array<float, N>& A) const;
     void ReadField(ifstream& FileStream) const;

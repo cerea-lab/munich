@@ -31,28 +31,28 @@ namespace AtmoData
 
   template <class TH, class TL, class TMC, class THC, class T, class TG>
   void ComputeAttenuation_LWC(Data<TH, 4, TG>& Humidity, Data<TH, 4, TG>& CRH,
-			      Data<TL, 4, TG>& LiquidWaterContent,
-			      Data<TMC, 3, TG>& MediumCloudiness,
-			      Data<THC, 3, TG>& HighCloudiness,
-			      Date date_beg, T Delta_t,
-			      Data<T, 4, TG>& Attenuation);
+                              Data<TL, 4, TG>& LiquidWaterContent,
+                              Data<TMC, 3, TG>& MediumCloudiness,
+                              Data<THC, 3, TG>& HighCloudiness,
+                              Date date_beg, T Delta_t,
+                              Data<T, 4, TG>& Attenuation);
 
   template <class TL, class TMC, class THC, class T, class TG>
   void ComputeAttenuation_LWC(Data<TL, 4, TG>& LiquidWaterContent,
-			      Data<int, 4> LowIndices,
-			      Data<int, 4> MediumIndices,
-			      Data<int, 4> HighIndices,
-			      Data<TMC, 3, TG>& MediumCloudiness,
-			      Data<THC, 3, TG>& HighCloudiness,
-			      Date date_beg, T Delta_t,
-			      Data<T, 4, TG>& Attenuation);
+                              Data<int, 4> LowIndices,
+                              Data<int, 4> MediumIndices,
+                              Data<int, 4> HighIndices,
+                              Data<TMC, 3, TG>& MediumCloudiness,
+                              Data<THC, 3, TG>& HighCloudiness,
+                              Date date_beg, T Delta_t,
+                              Data<T, 4, TG>& Attenuation);
 
   template <class TMC, class THC, class TG, class TH, class T>
   void ComputeAttenuation_ESQUIF(Data<TMC, 3, TG>& MediumCloudiness,
-				 Data<THC, 3, TG>& HighCloudiness,
-				 Data<TH, 4, TG>& RelativeHumidity,
-				 Data<T, 4, TG>& Attenuation,
-				 T a = 0.1, T b = 0.3, T c = 1.5);
+                                 Data<THC, 3, TG>& HighCloudiness,
+                                 Data<TH, 4, TG>& RelativeHumidity,
+                                 Data<T, 4, TG>& Attenuation,
+                                 T a = 0.1, T b = 0.3, T c = 1.5);
 
 }  // namespace AtmoData.
 

@@ -1,5 +1,5 @@
 // Copyright (C) 2006-2007, ENPC - INRIA - EDF R&D
-// Author(s): Irène Korsakissok
+// Author(s): IrÃ¨ne Korsakissok
 //
 // This file is part of AtmoData library, a tool for data processing in
 // atmospheric sciences.
@@ -34,7 +34,7 @@ namespace AtmoData
 
   template<class T>
   void ComputeSunHour(T lon, T lat, int idate,
-		      T& sunrise_hour, T& sunset_hour);
+                      T& sunrise_hour, T& sunset_hour);
 
   template<class T>
   T ComputeSunriseHour(T lon, T lat, int idate);

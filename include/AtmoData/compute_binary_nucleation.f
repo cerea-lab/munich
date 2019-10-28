@@ -1,23 +1,23 @@
 C-----------------------------------------------------------------------
 C     Copyright (C) 2003-2007, ENPC - INRIA - EDF R&D
 C     Author(s): Bruno Sportisse
-C     
+C
 C     This file is part of AtmoData library, a tool for data processing
 C     in atmospheric sciences.
-C    
+C
 C     AtmoData is developed in the INRIA - ENPC joint project-team CLIME
 C     and in the ENPC - EDF R&D joint laboratory CEREA.
-C    
+C
 C     AtmoData is free software; you can redistribute it and/or modify
 C     it under the terms of the GNU General Public License as published
 C     by the Free Software Foundation; either version 2 of the License,
 C     or (at your option) any later version.
-C     
+C
 C     AtmoData is distributed in the hope that it will be useful, but
 C     WITHOUT ANY WARRANTY; without even the implied warranty of
 C     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 C     General Public License for more details.
-C     
+C
 C     For more information, visit the AtmoData home page:
 C          http://cerea.enpc.fr/polyphemus/atmodata.html
 C-----------------------------------------------------------------------
@@ -44,10 +44,10 @@ c     dpnucl -  Nucleation diameter (nm).
       subroutine compute_binary_nucleation_kernel(rh,
      &     temp, natmp, jnucl,
      &     ntot, xstar, dpnucl)
-      
+
       double precision rh, temp, na, natmp, xstar
       double precision jnucl, ntot, dpnucl
-      
+
       double precision lnrh, lnrh2, lnrh3, fa(10)
       double precision t2, t3, lnna, lnna2, lnna3
 
@@ -59,7 +59,7 @@ c     dpnucl -  Nucleation diameter (nm).
      &     namin = 1.d04, namax = 1.d11)
 
 C     test if parameterization is valid
-      
+
       na = natmp
       if (na.gt.namax) then
          na = namax
@@ -88,10 +88,10 @@ C     test if parameterization is valid
          lnrh3 = lnrh2 * lnrh
          t2 = temp * temp
          t3 = t2 * temp
-         
+
 c     Compute mole fraction of h2so4
 c     in the critical cluster XSTAR.
-         
+
          xstar = 0.740997d0
      &        - 2.66379d-3 * temp
      &        - 3.49998d-3 * lnna
@@ -102,11 +102,11 @@ c     in the critical cluster XSTAR.
      &        - 1.79059d-5 * temp * lnrh2
      &        + 1.84403d-4 * lnrh3
      &        - 1.50345d-6 * temp * lnrh3
-         
+
 c     Compute nucleation rate.
-         
+
          call veahkamaki_coefficients(temp, t2, t3, xstar, fa)
-         
+
          jnucl = dexp( fa(1)
      &        + fa(2) * lnrh
      &        + fa(3) * lnrh2
@@ -117,12 +117,12 @@ c     Compute nucleation rate.
      &        + fa(8) * lnna2
      &        + fa(9) * lnrh * lnna2
      &        + fa(10) * lnna3 )
-         
+
 c     Compute total number of molecules
 c     in the critical cluster ntot
-         
+
          call veahkamaki_coefficients_number(temp, t2, t3, xstar, fa)
-         
+
          ntot = dexp( fa(1)
      &        + fa(2) * lnrh
      &        + fa(3) * lnrh2
@@ -133,17 +133,17 @@ c     in the critical cluster ntot
      &        + fa(8) * lnna2
      &        + fa(9) * lnrh * lnna2
      &        + fa(10) * lnna3 )
-         
+
 c     Compute cluster diameter in nm
-         
+
          dpnucl = 2.d0 * dexp( - 1.6524245d0
      &        + 0.42316402d0 * xstar
      &        + 0.3346648d0 * dlog(ntot) )
       endif
-      
+
       end
-      
-      
+
+
 c     Function: veahkamaki_coefficients
 c
 c     Computes nucleation kernel coefficients.
@@ -159,7 +159,7 @@ c
 c     Returns:
 c     fa : nucleation kernel coefficients.
       subroutine veahkamaki_coefficients(temp, t2, t3, xstar, fa)
-      
+
       double precision xstar, temp, t2, t3, fa(10)
 
       integer jj, nn
@@ -185,7 +185,7 @@ c     fa : nucleation kernel coefficients.
 
       do jj = 1, 10
          nn = (jj - 1) * 5
-         
+
          fa(jj) = wa(nn + 1)
      &        + wa(nn + 2) * temp
      &        + wa(nn + 3) * t2
@@ -276,7 +276,7 @@ c     nanucl : gas threshold H2SO4 concentration (#molec/cm^3).
 
 c     Compute threshold h2so4 concentration that produces the nucleation
 c     rate 1.#part.cm-3.
-      
+
       nanucl = dexp( - 2.79243d02
      &     + 1.17300d+01 * rh
      &     + ( 2.27009d+04
@@ -287,5 +287,5 @@ c     rate 1.#part.cm-3.
      &     + ( - 6.38697d+00
      &     + 8.54980d+02 * invtemp
      &     + 8.79662d-03 * temp ) * lnrh )
-      
+
       end

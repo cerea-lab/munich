@@ -109,6 +109,21 @@ namespace Polyphemus
     
     void Forward();
 
+    //LL: Remove stationary regime*****************************************
+    void ComputeStreetConcentrationNoStationary();
+    void Chemistry(Date current_date_tmp,
+		   Array<T, 1>& concentration_array,
+		   const T attenuation_,
+		   const T specific_humidity_,
+		   const T pressure_,
+		   const T temperature_,
+		   const T longitude_,
+		   const T latitude_,
+		   const Array<T, 1> photolysis_rate,
+		   const T sub_delta_t);
+    //***********************************************************************
+
+
     /*** Access Methods: Chemistry ***/
     void Chemistry();
     void InitChemistry();

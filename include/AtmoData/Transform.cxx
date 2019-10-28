@@ -39,19 +39,19 @@ namespace AtmoData
   */
   template <class T, int N, class TG>
   void Decumulate(Data<T, N, TG>& data, int length,
-		  int start)
+                  int start)
   {
     unsigned int n = data.GetNbElements();
     unsigned int l = n / data.GetLength(0);
 
     for (unsigned int i = data.GetLength(0) - 1; i > 0; i--)
       if ((i - start) % length != 0)
-	{
-	  T* data_arr = &data.GetData()[l * i];
-	  T* data_prev = &data.GetData()[l * (i-1)];
-	  for (unsigned int j = 0; j < l; j++)
-	    data_arr[j] -= data_prev[j];
-	}
+        {
+          T* data_arr = &data.GetData()[l * i];
+          T* data_prev = &data.GetData()[l * (i - 1)];
+          for (unsigned int j = 0; j < l; j++)
+            data_arr[j] -= data_prev[j];
+        }
   }
 
 

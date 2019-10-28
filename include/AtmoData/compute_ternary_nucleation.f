@@ -1,23 +1,23 @@
 C-----------------------------------------------------------------------
 C     Copyright (C) 2003-2007, ENPC - INRIA - EDF R&D
 C     Author(s): Karine Sartelet
-C     
+C
 C     This file is part of AtmoData library, a tool for data processing
 C     in atmospheric sciences.
-C    
+C
 C     AtmoData is developed in the INRIA - ENPC joint project-team CLIME
 C     and in the ENPC - EDF R&D joint laboratory CEREA.
-C    
+C
 C     AtmoData is free software; you can redistribute it and/or modify
 C     it under the terms of the GNU General Public License as published
 C     by the Free Software Foundation; either version 2 of the License,
 C     or (at your option) any later version.
-C     
+C
 C     AtmoData is distributed in the hope that it will be useful, but
 C     WITHOUT ANY WARRANTY; without even the implied warranty of
 C     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 C     General Public License for more details.
-C     
+C
 C     For more information, visit the AtmoData home page:
 C          http://cerea.enpc.fr/polyphemus/atmodata.html
 C-----------------------------------------------------------------------
@@ -101,11 +101,11 @@ c     test if parameterization is valid.
          jnucl = 0.d0
          ntoth2so4 = 0.d0
          ntotnh3 = 0.d0
-         
+
       else
          na = dmin1(na, namax)
          mr = dmin1(mr, mrmax)
-         
+
          lnna = dlog(na)
          lnna2 = lnna * lnna
          lnrh = dlog(rh)
@@ -113,7 +113,7 @@ c     test if parameterization is valid.
          lnmr2 = lnmr * lnmr
          t2 = temp * temp
          t3 = t2 * temp
-         
+
          lnj = ( - 84.7551d0
      $        + fa(1, temp, t2, t3, a0, a1, a2, a3) / lnna +
      $        fa(2, temp, t2, t3, a0, a1, a2, a3) * lnna +
@@ -135,43 +135,43 @@ c     test if parameterization is valid.
      $        fa(18, temp, t2, t3, a0, a1, a2, a3) * rh * lnmr2 +
      $        fa(19, temp, t2, t3, a0, a1, a2, a3) * rh * lnmr / lnna +
      $        fa(20, temp, t2, t3, a0, a1, a2, a3) * lnna2 * lnmr2)
-         
+
          jnucl = dexp(lnj)
-         
+
          if(jnucl.lt.1.d-5) jnucl = 0.d0
-         
+
          jnucl = dmin1(jnucl, 1.d6)
-         
+
 c     compute total number of molecules in the critical cluster: this is
 c     ntot.
-         
+
          lnj2 = lnj * lnj
          ntoth2so4 = 38.1645d0 + 0.774106d0 * lnj + 0.00298879d0 * lnj2
      s        - 0.357605d0 * temp - 0.00366358d0 * temp * lnj
      s        + 0.0008553d0 * temp ** 2
-         
+
          ntotnh3 = 26.8982d0 + 0.682905d0 * lnj + 0.00357521d0 * lnj2
      s        - 0.265748d0 * temp - 0.00341895d0 * temp * lnj
      s        + 0.000673454d0 * temp ** 2
-         
+
 c     compute cluster diameter in nm.
-         
+
          dpnucl = 2.d0 * (0.141027d0 - 0.00122625d0 * lnj
      s        - 7.82211d-06 * lnj2 - 0.00156727d0 * temp
      s        - 0.00003076d0 * temp * lnj
      s        + 0.0000108375d0 * temp ** 2)
-         
+
       endif
-      
+
       end
-      
+
 c-------------------------------------------------
-      
+
       function fa(i, temp, t2, t3, a0, a1, a2, a3)
-      
+
       double precision fa, temp, t2, t3
       double precision a0(20), a1(20), a2(20), a3(20)
-      
+
       fa = a0(i) + a1(i) * temp + a2(i) * t2 + a3(i) * t3
 
       end

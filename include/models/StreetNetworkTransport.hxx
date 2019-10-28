@@ -201,6 +201,53 @@ namespace Polyphemus
     void InitInflowRate();
     void ComputeBackgroundConcentration();
     void ComputeStreetConcentration();
+    //LL: Remove stationary regime*****************************************
+    void ComputeStreetConcentrationNoStationary();
+
+    void InitStep(T& sub_delta_t,
+		  const T sub_delta_t_min,
+		  const T transfer_velocity,
+		  const T temp,
+		  const T outgoing_flux,
+		  const T street_volume,
+		  const Array<T, 1> concentration_array,
+		  const Array<T, 1> background_concentration_array,
+		  const Array<T, 1> emission_rate_array,
+		  const Array<T, 1> inflow_rate_array,
+		  const Array<T, 1> deposition_flux_array);
+
+    void ETRConcentration(const T transfer_velocity,
+			  const T temp,
+			  const T outgoing_flux,
+			  const T street_volume,
+			  const Array<T, 1> concentration_array,
+			  Array<T, 1>& concentration_array_tmp, 
+			  const Array<T, 1> background_concentration_array,
+			  const Array<T, 1> emission_rate_array,
+			  const Array<T, 1> inflow_rate_array,
+			  const Array<T, 1> deposition_flux_array,
+			  Array<T, 1>& new_concentration_array,
+			  const T sub_delta_t);
+
+    void AdaptTimeStep(const Array<T, 1> new_concentration_array,
+		       const Array<T, 1>concentration_array_tmp,
+		       const T sub_delta_t_init,
+		       const T sub_delta_t_min,
+		       const T sub_delta_t_max,
+		       T& sub_delta_t);
+
+    void CalculDCDT(const T transfer_velocity,
+		    const T temp,
+		    const T outgoing_flux,
+		    const T street_volume,
+		    const Array<T, 1> concentration_array,
+		    const Array<T, 1> background_concentration_array,
+		    const Array<T, 1> emission_rate_array,
+		    const Array<T, 1> inflow_rate_array,
+		    const Array<T, 1> deposition_flux_array,
+		    Array<T, 1>& dcdt);
+    //***********************************************************************
+
     void IsStationary(bool& is_stationary);
     void OutputSaver();
     void InitOutputSaver();

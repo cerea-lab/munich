@@ -38,7 +38,7 @@ namespace SeldonData
     typedef const T* const_pointer;
     typedef T& reference;
     typedef const T& const_reference;
-    
+
   protected:
     //! Length of the grid.
     int length_;
@@ -54,7 +54,7 @@ namespace SeldonData
 
     //! Zero.
     value_type zero_;
-    
+
   public:
 
     // Constructors.
@@ -88,23 +88,23 @@ namespace SeldonData
     virtual Grid<T>* Duplicate() const;
     virtual Grid<T>* Copy();
 
-    virtual reference operator () (int i);
-    virtual value_type operator () (int i) const;
+    virtual reference operator()(int i);
+    virtual value_type operator()(int i) const;
 
     virtual reference Value(int i0, int i1 = -1,
-			    int i2 = -1, int i3 = -1,
-			    int i4 = -1, int i5 = -1,
-			    int i6 = -1, int i7 = -1,
-			    int i8 = -1, int i9 = -1);
+                            int i2 = -1, int i3 = -1,
+                            int i4 = -1, int i5 = -1,
+                            int i6 = -1, int i7 = -1,
+                            int i8 = -1, int i9 = -1);
 
     virtual value_type Value(int i0, int i1 = -1,
-			     int i2 = -1, int i3 = -1,
-			     int i4 = -1, int i5 = -1,
-			     int i6 = -1, int i7 = -1,
-			     int i8 = -1, int i9 = -1) const;
+                             int i2 = -1, int i3 = -1,
+                             int i4 = -1, int i5 = -1,
+                             int i6 = -1, int i7 = -1,
+                             int i8 = -1, int i9 = -1) const;
 
     virtual void ChangeCoordsInPlace(Function_Base<T>& f,
-				     Array<Grid<T>*, 1> grids);
+                                     Array<Grid<T>*, 1> grids);
 
     virtual void Print() const;
 
@@ -119,7 +119,7 @@ namespace SeldonData
   template<class T>
   class RegularGrid: public Grid<T>
   {
-    
+
     // typedef declarations.
   public:
     typedef T value_type;
@@ -127,7 +127,7 @@ namespace SeldonData
     typedef const T* const_pointer;
     typedef T& reference;
     typedef const T& const_reference;
-    
+
   protected:
     //! Grid values.
     Array<value_type, 1> values_;
@@ -162,20 +162,20 @@ namespace SeldonData
     Grid<T>* Duplicate() const;
     Grid<T>* Copy();
 
-    reference operator () (int i);
-    value_type operator () (int i) const;
+    reference operator()(int i);
+    value_type operator()(int i) const;
 
     reference Value(int i0, int i1 = -1,
-		    int i2 = -1, int i3 = -1,
-		    int i4 = -1, int i5 = -1,
-		    int i6 = -1, int i7 = -1,
-		    int i8 = -1, int i9 = -1);
+                    int i2 = -1, int i3 = -1,
+                    int i4 = -1, int i5 = -1,
+                    int i6 = -1, int i7 = -1,
+                    int i8 = -1, int i9 = -1);
 
     value_type Value(int i0, int i1 = -1,
-		     int i2 = -1, int i3 = -1,
-		     int i4 = -1, int i5 = -1,
-		     int i6 = -1, int i7 = -1,
-		     int i8 = -1, int i9 = -1) const;
+                     int i2 = -1, int i3 = -1,
+                     int i4 = -1, int i5 = -1,
+                     int i6 = -1, int i7 = -1,
+                     int i8 = -1, int i9 = -1) const;
 
     template <class F>
     void Apply(F& function);
@@ -185,7 +185,7 @@ namespace SeldonData
     void Print() const;
 
   };
-  
+
 
   /***************/
   /* GeneralGrid */
@@ -195,7 +195,7 @@ namespace SeldonData
   template<class T, int n>
   class GeneralGrid: public Grid<T>
   {
-    
+
     // typedef declarations.
   public:
     typedef T value_type;
@@ -216,11 +216,11 @@ namespace SeldonData
 
     GeneralGrid()  throw();
     GeneralGrid(Array<value_type, n>& values,
-		int variable,
-		const TinyVector<int, n>& dependencies)  throw();
+                int variable,
+                const TinyVector<int, n>& dependencies)  throw();
     GeneralGrid(const TinyVector<int, n>& values_shape,
-		int variable,
-		const TinyVector<int, n>& dependencies)  throw();
+                int variable,
+                const TinyVector<int, n>& dependencies)  throw();
     GeneralGrid(const GeneralGrid<T, n>& G)  throw();
     GeneralGrid(const Grid<T>& G)  throw();
 
@@ -243,24 +243,24 @@ namespace SeldonData
     const Array<int, 1>& GetDependencies() const;
     int GetMainVariable() const;
     bool IsDependent(int i) const;
-    
+
     Grid<T>* Duplicate() const;
     Grid<T>* Copy();
 
-    reference operator () (int i);
-    value_type operator () (int i) const;
+    reference operator()(int i);
+    value_type operator()(int i) const;
 
     reference Value(int i0, int i1 = -1,
-		    int i2 = -1, int i3 = -1,
-		    int i4 = -1, int i5 = -1,
-		    int i6 = -1, int i7 = -1,
-		    int i8 = -1, int i9 = -1);
-    
+                    int i2 = -1, int i3 = -1,
+                    int i4 = -1, int i5 = -1,
+                    int i6 = -1, int i7 = -1,
+                    int i8 = -1, int i9 = -1);
+
     value_type Value(int i0, int i1 = -1,
-		     int i2 = -1, int i3 = -1,
-		     int i4 = -1, int i5 = -1,
-		     int i6 = -1, int i7 = -1,
-		     int i8 = -1, int i9 = -1) const;
+                     int i2 = -1, int i3 = -1,
+                     int i4 = -1, int i5 = -1,
+                     int i6 = -1, int i7 = -1,
+                     int i8 = -1, int i9 = -1) const;
 
     void ChangeCoordsInPlace(Function_Base<T>& f, Array<Grid<T>*, 1> grids);
 

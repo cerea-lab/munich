@@ -29,6 +29,7 @@ include_path = """../../include/Talos
                   ../../include/models
                   ../../include/driver
                   ../../include/driver/output_saver
+		  ../../include/modules/common
                   ../../include/modules/chemistry
                   ../../include/modules/chemistry/Common
                   ../../include/modules/chemistry/RACM

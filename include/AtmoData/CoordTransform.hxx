@@ -27,7 +27,7 @@
 
 namespace AtmoData
 {
-  
+
   //! Coordinate transformation from Lambert azimuthal equal area
   //! to longitude/latitude.
   template<class T>
@@ -48,46 +48,8 @@ namespace AtmoData
 
   public:
     LaeaToLonlat(T lon_origin, T lat_origin)  throw();
-    void operator() (const T x, const T y,
-		     T& lon, T& lat);
-  };
-
-  //! Coordinate transformation from Latlon to rotated Latlon
-  template <class T>
-  class LonlatToRotatedLonlat
-  {
-  protected:
-    const T Earth_radius_;
-    const T pi_;
-    
-    T theta_;
-    T phi_;
-
-    
-    
-  public:
-    LonlatToRotatedLonlat(T theta, T phi) throw();
-    void operator() (T lon, T lat,
-		     T& lon_rot, T& lat_rot);
-  };
-
-//! Coordinate transformation from Latlon to rotated Latlon
-  template <class T>
-  class RotatedLonlatToLonlat
-  {
-  protected:
-    const T Earth_radius_;
-    const T pi_;
-    
-    T theta_;
-    T phi_;
-
-    
-    
-  public:
-    RotatedLonlatToLonlat (T theta, T phi) throw();
-    void operator() (T lon_rot, T lat_rot,
-		     T& lon, T& lat);
+    void operator()(const T x, const T y,
+                    T& lon, T& lat);
   };
 
 
@@ -124,13 +86,13 @@ namespace AtmoData
 
   public:
     MM5LccIndToLonlat(int jmx, int imx, double jx, double ix,
-		      double phic, double lambdac,
-		      double phi1, double phi2, double ds,
-		      int ratio)  throw();
-    void operator() (const T j, const T i,
-		     T& lon, T& lat);
+                      double phic, double lambdac,
+                      double phi1, double phi2, double ds,
+                      int ratio)  throw();
+    void operator()(const T j, const T i,
+                    T& lon, T& lat);
   };
-  
+
 
   //! Coordinate transformation from longitude/latitude to
   //! indices of the MM5 grid in Lambert conic conformal.
@@ -165,11 +127,11 @@ namespace AtmoData
 
   public:
     LonlatToMM5LccInd(int jmx, int imx, double jx, double ix,
-		      double phic, double lambdac,
-		      double phi1, double phi2, double ds0,
-		      int ratio)  throw();
-    void operator() (const T lon, const T lat,
-		     T& j, T& i);
+                      double phic, double lambdac,
+                      double phi1, double phi2, double ds0,
+                      int ratio)  throw();
+    void operator()(const T lon, const T lat,
+                    T& j, T& i);
   };
 
 
@@ -204,10 +166,10 @@ namespace AtmoData
 
   public:
     MM5MercIndToLonlat(int jmx, int imx, double jx, double ix,
-		       double phic, double lambdac,
-		       double phi1, double ds, int ratio)  throw();
-    void operator() (const T j, const T i,
-		     T& lon, T& lat);
+                       double phic, double lambdac,
+                       double phi1, double ds, int ratio)  throw();
+    void operator()(const T j, const T i,
+                    T& lon, T& lat);
   };
 
 
@@ -242,10 +204,10 @@ namespace AtmoData
 
   public:
     LonlatToMM5MercInd(int jmx, int imx, double jx, double ix,
-		       double phic, double lambdac,
-		       double phi1, double ds0, int ratio)  throw();
-    void operator() (const T lon, const T lat,
-		     T& j, T& i);
+                       double phic, double lambdac,
+                       double phi1, double ds0, int ratio)  throw();
+    void operator()(const T lon, const T lat,
+                    T& j, T& i);
   };
 
 
@@ -280,10 +242,10 @@ namespace AtmoData
 
   public:
     MM5StereIndToLonlat(int jmx, int imx, double jx, double ix,
-			double phic, double lambdac,
-			double phi1, double ds, int ratio)  throw();
-    void operator() (const T j, const T i,
-		     T& lon, T& lat);
+                        double phic, double lambdac,
+                        double phi1, double ds, int ratio)  throw();
+    void operator()(const T j, const T i,
+                    T& lon, T& lat);
   };
 
 
@@ -318,10 +280,10 @@ namespace AtmoData
 
   public:
     LonlatToMM5StereInd(int jmx, int imx, double jx, double ix,
-			double phic, double lambdac,
-			double phi1, double ds0, int ratio)  throw();
-    void operator() (const T lon, const T lat,
-		     T& j, T& i);
+                        double phic, double lambdac,
+                        double phi1, double ds0, int ratio)  throw();
+    void operator()(const T lon, const T lat,
+                    T& j, T& i);
   };
 
 
@@ -339,10 +301,10 @@ namespace AtmoData
     const double lambdar_;
     //! Domain reference latitude (degree).
     const double phir_;
-	//! Domain center index along x-direction (i).
-	const double i_cen_;
-	//! Domain center index along y-direction (j).
-	const double j_cen_;
+    //! Domain center index along x-direction (i).
+    const double i_cen_;
+    //! Domain center index along y-direction (j).
+    const double j_cen_;
     //! True latitude #1 (degree).
     const double phi1_;
     //! True latitude #2 (degree).
@@ -358,15 +320,15 @@ namespace AtmoData
 
   public:
     LonlatToWRFLccInd(int imx, int jmx,
-					  double lambdar, double phir,
-					  double i_cen, double j_cen,
-					  double phi1, double phi2,
-					  double dsi0, double dsj0)  throw();
-    void operator() (const T lon, const T lat,
-		     T& i, T& j);
+                      double lambdar, double phir,
+                      double i_cen, double j_cen,
+                      double phi1, double phi2,
+                      double dsi0, double dsj0)  throw();
+    void operator()(const T lon, const T lat,
+                    T& i, T& j);
   };
 
-  
+
   //! Coordinate transformation from longitude/latitude to
   //! indices of the WRF grid in Mercator coordinates.
   template<class T>
@@ -394,11 +356,11 @@ namespace AtmoData
 
   public:
     LonlatToWRFMercInd(int imx, int jmx,
-		       double lambdac, double phic,
-		       double phi1,
-		       double dsi0, double dsj0)  throw();
-    void operator() (const T lon, const T lat,
-		     T& i, T& j);
+                       double lambdac, double phic,
+                       double phi1,
+                       double dsi0, double dsj0)  throw();
+    void operator()(const T lon, const T lat,
+                    T& i, T& j);
   };
 
 
@@ -429,11 +391,11 @@ namespace AtmoData
 
   public:
     LonlatToWRFStereInd(int imx, int jmx,
-			double lambdac, double phic,
-			double phi1,
-			double dsi0, double dsj0)  throw();
-    void operator() (const T lon, const T lat,
-		     T& j, T& i);
+                        double lambdac, double phic,
+                        double phi1,
+                        double dsi0, double dsj0)  throw();
+    void operator()(const T lon, const T lat,
+                    T& j, T& i);
   };
 
 

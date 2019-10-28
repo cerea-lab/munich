@@ -28,36 +28,36 @@ namespace AtmoData
 {
 
   // NGE.
-  
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref NGE(Data<T_ref, N, TG_ref> data_ref,
-	    Data<T_comp, N, TG_comp>& data_comp,
-	    Function_Base<T_ref, bool>& test);
+            Data<T_comp, N, TG_comp>& data_comp,
+            Function_Base<T_ref, bool>& test);
 
   // Bias.
 
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref Bias(Data<T_ref, N, TG_ref> data_ref,
-	     Data<T_comp, N, TG_comp>& data_comp,
-	     Function_Base<T_ref, bool>& test);
+             Data<T_comp, N, TG_comp>& data_comp,
+             Function_Base<T_ref, bool>& test);
 
   // RMS.
 
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref RMS(Data<T_ref, N, TG_ref> data_ref,
-	    Data<T_comp, N, TG_comp>& data_comp,
-	    Function_Base<T_ref, bool>& test);
+            Data<T_comp, N, TG_comp>& data_comp,
+            Function_Base<T_ref, bool>& test);
 
   // RelativeRMS.
 
-  template<class T_ref, int N, class TG_ref,
-	   class T_comp, class TG_comp>
+  template < class T_ref, int N, class TG_ref,
+             class T_comp, class TG_comp >
   T_ref RelativeRMS(Data<T_ref, N, TG_ref> data_ref,
-		    Data<T_comp, N, TG_comp>& data_comp,
-		    Function_Base<T_ref, bool>& test);
+                    Data<T_comp, N, TG_comp>& data_comp,
+                    Function_Base<T_ref, bool>& test);
 
 }  // namespace AtmoData.
 

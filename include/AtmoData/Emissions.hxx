@@ -28,28 +28,28 @@
 namespace AtmoData
 {
 
-  template <class TL, class TD, class TEFI, class TEFT,
-	    class TEFN, class TI, class TT, class TN, class TG>
+  template < class TL, class TD, class TEFI, class TEFT,
+             class TEFN, class TI, class TT, class TN, class TG >
   void ComputeBiogenicRates(Data<TL, 3, TG>& LUC, Data<TD, 3, TG>& Density,
-			    Data<TEFI, 1, TG>& EF_isoprene,
-			    Data<TEFT, 1, TG>& EF_terpenes,
-			    Data<TEFN, 1, TG>& EF_NO,
-			    Data<TL, 3, TG>& Isoprene,
-			    Data<TL, 3, TG>& Terpenes,
-			    Data<TL, 3, TG>& NO);
+                            Data<TEFI, 1, TG>& EF_isoprene,
+                            Data<TEFT, 1, TG>& EF_terpenes,
+                            Data<TEFN, 1, TG>& EF_NO,
+                            Data<TL, 3, TG>& Isoprene,
+                            Data<TL, 3, TG>& Terpenes,
+                            Data<TL, 3, TG>& NO);
 
-  template <class TTemp, class TP, class TL, class TD, class TEFI, class TEFT,
-	    class TEFN, class TI, class TT, class TN, class TG>
+  template < class TTemp, class TP, class TL, class TD, class TEFI, class TEFT,
+             class TEFN, class TI, class TT, class TN, class TG >
   void ComputeBiogenicEmissions(Data<TTemp, 3, TG>& Temperature,
-				Data<TP, 3, TG>& PAR,
-				Data<TL, 3, TG>& LUC,
-				Data<TD, 3, TG>& Density,
-				Data<TEFI, 1, TG>& EF_isoprene,
-				Data<TEFT, 1, TG>& EF_terpenes,
-				Data<TEFN, 1, TG>& EF_NO,
-				Data<TL, 3, TG>& Isoprene,
-				Data<TL, 3, TG>& Terpenes,
-				Data<TL, 3, TG>& NO);
+                                Data<TP, 3, TG>& PAR,
+                                Data<TL, 3, TG>& LUC,
+                                Data<TD, 3, TG>& Density,
+                                Data<TEFI, 1, TG>& EF_isoprene,
+                                Data<TEFT, 1, TG>& EF_terpenes,
+                                Data<TEFN, 1, TG>& EF_NO,
+                                Data<TL, 3, TG>& Isoprene,
+                                Data<TL, 3, TG>& Terpenes,
+                                Data<TL, 3, TG>& NO);
 
   //! Stores an EMEP emission associated with a given country.
   template <class T>
@@ -76,7 +76,7 @@ namespace AtmoData
 
     TimeZone(int N);
     void Init(string file_name);
-    int operator () (int i) const;
+    int operator()(int i) const;
   };
 
 
