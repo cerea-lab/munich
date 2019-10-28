@@ -1,0 +1,20 @@
+### Binaries
+*.o
+*.a
+*.so
+*.os
+*.py[cod]
+src/LU_generator
+src/find_perm
+src/spack_generator
+src/spack_input
+
+### SCons files
+*.scon*
+config.log
+*.cc
+
+### Emacs files
+*~
+\#*\#
+.\#*
