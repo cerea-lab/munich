@@ -1,40 +1,40 @@
 C-----------------------------------------------------------------------
 C     Copyright (C) 2007, ENPC - INRIA - EDF R&D
-C     
+C
 C     This file is part of the air quality modeling system Polyphemus.
-C    
+C
 C     Polyphemus is developed in the INRIA - ENPC joint project-team
 C     CLIME and in the ENPC - EDF R&D joint laboratory CEREA.
-C    
+C
 C     Polyphemus is free software; you can redistribute it and/or modify
 C     it under the terms of the GNU General Public License as published
 C     by the Free Software Foundation; either version 2 of the License,
 C     or (at your option) any later version.
-C     
+C
 C     Polyphemus is distributed in the hope that it will be useful, but
 C     WITHOUT ANY WARRANTY; without even the implied warranty of
 C     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 C     General Public License for more details.
-C     
+C
 C     For more information, visit the Polyphemus web site:
 C     http://cerea.enpc.fr/polyphemus/
 C-----------------------------------------------------------------------
 
 
       DOUBLE PRECISION function tsolv(tu,long)
-C     
+C
 C     Routine DIFEUL    DE D.Wendum /EDF
 C     **********************************************************************
-C     
+C
 C     calcul de l'heure solaire "vraie"
 C     fonction de l'heure tu (gmt)
 C     exprimee en secondes dans l'annee
 C     et de la longitude en degres
-C     
+C
 C     retour = valeur en heures
-C     
+C
       implicit none
-C     
+C
       DOUBLE PRECISION tu,long
       DOUBLE PRECISION t
       DOUBLE PRECISION aent,DLaent,amodp
@@ -42,7 +42,7 @@ C
       DOUBLE PRECISION pi
       parameter(pi=3.141592653589793238462D0)
       external aent,amodp,corheu
-C     
+C
       t=(tu/86400.D0)
       DLaent=aent(t)
       t=t-DLaent
@@ -52,26 +52,26 @@ C
       tsolv=amodp(tsolv,24.D0)
       tsolv=tsolv-12.D0
       tsolv=tsolv*pi/12.D0
-C     
+C
       end
 
-C     
+C
 C     **********************************************************************
-C     
+C
       DOUBLE PRECISION function declin(tsec)
 
 C     Routine DIFEUL    DE D.Wendum /EDF
 C     **********************************************************************
-C     
+C
 C     calcul de la declinaison du soleil fonction
 C     du temps tu en secondes dans l'annee
-C     
+C
       implicit none
-C     
+C
       DOUBLE PRECISION tsec,t
       DOUBLE PRECISION pi
       parameter(pi=3.141592653589793238462D0)
-C     
+C
       t=1.D0+(tsec/86400.D0)
       t=t+0.1D0
       t=2*pi*t/365.D0
@@ -79,30 +79,30 @@ C
       declin=declin-0.399912D0*dcos(t)+0.070257D0*dsin(t)
       declin=declin-0.006758D0*dcos(2.D0*t)+0.000907D0*dsin(2.D0*t)
       declin=declin-0.002697D0*dcos(3.D0*t)+0.001480D0*dsin(3.D0*t)
-C     
+C
       end
 
 C     **********************************************************************
-C     
+C
       DOUBLE PRECISION function muzero(tu,long,lat)
-C     
+C
 C     Routine DIFEUL    DE D.Wendum /EDF
 C     **********************************************************************
-C     
+C
 C     calcul du cosinus de l'angle zenithal
 C     fonction de l'heure tu (gmt)
 C     exprimee en secondes dans l'annee
 C     et de la longitude,latitude en degres
-C     
+C
       implicit none
-C     
+C
       DOUBLE PRECISION tu,tul,long,hr,tsolv
       DOUBLE PRECISION decl,declin
       DOUBLE PRECISION lat,flat
       DOUBLE PRECISION pi
       parameter(pi=3.141592653589793238462D0)
       external declin,tsolv
-C     
+C
       tul=tu
       if (tu.gt.31536000.d0) then
          tul=mod(tu,31536000.d0)
@@ -112,65 +112,65 @@ C
       decl=declin(tul)
       flat=lat*pi/180.D0
       muzero=dsin(decl)*dsin(flat)+dcos(decl)*dcos(flat)*dcos(hr)
-C     
+C
       end
-C     
+C
 C     **********************************************************************
-C     
+C
       DOUBLE PRECISION function corheu(tsec)
-C     
+C
 C     Routine DIFEUL    DE D.Wendum /EDF
 C     **********************************************************************
 C     calcul de la difference temps "vrai" - temps "moyen"
 C     fonction du temps tu en secondes dans l'annee
-C     
+C
 C     retour = valeur en heures
-C     
+C
       implicit none
-C     
+C
       DOUBLE PRECISION tsec,t
       DOUBLE PRECISION pi
       parameter(pi=3.141592653589793238462D0)
-C     
+C
       t=1.D0+(tsec/86400.D0)
       t=t+.1D0
       t=2.D0*pi*t/365.D0
-C     
+C
       corheu=0.000075D0
       corheu=corheu+0.001868D0*dcos(t)-0.032077D0*dsin(t)
       corheu=corheu-0.014615D0*dcos(2.D0*t)-0.040849D0*dsin(2.D0*t)
       corheu=corheu*12.D0/pi
-C     
+C
       end
 
 C     **********************************************************************
-C     
+C
       DOUBLE PRECISION FUNCTION AENT(X)
-C     
+C
 C     PARTIE ENTIERE "USUELLE" : UNIQUE ENTIER K TEL QUE K =<X < K+1
-C     
+C
       IMPLICIT NONE
       DOUBLE PRECISION X
-C     
+C
       IF(X.GE.0.D0)THEN
          AENT=DINT(X)
       ELSE
          AENT=DINT(X)-1.D0
       ENDIF
-C     
+C
       END
-C     
+C
 C     **********************************************************************
-C     
+C
       DOUBLE PRECISION FUNCTION AMODP(X,Y)
-C     
+C
 C     L'UNIQUE REEL F TEL QUE X= N*|Y| +F, 0<= F < |Y|
-C     
+C
       IMPLICIT NONE
       DOUBLE PRECISION X,Y,Z
       DOUBLE PRECISION AENT,DLAENT
       EXTERNAL AENT
-C     
+C
       Z=DMAX1(Y,-Y)
       IF(Z.GT.0)THEN
          DLAENT=AENT(X/Z)
@@ -178,8 +178,8 @@ C
       ELSE
          STOP 'APPEL DE AMODP(X,Y) AVEC Y=0'
       ENDIF
-C     
+C
       END
-C     
+C
 C     **********************************************************************
 

@@ -20,14 +20,15 @@ C     For more information, visit the Polyphemus web site:
 C     http://cerea.enpc.fr/polyphemus/
 C------------------------------------------------------------------------
  
-      subroutine dimensions_racm2(Ns, Nr, Nr_photolysis)
+      subroutine dimensions_racm2                  (
+     $    Ns, Nr, Nr_photolysis)
  
 C------------------------------------------------------------------------
 C
       integer Ns, Nr, Nr_photolysis
  
       Ns =   113
-      Nr =   349
+      Nr =   351
       Nr_photolysis =    34
  
       RETURN

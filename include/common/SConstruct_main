@@ -19,6 +19,7 @@
 # For more information, visit the Polyphemus web site:
 #      http://cerea.enpc.fr/polyphemus/
 
+import distutils.sysconfig, os, glob
 
 ##############
 # MAIN PATHS #
@@ -75,7 +76,6 @@ add_argument("mode_fortran", ["permissive", "strict"])
 add_argument("_", ["1", "0", "2"])
 add_argument("openmp", ["no", "yes"])
 add_argument("mpi", ["no", "yes"])
-add_argument("fast-lazy-build", ["no", "yes"])
 
 flag_openmp = ARGUMENTS.get("flag_openmp", None)
 
@@ -200,12 +200,37 @@ if flag_fortran != "":
 # Linker.
 env.Replace(LINK = linker)
 
-# Includes.
-env.Append(CPPPATH = include_path_list)
-env.Append(F77PATH = include_path_list)
-env.Append(FORTRANPATH = include_path_list)
-
 # Libraries.
+python_version = distutils.sysconfig.get_python_version()
+def CheckLibPython(conf):
+    conf.CheckLib("python" + python_version)
+
+def CheckLibLua(conf):
+    lua_name = ['lua5.1', 'lua-5.1', 'lua']
+    for lua in lua_name:
+        if not conf.CheckLibWithHeader(lua, 'lua.h', 'c'):
+            if env.WhereIs('pkg-config'):
+                # BSD and Mac requires 'lua-5.1' instead of 'lua5.1'.
+                try:
+                    # Mutes 'stderr' in a portable way to avoid confuse the user.
+                    stderr = sys.stderr
+                    sys.stderr = open(os.devnull, 'w')
+                    print 'pkg-config --cflags --libs ' + lua
+                    env.ParseConfig('pkg-config --cflags --libs ' + lua)
+                    break
+                except:
+                    continue
+                finally:
+                    sys.stderr.close()
+                    sys.stderr = stderr
+    else:
+        print 'Did not find Lua, should bundle it...'
+
+custom_checklib = {
+                   "python" : CheckLibPython,
+                   "lua" : CheckLibLua
+                   }
+
 library_path = to_string_list("library_path")
 for path in library_path:
     if os.path.isdir(path):
@@ -220,26 +245,17 @@ for path in library_path:
 library_list = to_string_list("library_list")
 library_list += Split(ARGUMENTS.get("library_list", ""))
 
-r=re.compile("^lua-?\d*$")
-lua = next((l for l in library_list if r.search(l)), None)
-if not lua and env.WhereIs('pkg-config'):
-    # BSD and Mac requires lua-5.1 instead of lua5.1.
-    for lua in ['lua5.1', 'lua-5.1']:
-        try:
-            env.ParseConfig('pkg-config --cflags --libs ' + lua)
-        except:
-            continue
-        else:
-            library_list += [lua]
-            break
-
 for library in ["m", "stdc++", "blas", "atlas", "lapack", "g2c", "gfortran",
                 "gslcblas", "blitz", "newran", "netcdf", "netcdf_c++"]:
     if library not in library_list:
         library_list += [library]
 conf = Configure(env)
+
 for library in library_list:
-    conf.CheckLib(library)
+    if custom_checklib.has_key(library):
+        custom_checklib[library](conf)
+    else:
+        conf.CheckLib(library)
 
 # Additional link flags.
 flag_link = create_flag_variable("flag_link")
@@ -257,6 +273,13 @@ if ARGUMENTS["openmp"] == "yes":
               "option."
 env.Replace(LINKFLAGS = flag_link)
 
+# Includes.
+if "python" in library_list:
+    include_path_list.append(distutils.sysconfig.get_python_inc())
+env.Append(CPPPATH = include_path_list)
+env.Append(F77PATH = include_path_list)
+env.Append(FORTRANPATH = include_path_list)
+
 
 if ARGUMENTS["line"] == "no":
     env.Replace(CCCOMSTR = "[C] $SOURCE")
@@ -271,24 +294,7 @@ if ARGUMENTS["line"] == "no":
 env.Replace(CCFLAGS = cpp_compilation_option)
 env.Replace(F77FLAGS = fortran_compilation_option)
 env.Replace(FORTRANFLAGS = fortran_compilation_option)
-
-# The 'fast-lazy-build' option is for building a bit faster at the cost
-# of possible incomplete builds.
-# A incomplete build can happen if environment variables are changed,
-# if the machine is not the one that did the last build,
-# if the system time is changed, etc.
-# This option is however useful for development on the same machine.
-if ARGUMENTS["fast-lazy-build"] == "yes":
-    # See http://www.scons.org/wiki/GoFastButton for some documentation.
-    env.Decider('MD5-timestamp')
-    env.SetOption('max_drift', 1)
-    env.SetOption('implicit_cache', 1)
-    env.SourceCode('.', None)
-
-    if not debug_flag("debug_cpp"):
-        cpp_compilation_option += " -O0"
-        env.Replace(CCFLAGS = cpp_compilation_option)
-
+env.Replace(F90FLAGS = fortran_compilation_option)
 
 ################
 # C++ PROGRAMS #
@@ -371,13 +377,14 @@ for path in include_path_list:
     dependency_list += glob.glob(os.path.join(path, "*.f"))
     dependency_list += glob.glob(os.path.join(path, "*.F"))
     dependency_list += glob.glob(os.path.join(path, "*.f90"))
+    dependency_list += glob.glob(os.path.join(path, "*.F90"))
     dependency_list += glob.glob(os.path.join(path, "*.C"))
     dependency_list += glob.glob(os.path.join(path, "*.c"))
-    #dependency_list += spack_dependency(path)
+    dependency_list += spack_dependency(path)
 
 # In case there is a list of dependencies to be excluded.
 exclude_dependency = to_string_list("exclude_dependency")
-for expression in exclude_dependency:
+for expression in exclude_dependency + target_list:
     for dependency in dependency_list[:]:
         if re.search(expression, dependency) is not None:
             dependency_list.remove(dependency)
