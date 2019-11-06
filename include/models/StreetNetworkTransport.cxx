@@ -270,7 +270,7 @@ namespace Polyphemus
             filename = this->input_files["background_concentration"](species_list_background[s]);
             Array<T, 2> background_tmp(Nt_background, total_nstreet);
             InitData(filename, background_tmp);
-            for (int t = 0; t < Nt_emis; t++)
+            for (int t = 0; t < Nt_background; t++)
               for (int st = 0; st < total_nstreet; st++)
                 background_concentration(s, t, st) = background_tmp(t, st);
           }
