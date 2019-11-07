@@ -509,6 +509,26 @@ namespace Polyphemus
     outgoing_flux_ = outgoing_flux;
   }
 
+  //! Returns the incoming volume flux from other streets.
+  /*!
+    \return The incoming volume flux (m3/s).
+  */
+  template<class T>
+  inline T Street<T>::GetIncomingFlux() const
+  {
+    return incoming_flux_;
+  }
+
+  //! Sets the incoming volume flux.
+  /*!
+    \param incoming_flux the outgoing volume flux (m3/s).
+  */
+  template<class T>
+  inline void Street<T>::SetIncomingFlux(T incoming_flux)
+  {
+    incoming_flux_ = incoming_flux;
+  }
+
 
   //! Returns the mass flux to the atmosphere.
   /*!

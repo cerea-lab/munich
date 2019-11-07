@@ -95,6 +95,10 @@ namespace Polyphemus
                            "Sirane | Lemonsu", option_ustreet);
     cout << "Mean_wind_speed_parameterization: " << option_ustreet << endl;
 
+    this->config.PeekValue("Numerical_method_parameterization",
+			   "ETR | Rosenbrock", option_method);
+    cout << "Numerical_method_parameterization: " << option_method << endl;
+
     this->config.PeekValue("With_horizontal_fluctuation",
 			   this->option_process["with_horizontal_fluctuation"]);
 
@@ -104,6 +108,9 @@ namespace Polyphemus
 			   this->option_process["with_local_data"]);
     this->config.PeekValue("With_stationary_hypothesis",
 			   this->option_process["with_stationary_hypothesis"]);
+
+    this->config.PeekValue("Sub_delta_t_min", sub_delta_t_min);
+
     
     /*** Input files ***/
 
@@ -322,23 +329,6 @@ namespace Polyphemus
         length(i) = to_num<T>(v[3]);
         width(i) = to_num<T>(v[4]);
         height(i) = to_num<T>(v[5]);
-	
-        // id_street(i) = to_num<T>(v[1]);
-        // begin_inter(i) = to_num<T>(v[2]);
-        // end_inter(i) = to_num<T>(v[3]);
-        // length(i) = to_num<T>(v[4]);
-        // width(i) = to_num<T>(v[5]);
-        // height(i) = to_num<T>(v[6]);
-
-	// cout<<" id_street(i) = "<<id_street(i)
-	//     <<" begin_inter(i) = "<<begin_inter(i)
-	//     <<" end_inter(i) = "<<end_inter(i)
-	//     <<" length(i) = "<<length(i)
-	//     <<" width(i) = "<<width(i)
-	//     <<" height(i) = "<<height(i)
-	//     <<endl;
-	// throw;
-	//LL********************************************
 	
         //! Check if a zero value exists.
         if (length(i) == 0.0)
@@ -853,7 +843,7 @@ namespace Polyphemus
 	  {
 	    InitInflowRate();
 
-	    cout << " ----> MUNICH Iteration No " << niter << endl;
+	    // cout << " ----> MUNICH Iteration No " << niter << endl;
 	    ComputeInflowRateExtended();
 
 	    //! Compute the concentrations in the street-canyon.
@@ -1021,6 +1011,7 @@ namespace Polyphemus
             street->SetOutgoingFlux(0.0);
             street->SetMassfluxFromBackground(0.0, s);
             street->SetMassfluxToBackground(0.0, s);
+	    street->SetIncomingFlux(0.0);
           }
       }
   }
@@ -1261,6 +1252,7 @@ namespace Polyphemus
         T outgoing_flux = street->GetOutgoingFlux(); // m3/s
         T street_volume = street->GetHeight() *
           street->GetWidth() * street->GetLength(); // m3
+	T inflow_flux = street->GetIncomingFlux();
 
 	for (int s = 0; s < this->Ns; ++s)
           {
@@ -1272,9 +1264,8 @@ namespace Polyphemus
 	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume;
 	  }
 
-	T sub_delta_t_init, sub_delta_t, sub_delta_t_min;
-	sub_delta_t_min = 1.0;	
-	
+	T sub_delta_t_init, sub_delta_t;
+
 	InitStep(sub_delta_t_init,
 		 sub_delta_t_min,
 		 transfer_velocity,
@@ -1299,21 +1290,42 @@ namespace Polyphemus
 	    for (int s = 0; s < this->Ns; ++s)
 	      concentration_array(s) = street->GetStreetConcentration(s);
 
-	    //cout<<"sub_delta_t que vai para o ETR = "<<sub_delta_t_init<<endl;
-	    //! Use the ETR method to calculates new street concentrations.
-	    ETRConcentration(transfer_velocity,
-			     temp,
-			     outgoing_flux,
-			     street_volume,
-			     concentration_array,
-			     concentration_array_tmp,
-			     background_concentration_array,
-			     emission_rate_array,
-			     inflow_rate_array,
-			     deposition_flux_array,
-			     new_concentration_array,
-			     sub_delta_t_init);
-
+            //! Use the ETR method to calculates new street concentrations.
+	    if (option_method == "ETR")
+	      {
+		ETRConcentration(transfer_velocity,
+				 temp,
+				 outgoing_flux,
+				 street_volume,
+				 concentration_array,
+				 concentration_array_tmp,
+				 background_concentration_array,
+				 emission_rate_array,
+				 inflow_rate_array,
+				 deposition_flux_array,
+				 new_concentration_array,
+				 sub_delta_t_init);
+	      }
+	    else if(option_method == "Rosenbrock")
+	      {
+		RosenbrockConcentration(transfer_velocity,
+					temp,
+					outgoing_flux,
+					street_volume,
+					concentration_array,
+					concentration_array_tmp,
+					background_concentration_array,
+					emission_rate_array,
+					inflow_rate_array,
+					deposition_flux_array,
+					new_concentration_array,
+					sub_delta_t_init,
+					inflow_flux);
+	      }
+	    else
+	      throw string("Error: numerical method not chosen.");
+	    
+	    
 	    //! Set the new concentrations.
 	    for (int s = 0; s < this->Ns; ++s)
 	      street->SetStreetConcentration(new_concentration_array(s), s);
@@ -1327,7 +1339,6 @@ namespace Polyphemus
 			  sub_delta_t_min,
 			  sub_delta_t_max,
 			  sub_delta_t);
-	    //cout<<"sub_delta_t after AdaptTimeStep = "<<sub_delta_t<<endl;
 
 	    //! Actualises current_time_tmp
 	    current_date_tmp.AddSeconds(sub_delta_t_init);
@@ -2090,6 +2101,16 @@ namespace Polyphemus
                 
               }
 
+	//! Compute incoming volume flux from other streets (m3/s)
+	for (int i = 0; i < nstreet_inter + 1; i++)
+	  for (int j = 0; j < nstreet_inter + 1; j++)
+	    if (i != j and i != 0 and j != 0)
+	      {
+		T old_incoming_flux = StreetVectorInter[j - 1]->GetIncomingFlux();
+		T incoming_flux = extended_matrix(i, j) + old_incoming_flux;
+		
+		StreetVectorInter[j - 1]->SetIncomingFlux(incoming_flux);
+	      }
 
             for (int s = 0; s < this->Ns; ++s)
               {
@@ -2486,6 +2507,105 @@ namespace Polyphemus
     sub_delta_t = min(sub_delta_t, sub_delta_t_max);
     sub_delta_t = max(sub_delta_t, sub_delta_t_min);
   }
+
+  // Rosenbrock method
+  template<class T>
+  void StreetNetworkTransport<T>
+  ::RosenbrockConcentration(const T transfer_velocity,
+			    const T temp,
+			    const T outgoing_flux,
+			    const T street_volume,
+			    const Array<T, 1> concentration_array,
+			    Array<T, 1>& concentration_array_tmp,
+			    const Array<T, 1> background_concentration_array,
+			    const Array<T, 1> emission_rate_array,
+			    const Array<T, 1> inflow_rate_array,
+			    const Array<T, 1> deposition_flux_array,
+			    Array<T, 1>& new_concentration_array,
+			    const T sub_delta_t,
+			    const T inflow_flux)
+  {
+    Array<T, 1> dc1dt(this->Ns); // Differential term dc/dt at initial time (sub time step)
+    Array<T, 1> dc2dt(this->Ns); // Differential term dc/dt at final time (sub time step)
+    Array<T, 1> k1(this->Ns);
+    Array<T, 1> k2(this->Ns);
+    T gamma;
+    dc1dt = 0.0;
+    dc2dt = 0.0;
+    gamma = 1 + 1 / sqrt(2);
+    // Compute the differential term dc/dt at initial time
+    CalculDCDT(transfer_velocity,
+	       temp,
+	       outgoing_flux,
+	       street_volume,
+	       concentration_array,
+	       background_concentration_array,
+	       emission_rate_array,
+	       inflow_rate_array,
+	       deposition_flux_array,
+	       dc1dt);
+    // Compute the Jacobian at initial time
+    Array<T, 1> J(this->Ns);
+    Jacobian(inflow_flux,
+	     outgoing_flux,
+	     temp,
+	     deposition_flux_array,
+	     J,
+	     street_volume);
+  
+    // Compute k1
+    for (int s = 0; s < this->Ns; s++)
+      k1(s) = dc1dt(s) / (1 - gamma * sub_delta_t * J(s));
+
+    // Compute temporary concentrations at final time
+    for (int s = 0; s < this->Ns; s++)
+      {
+	concentration_array_tmp(s) = concentration_array(s) + k1(s) * sub_delta_t;
+	concentration_array_tmp(s) = max(concentration_array_tmp(s), 0.0);
+      }
+  
+    // Compute the differential term dc/dt at final time
+    CalculDCDT(transfer_velocity,
+	       temp,
+	       outgoing_flux,
+	       street_volume,
+	       concentration_array_tmp,
+	       background_concentration_array,
+	       emission_rate_array,
+	       inflow_rate_array,
+	       deposition_flux_array,
+	       dc2dt);
+    
+    // Compute k2
+    for (int s = 0; s < this->Ns; s++)
+      k2(s) = (dc2dt(s) - 2 * k1(s)) / (1 - gamma * sub_delta_t * J(s));
+    
+    // Compute concentrations at final time
+    for (int s = 0; s < this->Ns; s++)
+      {
+	new_concentration_array(s) = concentration_array(s) + (3 * k1(s) + k2(s)) * sub_delta_t / 2;
+	new_concentration_array(s) = max(new_concentration_array(s), 0.0);
+      }
+  }
+  
+  // Compute Jacobian matrix (1x1) by Euler
+  template<class T>
+  void StreetNetworkTransport<T>
+  ::Jacobian(const T inflow_flux,
+	     const T outgoing_flux,
+	     const T temp,
+	     const Array<T, 1> deposition_flux_array,
+	     Array<T, 1>& J,
+	     const T street_volume)
+  {
+    for (int s = 0; s < this->Ns; s++)
+      {
+	J(s) = (inflow_flux - temp - outgoing_flux - deposition_flux_array(s)) / street_volume;
+	//J(s) = 0.01;
+	//cout<<J(s)<<endl;
+      }
+  }
+  
 
 } // namespace Polyphemus.
 

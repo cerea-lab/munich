@@ -328,15 +328,12 @@ namespace Polyphemus
   void StreetNetworkChemistry<T, ClassChemistry>::Forward()
   {
     this->Transport();
-    if (this->option_process["with_stationary_hypothesis"])
+    if (this->option_process["with_chemistry"])
       {
-	if (this->option_process["with_chemistry"])
-	  Chemistry();
-      }
-    else //no stationary
-      {
-	if (this->option_process["with_chemistry"])
-	  ComputeStreetConcentrationNoStationary();
+	if (this->option_process["with_stationary_hypothesis"])
+	    Chemistry();
+	else
+	    ComputeStreetConcentrationNoStationary(); // without stationarity
       }
     this->SetStreetConcentration();
 
@@ -375,6 +372,7 @@ namespace Polyphemus
         T transfer_velocity = street->GetTransferVelocity(); // m/s
 	T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
         T outgoing_flux = street->GetOutgoingFlux(); // m3/s
+	T inflow_flux = street->GetIncomingFlux();
         T street_volume = street->GetHeight() *
           street->GetWidth() * street->GetLength(); // m3
 
@@ -388,13 +386,12 @@ namespace Polyphemus
 	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume;
 	  }
 
-	T sub_delta_t_init, sub_delta_t, sub_delta_t_min;
-	sub_delta_t_min = 1.0;
+	T sub_delta_t_init, sub_delta_t;
 	Date current_date_tmp = this->current_date;
 
 	StreetNetworkTransport<T>::
 	  InitStep(sub_delta_t_init,
-		   sub_delta_t_min,
+		   this->sub_delta_t_min,
 		   transfer_velocity,
 		   temp,
 		   outgoing_flux,
@@ -417,8 +414,11 @@ namespace Polyphemus
 	    for (int s = 0; s < this->Ns; ++s)
 	      concentration_array(s) = street->GetStreetConcentration(s);
 
-	    StreetNetworkTransport<T>::
-	      ETRConcentration(transfer_velocity,
+	    //! Use the ETR method to calculates new street concentrations.
+	    if (this->option_method == "ETR")
+	      {
+                StreetNetworkTransport<T>::
+                  ETRConcentration(transfer_velocity,
 			       temp,
 			       outgoing_flux,
 			       street_volume,
@@ -430,6 +430,29 @@ namespace Polyphemus
 			       deposition_flux_array,
 			       new_concentration_array,
 			       sub_delta_t_init);
+
+	      }
+	    else if (this->option_method == "Rosenbrock")
+	      {
+		StreetNetworkTransport<T>::
+		  RosenbrockConcentration(transfer_velocity,
+					  temp,
+					  outgoing_flux,
+					  street_volume,
+					  concentration_array,
+					  concentration_array_tmp,
+					  background_concentration_array,
+					  emission_rate_array,
+					  inflow_rate_array,
+					  deposition_flux_array,
+					  new_concentration_array,
+					  sub_delta_t_init,
+					  inflow_flux);
+	      }
+	    else 
+	      throw string("Error: numerical method not chosen.");
+
+
             //! sub_delta_t_init corresponds to the time step being incremented
             //! sub_delta_t corresponds to the time step that may be used in the next iteration
 
@@ -439,7 +462,7 @@ namespace Polyphemus
 	      AdaptTimeStep(new_concentration_array,
 			    concentration_array_tmp,
 			    sub_delta_t_init,
-			    sub_delta_t_min,
+			    this->sub_delta_t_min,
 			    sub_delta_t_max,
 			    sub_delta_t);
 	    

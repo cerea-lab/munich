@@ -8,7 +8,6 @@
 #include "StreetDriver.cxx"
 #include "BaseOutputSaver.cxx"
 #include "StreetNetworkChemistry.cxx"
-//#include "PhotochemistrySinG.cxx"
 #include "Photochemistry.cxx"
 
 using namespace Polyphemus;

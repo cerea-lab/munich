@@ -29,7 +29,8 @@ namespace Polyphemus
 
     /*** Configurations ***/
 
-    string option_transfer, option_ustreet;
+    string option_transfer, option_ustreet, option_method;
+    T sub_delta_t_min;
     bool is_stationary;
     //! Output configuration.
     string output_config;
@@ -246,6 +247,27 @@ namespace Polyphemus
 		    const Array<T, 1> inflow_rate_array,
 		    const Array<T, 1> deposition_flux_array,
 		    Array<T, 1>& dcdt);
+
+    void RosenbrockConcentration(const T transfer_velocity,
+				 const T temp,
+				 const T outgoing_flux,
+				 const T street_volume,
+				 const Array<T, 1> concentration_array,
+				 Array<T, 1>& concentration_array_tmp,
+				 const Array<T, 1> background_concentration_array,
+				 const Array<T, 1> emission_rate_array,
+				 const Array<T, 1> inflow_rate_array,
+				 const Array<T, 1> deposition_flux_array,
+				 Array<T, 1>& new_concentration_array,
+				 const T sub_delta_t,
+				 const T inflow_flux);
+    
+    void Jacobian(const T inflow_flux,
+		  const T outgoing_flux,
+		  const T temp,
+		  const Array<T, 1> deposition_flux_array,
+		  Array<T, 1>& J,
+		  const T street_volume);
     //***********************************************************************
 
     void IsStationary(bool& is_stationary);

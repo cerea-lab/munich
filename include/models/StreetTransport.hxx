@@ -59,6 +59,9 @@ namespace Polyphemus
     //! Outgoing volume flux from the street (m3/s).
     T outgoing_flux_;
 
+    //! Incoming volume flux from other streets (m3/s).
+    T incoming_flux_;
+
     //! Deposition rate (ug/s)
     T deposition_rate_;
 
@@ -179,6 +182,8 @@ namespace Polyphemus
     void SetInflowRate(T inflow_rate, int s);
     T GetOutgoingFlux() const;
     void SetOutgoingFlux(T outgoing_flux);
+    T GetIncomingFlux() const;
+    void SetIncomingFlux(T incoming_flux);
     T GetMassfluxRoofToBackground(int s) const;
     void SetMassfluxRoofToBackground(T massflux_roof_to_background, int s);
     T GetMassfluxBackgroundToRoof(int s) const;
