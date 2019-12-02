@@ -63,6 +63,13 @@ namespace Polyphemus
   template<class T, class ClassModel, class ClassOutputSaver>
   void StreetDriver<T, ClassModel, ClassOutputSaver>::Run()
   {
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    MPI::Init();
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else
+    rank = 0;
+#endif
+
     string line;
 
     /*** Initializations ***/
@@ -70,26 +77,36 @@ namespace Polyphemus
     Model.ReadConfiguration();
     Model.Init();
     Model.InitData();
-    OutputSaver.Init(Model);
-    Model.InitOutputSaver();
+    if (rank == 0)
+      {
+        OutputSaver.Init(Model);
+        Model.InitOutputSaver();
+      }
 
     for (int i = 0; i < Model.GetNt(); i++)
       {
-        if (option_display["show_iterations"])
+        if (option_display["show_iterations"] and rank == 0)
           cout << "Performing iteration #" << i << endl;
 
-	if (option_display["show_date"])
+	if (option_display["show_date"] and rank == 0)
 	  cout << "Current date: "
 	       << Model.GetCurrentDate().GetDate("%y-%m-%d %h:%i") << endl;
 
         Model.InitStep();
-        OutputSaver.InitStep(Model);
+        if (rank == 0)
+          OutputSaver.InitStep(Model);
 
         Model.Forward();
-        
-        OutputSaver.Save(Model);
-        Model.OutputSaver();
+
+        if (rank == 0)
+          {
+            OutputSaver.Save(Model);
+            Model.OutputSaver();
+          }
       }
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    MPI::Finalize();
+#endif
   }
 
 } // namespace Polyphemus.

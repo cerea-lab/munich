@@ -62,6 +62,7 @@ namespace Polyphemus
     MPI_Comm_size(MPI_COMM_WORLD, &number_slices_);
     parallelized_on_species_ = (Ns_ > 1 && Ns_ >= number_slices_);
     parallelized_on_aer_species_ = (Ns_aer_ > 1 && Ns_aer_ >= number_slices_);
+
 #endif
 
 #ifdef POLYPHEMUS_PARALLEL_WITH_OPENMP
@@ -87,6 +88,24 @@ namespace Polyphemus
 #endif
   }
 
+  //! Initialize the number of sources to parallelize.
+  void BaseModuleParallel::InitSource(int Nsource)
+  {
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    // Initializes MPI if not done yet.
+    int initialized;
+    MPI_Initialized(&initialized);
+    if (!initialized)
+      MPI_Init(NULL, NULL);
+    // Rank of the process considered in the "LAM universe".
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank_);
+    // Total size of the "LAM universe".
+    MPI_Comm_size(MPI_COMM_WORLD, &number_slices_);
+    Nsource_ = Nsource;
+#endif
+  }
+
+  
 #ifdef POLYPHEMUS_PARALLEL_WITH_OPENMP
   //! Divide a 1D-interval by the number of openMP-threads.
   /*! The resulting indices comply with the FORTRAN conventions.
@@ -203,7 +222,15 @@ namespace Polyphemus
     last_index = last_slice_index_y_(rank_);
   }
 
+  //! Gives the edges of the current slice in a aerosol species partition.
+  void BaseModuleParallel::GetEdgePartition_source(int& first_index,
+                                                  int& last_index)
+  {
+    first_index = first_slice_index_source_(rank_);
+    last_index = last_slice_index_source_(rank_);
+  }
 
+  
   //! Copies Array<T,3> object in an Array<T,3> permuting the axis order.
   /*! 321 gives the matching between dimensions of both objects:
     A3_out -> A3_in, 1st -> 3rd, 2nd -> 2nd, 3rd -> 1st.
@@ -589,7 +616,41 @@ namespace Polyphemus
                  dim_slice_y_, TypeSlice_y, 0, MPI_COMM_WORLD);
   }
 
+  // Scatter buffers for Street-type arrays to all processes.
+  template<class T>
+  void BaseModuleParallel::ScatterSlice_source_MPI(Array<T, 2>& A2)
+  {
+    MPI_Datatype TypeSlice_source;
+    MPI_Type_contiguous(A2.extent(1), MPI_DOUBLE, &TypeSlice_source);
+    MPI_Type_commit(&TypeSlice_source);
+    MPI_Scatterv(&(A2(0, 0)), count_slice_source_.data(),
+                 offset_slice_source_.data(), TypeSlice_source,
+                 &(A2(first_slice_index_source_(rank_), 0)),
+                 dim_slice_source_, TypeSlice_source, 0, MPI_COMM_WORLD);    
+  }
 
+
+  // Gather buffers for Street-type arrays to all processes.
+  template<class T>
+  void BaseModuleParallel::GatherSlice_source_MPI(Array<T, 2>& A2)
+  {
+    MPI_Datatype TypeSlice_source;
+    MPI_Type_contiguous(A2.extent(1), MPI_DOUBLE, &TypeSlice_source);
+    MPI_Type_commit(&TypeSlice_source);
+
+    // Gather sliced data from processes to the process 0.
+    MPI_Gatherv(&(A2(first_slice_index_source_(rank_), 0)), dim_slice_source_,
+                TypeSlice_source,
+                &(A2(0, 0)),
+                count_slice_source_.data(), offset_slice_source_.data(),
+                TypeSlice_source, 0, MPI_COMM_WORLD);
+
+    // Cast all data from the process 0 to all processes.
+    MPI_Bcast(&(A2(0, 0)), A2.extent(1) * A2.extent(0),
+              MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  }  
+
+  
   //! Gathers a Array<T, 3> object using an Array<T, 3>.
   /*! As order matters, this method should be used in the case of a
     partition of Array along its third dimension that is supposed to be X.

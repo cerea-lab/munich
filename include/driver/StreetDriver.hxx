@@ -25,6 +25,10 @@
 #include <string>
 #include "AtmoData.hxx"
 
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+#include <mpi.h>
+#endif
+
 namespace Polyphemus
 {
 
@@ -68,6 +72,9 @@ namespace Polyphemus
     //! Display options.
     map<string, bool> option_display;
 
+    //! MPI rank.
+    int rank;
+    
   public:
 
     /*** Constructor and destructor ***/

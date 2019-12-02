@@ -3,6 +3,8 @@
 #include "BaseModel.cxx"
 #include "StreetTransport.cxx"
 
+#include "BaseModuleParallel.cxx" // YK
+
 namespace Polyphemus
 {
 
@@ -108,6 +110,8 @@ namespace Polyphemus
     /*** Concentration ***/
     Data<T, 2> StreetConcentration;
 
+    int rank;
+
   public:
 
     /*** Constructors and destructor ***/
@@ -121,6 +125,7 @@ namespace Polyphemus
     void ReadConfiguration();
     void ReadStreetData();
     void CheckConfiguration();
+    void DisplayConfiguration();
     
     void Init();
     void InitStep();
@@ -136,7 +141,7 @@ namespace Polyphemus
     void ClearIntersectionVector();
 
     void Allocate();
-
+    
     /*** Access Methods ***/
 
     void SetStreetConcentration();
@@ -228,7 +233,8 @@ namespace Polyphemus
 			  const Array<T, 1> inflow_rate_array,
 			  const Array<T, 1> deposition_flux_array,
 			  Array<T, 1>& new_concentration_array,
-			  const T sub_delta_t);
+			  const T sub_delta_t,
+                          const int street_id); // YK
 
     void AdaptTimeStep(const Array<T, 1> new_concentration_array,
 		       const Array<T, 1>concentration_array_tmp,

@@ -3,6 +3,8 @@
 #include "StreetNetworkTransport.cxx"
 #include "StreetTransport.cxx"
 
+//#include "BaseModuleParallel.cxx" // YK
+
 namespace Polyphemus
 {
 
@@ -18,13 +20,14 @@ namespace Polyphemus
 
   //! StreetNetworkChemistry model.
   template<class T, class ClassChemistry>
-  class StreetNetworkChemistry: public StreetNetworkTransport<T>
+  class StreetNetworkChemistry: public StreetNetworkTransport<T>,
+                                public BaseModuleParallel
   {
 
   protected:
 
     static const T pi;
-
+   
     /*** Meteorological data ***/
     Array<T, 2> attenuation;
     Array<T, 2> specific_humidity;
@@ -77,7 +80,7 @@ namespace Polyphemus
     int Nphotolysis_z;
     //! Grid for altitudes of photolysis rates.
     RegularGrid<T> GridZ_photolysis;
-
+    
   public:
 
     /*** Constructors and destructor ***/
@@ -94,6 +97,7 @@ namespace Polyphemus
     void InitPhotolysis(Date date);
 
     void Init();
+    
     void InitStreet();
     void InitStep();
     void InitData();
@@ -136,6 +140,7 @@ namespace Polyphemus
 
     bool WithChemistry();
     string GetChemicalMechanism();
+    
   };
 
 

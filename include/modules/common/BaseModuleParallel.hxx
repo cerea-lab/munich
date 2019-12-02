@@ -59,6 +59,7 @@ namespace Polyphemus
     int Ny_;
     int Ns_;
     int Ns_aer_;
+    int Nsource_;
 
     int rank_;
     int number_slices_;
@@ -89,6 +90,12 @@ namespace Polyphemus
     Array<int, 1> offset_slice_s_aer_;
     int dim_slice_s_aer_;
 
+    Array<int, 1> first_slice_index_source_;
+    Array<int, 1> last_slice_index_source_;
+    Array<int, 1> count_slice_source_;
+    Array<int, 1> offset_slice_source_;
+    int dim_slice_source_;
+    
     void BuildPartition(int dim, int& dim_para,
                         Array<int, 1>& first, Array<int, 1>& last,
                         Array<int, 1>& count, Array<int, 1>& offset);
@@ -109,6 +116,8 @@ namespace Polyphemus
     template<class T>
     void Init(BaseModel<T>& Model);
 
+    void InitSource(int Nsource);
+
 #ifdef POLYPHEMUS_PARALLEL_WITH_OPENMP
     int GetNthreads_openmp()
     {
@@ -120,6 +129,14 @@ namespace Polyphemus
 #endif
 
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    template<class T>
+    struct StreetStruct
+    {
+      T transfer_velocity;
+      T width;
+      T length;
+    };
+
     int GetRank()
     {
       return rank_;
@@ -161,11 +178,20 @@ namespace Polyphemus
                      count_slice_y_, offset_slice_y_);
     }
 
+    void BuildPartition_source()
+    {
+      BuildPartition(Nsource_, dim_slice_source_,
+                     first_slice_index_source_, last_slice_index_source_,
+                     count_slice_source_, offset_slice_source_);
+    }
+
     void GetEdgePartition_s(int& first_index, int& last_index);
     void GetEdgePartition_s_aer(int& first_index, int& last_index);
     void GetEdgePartition_x(int& first_index, int& last_index);
     void GetEdgePartition_y(int& first_index, int& last_index);
+    void GetEdgePartition_source(int& first_index, int& last_index);
 
+    
     template<class T>
     void CopyFromSlice_x(Array<T, 3>& A3_int, Array<T, 3>& A3_out);
     template<class T>
@@ -286,6 +312,12 @@ namespace Polyphemus
     {
       ScatterSlice_y_MPI(D3.GetArray(), A3);
     }
+
+    template<class T>
+    void ScatterSlice_source_MPI(Array<T, 2>& A2);
+
+    template<class T>
+    void GatherSlice_source_MPI(Array<T, 2>& A2);
 
     template<class T>
     void GatherSlice_x_MPI(Array<T, 3>& A3_in, Array<T, 3>& A3_out);

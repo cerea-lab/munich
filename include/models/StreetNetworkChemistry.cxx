@@ -82,7 +82,6 @@ namespace Polyphemus
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::Init()
   {
-
     //    StreetNetworkTransport<T>::Init();
     this->SetCurrentDate(this->Date_min);
     InitStreet();
@@ -94,7 +93,15 @@ namespace Polyphemus
 
     if (this->option_process["with_chemistry"])
       InitChemistry();
+   
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    // Initialize the number of sources to parallelize.
+    BaseModuleParallel::InitSource(this->GetNStreet());
 
+    //
+    BaseModuleParallel::BuildPartition_source();
+#endif
+    
   }
 
   //! Streets initialization.
@@ -328,6 +335,7 @@ namespace Polyphemus
   void StreetNetworkChemistry<T, ClassChemistry>::Forward()
   {
     this->Transport();
+    
     if (this->option_process["with_chemistry"])
       {
 	if (this->option_process["with_stationary_hypothesis"])
@@ -335,10 +343,12 @@ namespace Polyphemus
 	else
 	    ComputeStreetConcentrationNoStationary(); // without stationarity
       }
+
     this->SetStreetConcentration();
 
     this->AddTime(this->Delta_t);
     this->step++;
+
   }
 
   //LL Remove stationary regime
@@ -346,11 +356,51 @@ namespace Polyphemus
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::ComputeStreetConcentrationNoStationary()
   {
-    for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
-         iter != this->StreetVector.end(); iter++)
-      {
-	Street<T>* street = *iter;
+    // MPI implementation.
+    // 'For' loop on the street segments is parallelized.
+    int first_index_along_source, last_index_along_source;
+    
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    
+    int nstreet = this->StreetVector.size();
 
+    // The following arrays need to be used only for MPI.
+    Array<T, 2> concentration_mpi;
+    Array<T, 2> massflux_roof_to_background_mpi;
+    Array<T, 2> street_quantity_delta_mpi;
+  
+    concentration_mpi.resize(nstreet, this->Ns);
+    massflux_roof_to_background_mpi.resize(nstreet, this->Ns);
+    street_quantity_delta_mpi.resize(nstreet, this->Ns);
+    
+    concentration_mpi = 0.0;
+    massflux_roof_to_background_mpi = 0.0;
+    street_quantity_delta_mpi = 0.0;
+    
+    // Scatter buffers for Street-type arrays to all processes.
+    BaseModuleParallel::ScatterSlice_source_MPI(concentration_mpi);
+    BaseModuleParallel::ScatterSlice_source_MPI(massflux_roof_to_background_mpi);
+    BaseModuleParallel::ScatterSlice_source_MPI(street_quantity_delta_mpi);
+
+    // Get the first and last indices of streets for each process.
+    // The number of slices is the number of streets / the number of processes.
+    // For example, if 1000 streets are computed by 10 processes,
+    // Process 1: Street 1 (first_index) to 100 (last_index),
+    // Process 2: Street 101 (first_index) to 200 (last_index), ...
+    // See BaseModuleParallel.cxx
+    BaseModuleParallel::GetEdgePartition_source
+      (first_index_along_source, last_index_along_source);
+
+#else
+    first_index_along_source = 0;
+    last_index_along_source = this->StreetVector.size();
+#endif
+  
+    // Parallelized loop.
+    for (int i = first_index_along_source; i < last_index_along_source; i++)
+      {
+
+        Street<T>* street = this->StreetVector.at(i);
 	Array<T, 1> concentration_array(this->Ns);
 	Array<T, 1> concentration_array_tmp(this->Ns);
 	Array<T, 1> init_concentration_array(this->Ns);
@@ -368,14 +418,14 @@ namespace Polyphemus
 	emission_rate_array = 0.0;
 	inflow_rate_array = 0.0;
 	deposition_flux_array = 0.0;
-	
+
         T transfer_velocity = street->GetTransferVelocity(); // m/s
 	T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
         T outgoing_flux = street->GetOutgoingFlux(); // m3/s
-	T inflow_flux = street->GetIncomingFlux();
+        T inflow_flux = street->GetIncomingFlux();
         T street_volume = street->GetHeight() *
           street->GetWidth() * street->GetLength(); // m3
-
+            
 	for (int s = 0; s < this->Ns; ++s)
           {
 	    concentration_array(s) = street->GetStreetConcentration(s);
@@ -383,12 +433,13 @@ namespace Polyphemus
 	    background_concentration_array(s) = street->GetBackgroundConcentration(s);
 	    emission_rate_array(s) = street->GetEmission(s);
 	    inflow_rate_array(s) = street->GetInflowRate(s);
-	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume;
+	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume; // to update
 	  }
 
-	T sub_delta_t_init, sub_delta_t;
+        T sub_delta_t_init, sub_delta_t;
 	Date current_date_tmp = this->current_date;
 
+        // Initialize a time-step of solver. 
 	StreetNetworkTransport<T>::
 	  InitStep(sub_delta_t_init,
 		   this->sub_delta_t_min,
@@ -401,8 +452,7 @@ namespace Polyphemus
 		   emission_rate_array,
 		   inflow_rate_array,
 		   deposition_flux_array);
-
-	
+        
 	Date next_date = this->current_date;
 	Date next_date_tmp = this->current_date;
 	next_date.AddSeconds(this->Delta_t);
@@ -410,26 +460,28 @@ namespace Polyphemus
 
 	while (current_date_tmp < next_date)
 	  {
-	    //! Get street concentrations.
-	    for (int s = 0; s < this->Ns; ++s)
-	      concentration_array(s) = street->GetStreetConcentration(s);
+            // YK : removed because it is already read.
+	    // //! Get street concentrations.
+	    // for (int s = 0; s < this->Ns; ++s)
+	    //   concentration_array(s) = street->GetStreetConcentration(s);
 
 	    //! Use the ETR method to calculates new street concentrations.
 	    if (this->option_method == "ETR")
 	      {
                 StreetNetworkTransport<T>::
                   ETRConcentration(transfer_velocity,
-			       temp,
-			       outgoing_flux,
-			       street_volume,
-			       concentration_array,
-			       concentration_array_tmp,
-			       background_concentration_array,
-			       emission_rate_array,
-			       inflow_rate_array,
-			       deposition_flux_array,
-			       new_concentration_array,
-			       sub_delta_t_init);
+                                   temp,
+                                   outgoing_flux,
+                                   street_volume,
+                                   concentration_array,
+                                   concentration_array_tmp,
+                                   background_concentration_array,
+                                   emission_rate_array,
+                                   inflow_rate_array,
+                                   deposition_flux_array,
+                                   new_concentration_array,
+                                   sub_delta_t_init,
+                                   street->GetStreetID());
 
 	      }
 	    else if (this->option_method == "Rosenbrock")
@@ -452,10 +504,9 @@ namespace Polyphemus
 	    else 
 	      throw string("Error: numerical method not chosen.");
 
-
+            
             //! sub_delta_t_init corresponds to the time step being incremented
             //! sub_delta_t corresponds to the time step that may be used in the next iteration
-
 	    //! Calculates the new sub_delta_t for the next iteration
 	    T sub_delta_t_max = next_date.GetSecondsFrom(next_date_tmp);
 	    StreetNetworkTransport<T>::
@@ -465,7 +516,7 @@ namespace Polyphemus
 			    this->sub_delta_t_min,
 			    sub_delta_t_max,
 			    sub_delta_t);
-	    
+
 	    //! Chemical reactions
 	    if (this->option_process["with_chemistry"])
 	      {
@@ -492,13 +543,11 @@ namespace Polyphemus
 			  photolysis_rate,
 			  sub_delta_t_init);
 	      }
-            
-	    
 	    
 	    //! Set the new concentrations.
 	    for (int s = 0; s < this->Ns; ++s)
-	      street->SetStreetConcentration(new_concentration_array(s), s);
-	    
+              street->SetStreetConcentration(new_concentration_array(s), s);
+
 	    //! Actualises current_time_tmp
 	    current_date_tmp.AddSeconds(sub_delta_t_init);
 	    next_date_tmp.AddSeconds(sub_delta_t);
@@ -507,8 +556,18 @@ namespace Polyphemus
 	    sub_delta_t_init = sub_delta_t;
 
 	  }
-	
+
 	for (int s = 0; s < this->Ns; ++s)
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+          {
+            // The following arrays are updated using new computed data by each process.
+            // They will be communicated by all processes later.
+            concentration_mpi(i, s) = new_concentration_array(s);
+	    massflux_roof_to_background_mpi(i, s) = temp * (new_concentration_array(s) - background_concentration_array(s)); // ug/s
+            T conc_delta = new_concentration_array(s) - init_concentration_array(s);
+            street_quantity_delta_mpi(i, s) = conc_delta * street_volume; // ug
+          }
+#else
 	  {
             T massflux_roof_to_background;
 	    massflux_roof_to_background = temp * (new_concentration_array(s) - background_concentration_array(s)); // ug/s
@@ -519,7 +578,30 @@ namespace Polyphemus
 	    T street_quantity_delta = conc_delta * street_volume; // ug
 	    street->SetStreetQuantityDelta(street_quantity_delta, s);
 	  }
+#endif
       }
+
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+
+    // Gather data from processes to Process 0
+    // and cast all data from Process 0 to all other processes.
+    BaseModuleParallel::GatherSlice_source_MPI(concentration_mpi);
+    BaseModuleParallel::GatherSlice_source_MPI(massflux_roof_to_background_mpi);
+    BaseModuleParallel::GatherSlice_source_MPI(street_quantity_delta_mpi);
+
+    // Update data from MPI arrays to Street class objects.
+    for (int i = 0; i < nstreet; i++)
+      {
+        Street<T>* street = this->StreetVector.at(i);
+        for (int s = 0; s < this->Ns; s++)
+          {
+            street->SetStreetConcentration(concentration_mpi(i, s), s);
+            street->SetMassfluxRoofToBackground(massflux_roof_to_background_mpi(i, s), s);
+            street->SetStreetQuantityDelta(street_quantity_delta_mpi(i, s), s);
+          }
+      }
+#endif
+    
   }
 
 

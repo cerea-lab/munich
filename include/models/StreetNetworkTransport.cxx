@@ -89,16 +89,10 @@ namespace Polyphemus
     this->config.SetSection("[street]");
     this->config.PeekValue("Transfert_parameterization",
                            "Sirane | Schulte", option_transfer);
-    cout << "Transfert_parameterization: " << option_transfer << endl;
-
     this->config.PeekValue("Mean_wind_speed_parameterization",
                            "Sirane | Lemonsu", option_ustreet);
-    cout << "Mean_wind_speed_parameterization: " << option_ustreet << endl;
-
     this->config.PeekValue("Numerical_method_parameterization",
 			   "ETR | Rosenbrock", option_method);
-    cout << "Numerical_method_parameterization: " << option_method << endl;
-
     this->config.PeekValue("With_horizontal_fluctuation",
 			   this->option_process["with_horizontal_fluctuation"]);
 
@@ -157,8 +151,26 @@ namespace Polyphemus
       CheckConfiguration();
 
     ReadStreetData();
+
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI    
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else
+    rank = 0;
+#endif
+    if (rank == 0)
+      DisplayConfiguration();
+
   }
 
+  //! Display the configuration
+  template<class T>
+  void StreetNetworkTransport<T>::DisplayConfiguration()
+  {
+    cout << "Transfert_parameterization: " << option_transfer << endl;
+    cout << "Mean_wind_speed_parameterization: " << option_ustreet << endl;
+    cout << "Numerical_method_parameterization: " << option_method << endl;
+  }
+  
   //! Allocates memory.
   /*! Allocates the grids and the concentration Data.
    */
@@ -180,7 +192,12 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::Init()
   {
-
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#else
+    rank = 0;
+#endif
+    
     this->SetCurrentDate(this->Date_min);
     InitStreet();
     InitIntersection();
@@ -1304,7 +1321,8 @@ namespace Polyphemus
 				 inflow_rate_array,
 				 deposition_flux_array,
 				 new_concentration_array,
-				 sub_delta_t_init);
+				 sub_delta_t_init,
+                                 street->GetStreetID());
 	      }
 	    else if(option_method == "Rosenbrock")
 	      {
@@ -2096,9 +2114,7 @@ namespace Polyphemus
               {
                 T old_outgoing_flux = StreetVectorInter[i - 1]->GetOutgoingFlux();
                 T outgoing_flux = extended_matrix(i, j) + old_outgoing_flux;
-                
                 StreetVectorInter[i - 1]->SetOutgoingFlux(outgoing_flux);
-                
               }
 
 	//! Compute incoming volume flux from other streets (m3/s)
@@ -2291,13 +2307,16 @@ namespace Polyphemus
 		     const Array<T, 1> inflow_rate_array,
 		     const Array<T, 1> deposition_flux_array,
 		     Array<T, 1>& new_concentration_array,
-		     const T sub_delta_t)
+		     const T sub_delta_t,
+                     const int street_id)
   {
     T dtetr;
     Array<T, 1> dc1dt(this->Ns);
     Array<T, 1> dc2dt(this->Ns);
     dc1dt = 0.0;
     dc2dt = 0.0;
+
+    
     //First time step
     CalculDCDT(transfer_velocity,
 	       temp,
@@ -2309,12 +2328,16 @@ namespace Polyphemus
 	       inflow_rate_array,
 	       deposition_flux_array,
 	       dc1dt);
+
+    
+    
     //Update concentrations
     for (int s = 0; s < this->Ns; s++)
       {
 	concentration_array_tmp(s) = concentration_array(s) + dc1dt(s)*sub_delta_t;
 	concentration_array_tmp(s) = max(concentration_array_tmp(s), 0.0);
       }
+
     //Second time step
     CalculDCDT(transfer_velocity,
 	       temp,
@@ -2326,12 +2349,15 @@ namespace Polyphemus
 	       inflow_rate_array,
 	       deposition_flux_array,
 	       dc2dt);
+
+    
     dtetr = sub_delta_t/2.0;
     for (int s = 0; s < this->Ns; s++)
       {
 	new_concentration_array(s) = concentration_array(s) + (dc1dt(s) + dc2dt(s))*dtetr;
 	new_concentration_array(s) = max(new_concentration_array(s), 0.0);
       }
+
   }
 
 
