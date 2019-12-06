@@ -692,12 +692,44 @@ namespace Polyphemus
     Array<T, 1> concentration_array(this->Ns);
 
     source = 0.0;
-    
-    for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin(); 
-	 iter != this->StreetVector.end(); iter++)
-      {
-	Street<T>* street = *iter;
 
+
+    // MPI implementation.
+    // 'For' loop on the street segments is parallelized.
+    int first_index_along_source, last_index_along_source;
+    
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+
+    int nstreet = this->StreetVector.size();
+
+    // The following arrays need to be used only for MPI.
+    Array<T, 2> concentration_mpi;
+    concentration_mpi.resize(nstreet, this->Ns);
+
+    // Scatter buffers for Street-type arrays to all processes.
+    BaseModuleParallel::ScatterSlice_source_MPI(concentration_mpi);
+    
+    // Get the first and last indices of streets for each process.
+    // The number of slices is the number of streets / the number of processes.
+    // For example, if 1000 streets are computed by 10 processes,
+    // Process 1: Street 1 (first_index) to 100 (last_index),
+    // Process 2: Street 101 (first_index) to 200 (last_index), ...
+    // See BaseModuleParallel.cxx
+    BaseModuleParallel::GetEdgePartition_source
+      (first_index_along_source, last_index_along_source);
+#else
+    first_index_along_source = 0;
+    last_index_along_source = this->StreetVector.size();
+#endif
+  
+    // Parallelized loop.
+    for (int i = first_index_along_source; i < last_index_along_source; i++)
+    // for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin(); 
+    //      iter != this->StreetVector.end(); iter++)
+      {
+	// Street<T>* street = *iter;
+        Street<T>* street = this->StreetVector.at(i);
+        
 	//! Get the concentrations.
 	for (int s = 0; s < this->Ns; ++s)
 	  concentration_array(s) = street->GetStreetConcentration(s);
@@ -723,11 +755,40 @@ namespace Polyphemus
 			     temperature_, pressure_, source,
 			     photolysis_rate, longitude_,
 			     latitude_, concentration_array);
-
+        
 	for (int s = 0; s < this->Ns; ++s)
-	  street->SetStreetConcentration(concentration_array(s), s);
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+          {
+            // The following arrays are updated using new computed data by each process.
+            // They will be communicated by all processes later.
+            concentration_mpi(i, s) = concentration_array(s);
+          }
+#else
+          {
+            street->SetStreetConcentration(concentration_array(s), s);
+          }
+#endif
 #endif	
       }
+
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+
+    // Gather data from processes to Process 0
+    // and cast all data from Process 0 to all other processes.
+    BaseModuleParallel::GatherSlice_source_MPI(concentration_mpi);
+
+    // Update data from MPI arrays to Street class objects.
+    for (int i = 0; i < nstreet; i++)
+      {
+        Street<T>* street = this->StreetVector.at(i);
+        for (int s = 0; s < this->Ns; s++)
+          {
+            street->SetStreetConcentration(concentration_mpi(i, s), s);
+          }
+      }
+#endif
+
+    
   }
 
   //! Chemistry in no stationary regime.
