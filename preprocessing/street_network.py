@@ -729,7 +729,7 @@ def read_traffic_data(input_file, emis_species_list):
         else:
             no2 = float(line_info[18]) * (length / 1000.) / 3600.0 # conversion to ug/s
         # NOx is given as NO2 equivalent.
-        no = (nox - no2) * 30.0 / 44.0
+        no = (nox - no2) * 30.0 / 46.0
 
 
         conc = np.zeros([len(species_ind)], 'float')
