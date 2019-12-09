@@ -278,6 +278,7 @@ def get_street_geog(input_file, street_list):
         print "Warning: Missing input data: data given for %d streets, but data are needed for %d streets." % (nstreet, len(street_list))
     return 0
 
+
 def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefix):
     ka = 0.4
     g = 9.81
@@ -302,7 +303,6 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
 
     # For chemistry
     sh = f.variables["QVAPOR"][:] # Specific humidity
-    psfc = f.variables["PSFC"][:] # Surface pressure
     t2 = f.variables["T2"][:] # Surface temperature
     lwc = f.variables["QCLOUD"][:] # Surface temperature
     pressure_pert = f.variables["P"][:] # Pressure Perturbation
