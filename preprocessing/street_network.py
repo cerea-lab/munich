@@ -304,7 +304,7 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
     # For chemistry
     sh = f.variables["QVAPOR"][:] # Specific humidity
     t2 = f.variables["T2"][:] # Surface temperature
-    lwc = f.variables["QCLOUD"][:] # Surface temperature
+    lwc = f.variables["QCLOUD"][:] # Cloud water mixing ratio
     pressure_pert = f.variables["P"][:] # Pressure Perturbation
     base_pres = f.variables["PB"][:] # Base state pressure
 
