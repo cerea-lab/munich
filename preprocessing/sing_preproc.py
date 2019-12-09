@@ -176,6 +176,8 @@ for t in range(nt):
                         street_list[j].eff_no = 0.0
                         street_list[i].eff_no2 = street_list[i].eff_no2 + street_list[j].eff_no2
                         street_list[j].eff_no2 = 0.0
+                        street_list[i].eff_emission = street_list[i].emission + street_list[j].emission
+                        street_list[j].eff_emission = 0.0
                         street_list[j].removed = True
                         ntemp = ntemp + 1
     else:
