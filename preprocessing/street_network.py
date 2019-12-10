@@ -753,7 +753,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     hour = str_date[8:10]
 
     # Write
-    # street_ID, begin_node, end_node, nox, -----
+    # node_ID, longitude, latitude
     file_node = output_dir + "node-trafipollu-eff.txt"
     f = open(file_node, 'w')
     for i in range(len(node_list_eff)):
