@@ -70,7 +70,6 @@ namespace Polyphemus
     rank = 0;
 #endif
 
-    string line;
 
     /*** Initializations ***/
 
