@@ -646,13 +646,13 @@ namespace Polyphemus
 
     T mass_transfer_to_background;
     
-    T roof_to_background, intersection_to_backgroud, intersection_from_background;
+    T roof_to_background, intersection_to_background, intersection_from_background;
     roof_to_background = street->GetMassfluxRoofToBackground(s);
     
-    intersection_to_backgroud = street->GetMassfluxToBackground(s);
+    intersection_to_background = street->GetMassfluxToBackground(s);
     intersection_from_background = street->GetMassfluxFromBackground(s);
 
-    mass_transfer_to_background = roof_to_background + intersection_to_backgroud
+    mass_transfer_to_background = roof_to_background + intersection_to_background
       - intersection_from_background; // ug/s
 
     return mass_transfer_to_background;
