@@ -74,7 +74,7 @@ namespace Polyphemus
     return street_id_;
   }
 
-  //! Returns the intersection id which the street length.
+  //! Returns the intersection id where street begin.
   /*!
     \return The intersection id.
   */
