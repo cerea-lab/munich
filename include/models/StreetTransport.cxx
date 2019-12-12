@@ -116,14 +116,14 @@ namespace Polyphemus
     latitude_ = latitude;
   }
 
-  //! Returns the latitude of the street center.
+  //! Returns the photolysis rate for reaction r.
   template<class T>
   inline T Street<T>::GetPhotolysisRate(int r) const
   {
     return photolysis_rate_(r);
   }
 
-  //! Sets the street coordinate.
+  //! Sets the photolysis rate.
   template<class T>
   inline void Street<T>::SetPhotolysisRate(Array<T, 1> photolysis_rate)
   {
