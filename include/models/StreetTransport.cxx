@@ -84,9 +84,9 @@ namespace Polyphemus
     return begin_inter_;
   }
 
-  //! Returns the street length.
+  //! Returns the intersection id where street end.
   /*!
-    \return The street length (m).
+    \return The intersection id.
   */
   template<class T>
   inline int Street<T>::GetEndIntersectionID() const
