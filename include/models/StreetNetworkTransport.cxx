@@ -2232,7 +2232,8 @@ namespace Polyphemus
 
     ConfigStream output_stream(output_config);
     
-    output_stream.PeekValue("Result_dir", output_dir);
+    output_stream.PeekValue("Output_dir", output_dir);
+
     // Section "[save]".
     output_stream.SetSection("[save]");
     output_stream.PeekValue("Text_file", text_file);
