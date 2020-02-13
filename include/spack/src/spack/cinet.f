@@ -345,9 +345,12 @@ c         elseif (chem_mechanism.eq.3) then
          elseif (mechanism_name .eq. "racm2 ") then
             call WSPEC_RACM2 (nr,ispebp(nr))
             write(*,*) '   expressions in RACM2 mechanism are used'
+         elseif (mechanism_name .eq. "leighton") then
+            call WSPEC_CB05 (nr,ispebp(nr))
+            write(*,*) '   expressions in CB052 mechanism are used'
          else
             write(*,*) 'Warning: specific reaction expression
-     &   is not given for ', mechanism_name
+     & is not given for ', mechanism_name
          endif
 
 c end of modif
