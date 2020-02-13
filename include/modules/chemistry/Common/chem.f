@@ -210,7 +210,11 @@ C     photolytic reactions are calculated in kinetic.f
      s              Zangzen,
      s           Zatt,option_photolysis)
              CALL Kinetic_leighton(nr, DLRKf,DLtempf,DLhumidf,DLpressf,
-     s           Zangzenf,Zattf,option_photolysis)
+     s            Zangzenf,Zattf,option_photolysis)
+            ELSE
+               write(*,*) "Wrong value is given for option_chemistry",
+     s              option_chemistry
+               stop
             ENDIF
 
 
