@@ -65,8 +65,7 @@ namespace Polyphemus
     void _dimensions_racm(int*, int*, int*);
     void _dimensions_racm2(int*, int*, int*);
     void _dimensions_cb05(int*, int*, int*);
-    void _dimensions_cb05_line_ping(int*, int*, int*);
-	void _dimensions_leighton(int*, int*, int*);
+    void _dimensions_leighton(int*, int*, int*);
 
   }
 
@@ -76,7 +75,6 @@ namespace Polyphemus
       RACM,
       RACM2,
       CB05,
-      CB05_line_PinG,
       Leighton
     };
 
