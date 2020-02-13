@@ -460,10 +460,9 @@ namespace Polyphemus
 
 	while (current_date_tmp < next_date)
 	  {
-            // YK : removed because it is already read.
-	    // //! Get street concentrations.
-	    // for (int s = 0; s < this->Ns; ++s)
-	    //   concentration_array(s) = street->GetStreetConcentration(s);
+	    //! Get street concentrations.
+	    for (int s = 0; s < this->Ns; ++s)
+	      concentration_array(s) = street->GetStreetConcentration(s);
 
 	    //! Use the ETR method to calculates new street concentrations.
 	    if (this->option_method == "ETR")
