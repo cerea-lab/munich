@@ -1,0 +1,35 @@
+o----------------o
+| MUNICH HISTORY |
+o----------------o
+
+Version 1.1 (2020-02-14)
+-------------
+
+** Processing
+
+- Parallelized 'Chemistry' part using MPI.
+
+** Models
+
+- Added non-stationary calculation using ETR (Lya Lugon) and Rosenbrock (Mofan
+  Zhang) methods.
+
+** Bug fixes
+
+- A formula missed in Leighton chemistry scheme.
+
+** Development environment
+
+- Reorganization of files: processing/photochemistry made for the gas-phase
+  chemistry. An other processing will be added for the aerosol chemistry later.
+
+Version 1.0 (2018-09-29)
+-------------
+
+** First stable version released as a part of Polyphemus 1.11
+
+
+Version beta (2017-09-04)
+-------------
+
+** First git commit by Youngseob Kim
