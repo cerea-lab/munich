@@ -105,7 +105,7 @@ namespace Polyphemus
     else if (str_option_chemistry == "Leighton")
       {
      	option_chemistry = Leighton;
-	    _dimensions_leighton(&Ns,&Nr,&Nr_photolysis);
+        _dimensions_leighton(&Ns,&Nr,&Nr_photolysis);
       }
     else
       throw string("Wrong index for option_chemistry \n");
