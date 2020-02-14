@@ -90,11 +90,6 @@ def are_streets_same(node_list, street1, street2):
         if street2.end == li.id:
             node_end2 = li
 
-    lon11, lat11 = node_begin1.lon, node_begin1.lat
-    lon12, lat12 = node_end1.lon, node_end1.lat
-    lon21, lat21 = node_begin2.lon, node_begin2.lat
-    lon22, lat22 = node_end2.lon, node_end2.lat
-
     # Node11 : the begin node of the street 1
     # Node12 : the end node of the street 1
     # Node21 : the begin node of the street 2
@@ -110,7 +105,7 @@ def are_streets_same(node_list, street1, street2):
 
 # Merge streets in the case where there are two emission data sets for both ways. 
 # --------------------
-import timeit
+
 def merging_street(node_list, street_list):
     ntemp = 0
     n_street = len(street_list)
