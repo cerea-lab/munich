@@ -211,6 +211,12 @@ C     photolytic reactions are calculated in kinetic.f
      s           Zatt,option_photolysis)
              CALL Kinetic_leighton(nr, DLRKf,DLtempf,DLhumidf,DLpressf,
      s            Zangzenf,Zattf,option_photolysis)
+            ELSE IF (option_chemistry.eq.5) then
+             CALL Kinetic_melchior2(nr,DLRKi,DLtemp,DLhumid,DLpress,
+     s              Zangzen,
+     s           Zatt,option_photolysis)
+             CALL Kinetic_melchior2(nr, DLRKf,DLtempf,DLhumidf,DLpressf,
+     s            Zangzenf,Zattf,option_photolysis)
             ELSE
                write(*,*) "Wrong value is given for option_chemistry",
      s              option_chemistry

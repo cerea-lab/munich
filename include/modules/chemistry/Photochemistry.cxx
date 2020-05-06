@@ -107,6 +107,11 @@ namespace Polyphemus
      	option_chemistry = Leighton;
         _dimensions_leighton(&Ns,&Nr,&Nr_photolysis);
       }
+    else if (str_option_chemistry == "MELCHIOR2")
+      {
+     	option_chemistry = MELCHIOR2;
+        _dimensions_melchior2(&Ns,&Nr,&Nr_photolysis);
+      }
     else
       throw string("Wrong index for option_chemistry \n");
 

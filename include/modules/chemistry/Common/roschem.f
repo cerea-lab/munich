@@ -125,6 +125,9 @@ C     Compute chemical production terms at initial time (DLb1).
       ELSEIF (option_chemistry .eq. 4) then
          CALL fexchem_leighton (ns,nr,DLconc,DLRki,
      s        ZCsourc,convers_factor,DLb1)
+      ELSEIF (option_chemistry .eq. 5) then
+         CALL fexchem_melchior2 (ns,nr,DLconc,DLRki,
+     s        ZCsourc,convers_factor,DLb1)
       ENDIF   
 
 C     Compute the Jacobian at initial time (DLRDC).
@@ -140,6 +143,9 @@ C     Compute the Jacobian at initial time (DLRDC).
      $     convers_factor_jac,DLRKi,DLdrdc)
       ELSEIF (option_chemistry .eq. 4) then
          CALL jacdchemdc_leighton (ns, nr, DLconc,convers_factor,
+     $     convers_factor_jac,DLRKi,DLdrdc)
+      ELSEIF (option_chemistry .eq. 5) then
+         CALL jacdchemdc_melchior2 (ns, nr, DLconc,convers_factor,
      $     convers_factor_jac,DLRKi,DLdrdc)
       ENDIF
 
@@ -182,6 +188,9 @@ C     the first-order approximation.
      $     ZCsourcf,convers_factor, DLr)
       ELSEIF (option_chemistry .eq. 4) then
          CALL fexchem_leighton (ns, nr, DLconcbis,DLRkf,
+     $     ZCsourcf,convers_factor, DLr)
+      ELSEIF (option_chemistry .eq. 5) then
+         CALL fexchem_melchior2 (ns, nr, DLconcbis,DLRkf,
      $     ZCsourcf,convers_factor, DLr)
       ENDIF
 

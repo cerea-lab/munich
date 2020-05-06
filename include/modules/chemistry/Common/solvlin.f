@@ -106,6 +106,9 @@ C     1 - Solve DLa * Dlx = Dlb
          ELSEIF (option_chemistry .eq. 4) then
             CALL LU_decompose_leighton(ns,DLalu)
             CALL LU_solve_leighton(ns,DLalu,DLx)
+         ELSEIF (option_chemistry .eq. 5) then
+            CALL LU_decompose_melchior2(ns,DLalu)
+            CALL LU_solve_melchior2(ns,DLalu,DLx)
          ENDIF
 
       ELSE                      ! DLalu is an LU factorization of DLa.
@@ -118,6 +121,8 @@ C     1 - Solve DLa * Dlx = Dlb
             CALL LU_solve_cb05(ns,DLalu,DLx)
          ELSEIF (option_chemistry .eq. 4) then
             CALL LU_solve_leighton(ns,DLalu,DLx)
+         ELSEIF (option_chemistry .eq. 5) then
+            CALL LU_solve_melchior2(ns,DLalu,DLx)
          ENDIF
 
       ENDIF

@@ -37,6 +37,7 @@ include_path = """include/Talos
                   include/modules/chemistry/RACM2
                   include/modules/chemistry/CB05
                   include/modules/chemistry/Leighton
+                  include/modules/chemistry/MELCHIOR2
                   """
 
 # [Optional] Compiled library paths: put absolute paths, relative paths or

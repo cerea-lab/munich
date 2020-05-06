@@ -48,6 +48,7 @@ namespace Polyphemus
 #define _dimensions_cb05 dimensions_cb05_
 #define _dimensions_cb05_line_ping dimensions_cb05_line_ping_
 #define _dimensions_leighton dimensions_leighton_
+#define _dimensions_melchior2 dimensions_melchior2_
 
   extern "C"
   {
@@ -66,6 +67,7 @@ namespace Polyphemus
     void _dimensions_racm2(int*, int*, int*);
     void _dimensions_cb05(int*, int*, int*);
     void _dimensions_leighton(int*, int*, int*);
+    void _dimensions_melchior2(int*, int*, int*);
 
   }
 
@@ -75,7 +77,8 @@ namespace Polyphemus
       RACM,
       RACM2,
       CB05,
-      Leighton
+      Leighton,
+      MELCHIOR2
     };
 
 
@@ -85,7 +88,7 @@ namespace Polyphemus
 
 
   /*! \brief This class is a numerical solver for the chemical mechanisms:
-    RACM, CB05, CB05_line_PinG and RACM2.
+    RACM, RACM2, CB05, CB05_line_PinG, Leighton, and MELCHIOR2.
   */
   /*! It uses a second-order Rosenbrock method.
    */
@@ -141,7 +144,8 @@ namespace Polyphemus
       or by binary files from FastJ.
     */
     int option_photolysis_tabulation;
-    //! Chemistry mechanism used: RACM, RACM2, CB05, CB05_line_PinG, Leighton.
+    //! Chemistry mechanism used: RACM, RACM2, CB05, CB05_line_PinG, 
+    //!                           Leighton, MELCHIOR2.
     int option_chemistry;
 
 
