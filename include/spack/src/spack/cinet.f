@@ -197,8 +197,10 @@ c
 c
 c     Arrhenius' law
 c     Gas-phase only
+c     Set index to read word after "KINETIC" in mechanism file.
       i=2
 
+c     nr : index of the current reaction (from creac).
  100  continue
       if (mot(i)(1:4).eq.'ARR1') then
          nb(nr)=1
@@ -348,6 +350,9 @@ c         elseif (chem_mechanism.eq.3) then
          elseif (mechanism_name .eq. "leighton") then
             call WSPEC_CB05 (nr,ispebp(nr))
             write(*,*) '   expressions in CB052 mechanism are used'
+         elseif (mechanism_name .eq. "melchior2") then
+            call WSPEC_MELCHIOR2 (nr,ispebp(nr))
+            write(*,*) '   expressions in MELCHIOR2 mechanism are used'
          else
             write(*,*) 'Warning: specific reaction expression
      & is not given for ', mechanism_name

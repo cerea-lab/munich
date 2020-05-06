@@ -77,6 +77,14 @@ c      elseif (chem_mechanism.eq.3) then
       HR3=354
       HR4=355
 c      mechanism_name = 'racm2'
+c---------- for MELCHIOR2
+c      elseif (chem_mechanism.eq.4) then
+      elseif (mechanism_name .eq. "melchior2") then
+      HR1=1
+      HR2=1
+      HR3=1
+      HR4=1
+c      mechanism_name = 'melchior2'
       else
       write(*,*) "Error:"
       write(*,*) "wrong number of chemical mechanism in parametre"
@@ -211,25 +219,25 @@ C     aerosol formation ==============
       if (aerosol_formation) then
       write(nwrite,421)
  421  format('      integer Ns,Nbin_aer,nr')
-      write(nwrite,4311) HR1,HR2,HR3,HR4
- 4311 format('      double precision rk',I3,',rk',I3,',rk',I3,',rk',I3)
-      write(nwrite,4341)
- 4341 format('      double precision lwctmp')
-      write(nwrite,4342)
- 4342 format('      double precision WetDiam(Nbin_aer)')
-      write(nwrite,4343)
- 4343 format('      double precision granulo(Nbin_aer)')
-      write(nwrite,4344)
- 4344 format('      double precision dsf_aero(Nbin_aer)')
-      write(nwrite,4345)
- 4345 format('      integer ICLD,IHETER')
-      write(nwrite,4346)
- 4346 format('      integer ispeclost(4)')
-      write(nwrite,4347)
- 4347 format('      double precision Wmol(Ns),LWCmin')
+      write(nwrite,422) HR1,HR2,HR3,HR4
+ 422  format('      double precision rk',I3,',rk',I3,',rk',I3,',rk',I3)
+      write(nwrite,423)
+ 423  format('      double precision lwctmp')
+      write(nwrite,424)
+ 424  format('      double precision WetDiam(Nbin_aer)')
+      write(nwrite,425)
+ 425  format('      double precision granulo(Nbin_aer)')
+      write(nwrite,426)
+ 426  format('      double precision dsf_aero(Nbin_aer)')
+      write(nwrite,427)
+ 427  format('      integer ICLD,IHETER')
+      write(nwrite,428)
+ 428  format('      integer ispeclost(4)')
+      write(nwrite,429)
+ 429  format('      double precision Wmol(Ns),LWCmin')
       else
-      write(nwrite,4211)
- 4211 format('      integer nr')
+      write(nwrite,430)
+ 430  format('      integer nr')
       endif
 C ====================================
       write(nwrite,432)
@@ -239,6 +247,10 @@ C ====================================
      2     'azi,att')
       write(nwrite,434)
  434  format('      double precision YlH2O')
+      write(nwrite,4342)
+ 4342 format('      double precision VO2, VN2, VH2O')
+      write(nwrite,4343)
+ 4343 format('      double precision vd_NO2, h_mixing')
       write(nwrite,435)
  435  format('      integer option_photolysis')
       write(nwrite,300)

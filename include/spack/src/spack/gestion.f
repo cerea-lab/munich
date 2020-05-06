@@ -7,7 +7,9 @@ c     Read an integer in a string
       character *1 chtemp
       character *20 chtemp2
       write(chtemp,'(i1)')ich
+c     Format define from chtemp.
       chtemp2='(i'//chtemp//')'
+c     Read ch following format chtemp2, put in i.
       read(ch,chtemp2)i
       return
       end
