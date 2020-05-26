@@ -54,6 +54,9 @@ namespace SeldonData
       s << endl;
 
       message_ = s.str ();
+
+      cerr << message_ << endl;
+      cerr.flush();
     }
 
     //! Destructor.
