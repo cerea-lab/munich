@@ -39,8 +39,8 @@ O3O1D    90  NO2     91  NO3NO   92  NO3NO2   93
 H2O2     94  HNO3    95  HONO    96  HCHO-1   97
 HCHO-2   98  CH3CHO  99  CH3COY 100  MGLYOX  101
 GLYOX   102  MEMALD 103  CH3COE 104  N2O5    105
-CH3OOH  106  CH3OOH 107  PAN    108  CH3OOH  109
-CH3OOH  109  CH3OOH 110
+CH3O2H  106  PPA    107  PAN    108  PANH    109
+oROOH   109  obioH  110
 
 # Here is the list of photolysis reactions in good order.
 # This section is generated to help debugging
