@@ -364,6 +364,7 @@ c     EXTRA: specific reaction with corrected factors
 C     O3 -> 2. OH with corrected photolysis
       elseif (mot(i)(1:5).eq.'EXTRA') then
          nb(nr)=10
+         nrphot = nrphot + 1
          if (ntabphot.eq.0) then
             write(*,*)'ERROR: tabulation not given for photolysis'
             write(*,*)'Needs to be defined by SET TABULATION ...'
