@@ -1867,24 +1867,7 @@ namespace Polyphemus
             for (int k = 0; k < nz; ++k)
               {
                 z(k) = h / (nz - 1) * k;
-                if ((h / w) > (2.0 / 3.0)) // for narrow canyons
-                  {
-                    ustreet_z(k) = 2.0 / pi * u_h * abs(cos(phi)) *
-                      exp(beta * (z(k) / h - 1.0));
-                  }
-                else if ((h / w) >= (1.0 / 3.0) and (h / w) <= (2.0 / 3.0))// for moderate canyons
-                  {
-                    T temp = 1.0 + 3.0 * (2.0 / pi - 1.0) * (h / w - 1.0 / 3.0);
-                    ustreet_z(k) = temp * u_h * abs(cos(phi)) *
-                      exp(beta * (z(k) / h - 1.0));
-                  }
-                else if ((h / w) < (1.0 / 3.0)) // for wide configuration
-                  {
-                    ustreet_z(k) = u_h * abs(cos(phi)) *
-                      exp(beta * (z(k) / h - 1.0));
-                  }
-                else
-                  throw("Error: ComputeUstreet");
+                ustreet_z(k) = u_h * abs(cos(phi)) * exp(beta * (z(k) / h - 1.0));
                 ustreet += ustreet_z(k); 
               }
             ustreet /= nz;
