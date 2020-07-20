@@ -362,6 +362,16 @@ namespace Polyphemus
     emission_ = emission;
   }
 
+  //! Returns the wind speed.
+  /*!
+    \return the wind speed (m/s)
+  */
+  template<class T>
+  inline T Street<T>::GetWindSpeed() const
+  {
+    return wind_speed_;
+  } 
+
   //! Returns the wind direction.
   /*!
     \return The wind direction in the street (radian).
@@ -868,6 +878,13 @@ namespace Polyphemus
   {
     return ust_;
   }
+
+  template<class T>
+  inline void Intersection<T>::SetIntersectionUST(T ustar)
+  {
+    ust_ = ustar;
+  }
+
 
   //! Returns the Monin-Obukhov length.
   /*!

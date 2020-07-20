@@ -31,7 +31,7 @@ namespace Polyphemus
 
     /*** Configurations ***/
 
-    string option_transfer, option_ustreet, option_method;
+    string option_transfer, option_ustreet, option_uH, option_method;
     T sub_delta_t_min;
     bool is_stationary;
     //! Output configuration.
@@ -61,10 +61,29 @@ namespace Polyphemus
     int total_nstreet;
     Array<int, 1> id_street, begin_inter, end_inter;
     Array<T, 1> length, width, height;
+    T Mean_length;
+    T Mean_width;
+    T Mean_height;
+
+    /*** Tree data ***/
+    string file_tree;
+    int total_ntree_street;
+    Array<int, 1> id_street_tree, nb_tree_row;
+    Array<T, 1> tree_LAI, tree_height, tree_radius, tree_spacing;
+ 
     //! Pointer to the current street.
     typename vector<Street<T>* >::iterator current_street;
     //! Street list.
     vector<Street<T>*> StreetVector, StreetVectorInter;
+
+    /*** Macdonald profile computation ***/
+
+    T d_city;
+    T z0_city;
+    T ustar_macd;
+    T uH_macd;
+    T u_h;
+    T ust;
 
     /*** Background concentration data ***/
 
@@ -131,7 +150,7 @@ namespace Polyphemus
     void InitStep();
     void InitData(string input_file, Array<T, 2>& input_data);
     void InitData();
-
+    void Compute_z0_d_city();
     void InitStreet();
     void EraseStreet();
     void ClearStreetVector();
@@ -188,10 +207,11 @@ namespace Polyphemus
                               Array<T, 2> flux_matrix,
                               Array<T, 2>& extended_matrix);
     void ComputeStreetAngle();
-    T ComputeSigmaV(T lmo, T pblh, T ustar);
+    T ComputeSigmaV(T lmo, T pblh, T ust);
     T ComputeGaussian(double theta, double sigma_theta, 
                       double theta0);
     void ComputeSigmaW();
+    void Compute_Macdonald_uH();
     void ComputeUstreet();
     void ComputeWindDirectionFluctuation();
     T ComputeUstreetSIRANE();

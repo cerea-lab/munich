@@ -167,6 +167,7 @@ namespace Polyphemus
     void SetBackgroundConcentration(T background_concentration, int s);
     T GetEmission(int s) const;
     void SetEmission(Array<T, 1> emission);
+    T GetWindSpeed() const;
     T GetWindDirection() const;
     T GetPBLH() const;
     T GetLMO() const;
@@ -269,6 +270,7 @@ namespace Polyphemus
                   T pblh, T ust, T lmo);    
     T GetPBLH() const;
     T GetUST() const;
+    void SetIntersectionUST(T ustar);
     T GetLMO() const;
     T GetWindSpeed() const;
     T GetWindDirection() const;

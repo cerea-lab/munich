@@ -93,6 +93,8 @@ namespace Polyphemus
                            "Sirane | Lemonsu", option_ustreet);
     this->config.PeekValue("Numerical_method_parameterization",
 			   "ETR | Rosenbrock", option_method);
+    this->config.PeekValue("Building_height_wind_speed_parameterization",
+                           "Sirane | Macdonald", option_uH);
     this->config.PeekValue("With_horizontal_fluctuation",
 			   this->option_process["with_horizontal_fluctuation"]);
 
@@ -152,6 +154,8 @@ namespace Polyphemus
 
     ReadStreetData();
 
+    Compute_z0_d_city();
+
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI    
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #else
@@ -169,6 +173,7 @@ namespace Polyphemus
     cout << "Transfert_parameterization: " << option_transfer << endl;
     cout << "Mean_wind_speed_parameterization: " << option_ustreet << endl;
     cout << "Numerical_method_parameterization: " << option_method << endl;
+    cout << "Building_height_wind_speed_parameterization: " << option_uH << endl;
   }
   
   //! Allocates memory.
@@ -354,7 +359,44 @@ namespace Polyphemus
           throw string("Street width is zero for the street ") + to_str(i + 1) + ".";
         if (height(i) == 0.0)
           throw string("Builiding height is zero for the street ") + to_str(i + 1) + ".";
+
+    // Calculation of the mean street length, width and bulding height for the whole street network
+        Mean_length += length(i);
+        Mean_width += width(i);
+        Mean_height += height(i);
       }
+    Mean_length /= total_nstreet; // Mean street length over the city
+    Mean_width /= total_nstreet; // Mean street width over the city
+    Mean_height /= total_nstreet; // Mean street height over the city
+    
+  }
+
+  //! Computation of the displacement and roughness heights of the Macdonald wind profile
+  template<class T>
+  void StreetNetworkTransport<T>::Compute_z0_d_city()
+  {
+    cout << "Mean street length: " << Mean_length << "m" << endl;
+    cout << "Mean street width: " << Mean_width << "m" << endl;
+    cout << "Mean buildings height: " << Mean_height << "m" << endl;
+    T building_width = Mean_width; // hyp: W street = W buildings
+    cout << "Mean buildings width: " << building_width << endl;
+    T Cd_building = 1.2; // Drag coefficient for buildings
+    T betta = 0.55; // Correction coefficient betta = 1.0 for staggered arrays and betta = 0.55 for square array (Macdonald et al, 1998)
+    T A = 3.59; // Empiric coefficient A = 4.43 for staggered arrays and A = 3.59 for the square arrays (Macdonald et al, 1998)   
+
+    T Af = Mean_length * Mean_height; // frontal area of obstacles
+    T Ap = Mean_length * building_width; // plan area of obstacles
+    T At = Mean_length * (Mean_width + building_width); // lot area of obstacles
+
+    T Lambdaf = Af / At; // frontal area density of obstacles
+    T Lambdap = Ap / At; // plan area density of obstacles
+
+    d_city = Mean_height * (1.0 + pow(A,-Lambdap) * (Lambdap - 1.0)); // displacement height of city
+    T temp_dH = 1.0 - (d_city / Mean_height);
+    z0_city = Mean_height * (temp_dH * exp(-pow(0.5 * betta * Cd_building / pow(karman, 2.0) * temp_dH * Lambdaf,-0.5))); //roughness length of city
+    cout << "Hauteur de deplacement d_city : " << d_city << "m" << endl;
+    cout << "Hauteur de rugosite z0_city : " << z0_city << "m" << endl;
+
   }
 
   //! Streets initialization.
@@ -842,6 +884,10 @@ namespace Polyphemus
     is_stationary = false;
 
     //! Compute the wind speed in the street-canyon.
+   
+    if (option_uH == "Macdonald")
+   	Compute_Macdonald_uH();
+
     ComputeUstreet();
 
     ComputeSigmaW();
@@ -1819,6 +1865,36 @@ namespace Polyphemus
           }               
       }
   }
+  
+  //! Compute uH with the method of Macdonald et al (1998)
+  template<class T>
+  void StreetNetworkTransport<T>::Compute_Macdonald_uH()
+  {
+    for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
+    {
+        Street<T>* street = *iter;
+        T h = street->GetHeight();
+        T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)
+        T zref = h + 17; // reference altitude (m), to change according to our input data
+        ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
+        street->SetStreetUstar(ustar_macd);
+        if (h < (d_city + z0_city))
+        {
+          uH_macd = 0.0;
+        }
+        else
+        {
+          uH_macd = ustar_macd / karman * log((h - d_city)/z0_city);
+        }
+    }
+
+    for (typename vector<Intersection<T>* >::iterator iter = IntersectionVector.begin(); iter != IntersectionVector.end(); iter++)
+    {
+    	Intersection<T>* intersection = *iter;
+	intersection->SetIntersectionUST(ustar_macd);
+    }
+  }
+
 
   //! Compute the wind speed in the street-canyon.
   //! Option "Sirane" based on Soulhac et al. (2008)
@@ -1828,7 +1904,7 @@ namespace Polyphemus
   {
     T phi, delta_i;
     //! Wall roughness length from WRF/UCM
-    T z0_build = 0.0001;
+    T z0_build = 0.001;
     T beta;
     Array<T, 1> z, ustreet_z;
     T ustreet;
@@ -1850,20 +1926,30 @@ namespace Polyphemus
         T w = street->GetWidth();
         T ang = street->GetStreetAngle();
         T ustar = street->GetStreetUstar();
+        T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)
         T wind_direction = street->GetWindDirection();
 
         delta_i = min(h, w / 2.0);
         phi = abs(wind_direction - ang);
         
         T solutionC = ComputeBesselC(z0_build, delta_i);
-        T u_h = ComputeUH(solutionC, ustar);
 
         if (option_ustreet == "Lemonsu")
           {
             if (( h == 0.0) or (w == 0.0))
               throw string("Street height or width is zero. ") + to_str(h) + " " + to_str(w);
             beta = h / (2.0 * w);
-            ustreet = 0.0;      
+            ustreet = 0.0;
+            if (option_uH == "Sirane")
+              {
+                u_h = ComputeUH(solutionC, ustar);
+              }
+            else if (option_uH == "Macdonald")
+              {
+                u_h = uH_macd;
+              }
+            else
+              throw("Wrong option given. Choose Macdonald or Sirane");
             for (int k = 0; k < nz; ++k)
               {
                 z(k) = h / (nz - 1) * k;
@@ -1874,6 +1960,7 @@ namespace Polyphemus
           }
         else if (option_ustreet == "Sirane")
           {
+            T u_h_sirane = ComputeUH(solutionC, ustar);
             T alpha = log(delta_i / z0_build);
             T beta = exp(solutionC / sqrt(2.0) * (1.0 - h / delta_i));
             T temp1 = pow(delta_i, 2.0) / (h * w);
@@ -1881,7 +1968,7 @@ namespace Polyphemus
             T temp3 = 1.0 - pow(solutionC, 2.0) / 3.0 + pow(solutionC, 4.0) / 45.0;
             T temp4 = beta * (2.0 * alpha - 3.0) / alpha;
             T temp5 = (w / delta_i - 2.0) * (alpha - 1.0) / alpha;
-            ustreet = u_h * abs(cos(phi)) * temp1 * 
+            ustreet = u_h_sirane * abs(cos(phi)) * temp1 * 
               (temp2 * temp3 + temp4 + temp5);
           }
         else
