@@ -49,56 +49,34 @@ matplotlib.rcParams["ytick.minor.size"] = 1
 
 # display the emissions map
 
-input_node = open("../output/textfile/node-trafipollu-eff.txt")
+input_node = open("../output/textfile/intersection.dat")
 
 #
 node = {}
 
 for line in input_node.readlines():
-    line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+    line_info = [x for x in re.split(';| ', line) if x.strip() != '']
     # Converting from text to number.
     node[int(line_info[0])] = (float(line_info[1]), float(line_info[2]))
 
 input_node.close()
 
-# Display intervals
+#!!!!!!!!!!!!!!!!!#
+# User input data # 
+#!!!!!!!!!!!!!!!!!#
 
-interv = range(0,1500,100)
-interv = range(0,30000,2000)
-alpha = 1.0
-beta = 1.
-size = np.size(interv)
-interval = []
-interval_l = []
-# Interval for plotting
-
-for i in range(0,size):
-    interval.append(alpha*interv[i])
-    interval_l.append(alpha*interv[i]/beta)
-s = 1000
-
-# Input data visum
-# ------------------
-
+# date
+# see file names in ../output/textfile/emission.DATE.txt
 date = "20140316-00"
-# available species: NO, NO2, CH4, NMHC, CO, NOx
-species_name = "NO2" 
-if species_name == "NO2":
-    species_ind = 3
-elif species_name == "NO":
-    species_ind = 4
-elif species_name == "CH4":
-    species_ind = 5
-elif species_name == "NMHC":
-    species_ind = 6
-elif species_name == "CO":
-    species_ind = 7
-elif species_name == "NOx":
-    species_ind = 8
-else:
-    sys.exit("Error: wrong species name given.")
 
-plot_data_visum = np.loadtxt("../output/textfile/emission-trafipollu-eff." + date + ".txt")
+# default species_ind is 0
+# For the species list, please see emission_species in ../sing_preproc.cfg
+# For example,
+# emission_species: NO NO2
+# species_ind = 1 to display NO2 species
+species_ind = 0
+    
+plot_data_visum = np.loadtxt("../output/textfile/emission." + date + ".txt")
 
 plot_arc_size_visum = np.size(plot_data_visum[:,0])
 node_begin_visum = []
@@ -106,13 +84,30 @@ node_end_visum = []
 emission_visum = []
 arc_id_visum = []
 
-
 for i in range(0,plot_arc_size_visum):
     node_begin_visum.append(int(plot_data_visum[i,1]))
     node_end_visum.append(int(plot_data_visum[i,2]))
     emission_visum.append(float(plot_data_visum[i,species_ind]))
     arc_id_visum.append(int(plot_data_visum[i,0]))
 
+
+# Display intervals
+size = 15
+vmax = max(emission_visum)
+vmax = 2000
+interv = range(0, int(vmax), int(vmax / size))
+alpha = 1.0
+beta = 1.
+interval = []
+interval_l = []
+
+# Interval for plotting
+for i in range(0,size):
+    interval.append(alpha*interv[i])
+    interval_l.append(alpha*interv[i]/beta)
+s = 1000
+
+    
 
 # PLOTTING
 # ---------
@@ -130,7 +125,7 @@ visum = plt.subplot(111)
 # Display the node numbers.
 # ------------------------
 disp_node_number = False
-disp_street_number = True
+disp_street_number = False
 if (disp_node_number):
   for inode in node:
       visum.text(node[inode][0], node[inode][1], str(inode), size=10, color='b')
