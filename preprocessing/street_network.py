@@ -716,6 +716,8 @@ def read_traffic_data(input_file, emis_species_list):
         lon_cen = (lon1 + lon2) * 0.5
         lat_cen = (lat1 + lat2) * 0.5
 
+        # Conversion of the unit of the emission input data
+        # from ug/km/h to ug/s
         nox = float(line_info[10]) * (length / 1000.) / 3600.0 # conversion to ug/s
         
         nox_correction = True
