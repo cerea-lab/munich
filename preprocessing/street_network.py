@@ -721,19 +721,6 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     date = str_date[0:8]
     hour = str_date[8:10]
 
-    # Write
-    # node_ID, longitude, latitude
-    file_node = output_dir + "node-trafipollu-eff.txt"
-    f = open(file_node, 'w')
-    for i in range(len(node_list_eff)):
-        node = node_list_eff[i]
-        if node.id == node.eff_id:
-            node_id = node.id
-            lon = node.lon
-            lat = node.lat
-            f.write(str(node_id) + "\t" + str(lon) + "\t" + str(lat) + "\n")
-    f.close()
-
     # Write 
     # street_ID, begin_node, end_node, -----
     file_emission = output_dir + "emission." + date + "-" + hour + ".txt"
@@ -755,6 +742,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     f.close()
 
     # Write
+    # node_ID, longitude, latitude, number of connected segments, segment indices
     file_node = output_dir + "intersection.dat"
     f = open(file_node, 'w')
     for i in range(len(node_list_eff)):
