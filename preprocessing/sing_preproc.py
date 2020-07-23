@@ -45,15 +45,18 @@ if not os.path.exists(background_dir):
 textfile_dir = output_dir + "/textfile/"
 if not os.path.exists(textfile_dir):
         os.makedirs(textfile_dir)
-
+emis_dir = output_dir + "/grid_emission/"
+if not os.path.exists(emis_dir):
+        os.makedirs(emis_dir)
+        
 emis_species_list = config.emission_species
 print emis_species_list
 
 # Number of emitted species
 ns_emis = len(emis_species_list)
 
-emis_no_all = []
-emis_no2_all = []
+# emis_no_all = []
+# emis_no2_all = []
 emission_array_all = []
 
 wind_dir_all = []
@@ -169,13 +172,7 @@ for t in range(nt):
                                     j = nst 
                         street_list[j].eff_begin = street_list[i].begin
                         street_list[j].eff_end = street_list[i].end
-                        street_list[i].eff_nox = street_list[i].eff_nox + street_list[j].eff_nox
-                        street_list[j].eff_nox = 0.0
                         street_list[j].eff_id = street_list[i].id
-                        street_list[i].eff_no = street_list[i].eff_no + street_list[j].eff_no
-                        street_list[j].eff_no = 0.0
-                        street_list[i].eff_no2 = street_list[i].eff_no2 + street_list[j].eff_no2
-                        street_list[j].eff_no2 = 0.0
                         street_list[i].eff_emission = street_list[i].emission + street_list[j].emission
                         street_list[j].eff_emission = 0.0
                         street_list[j].removed = True
@@ -247,22 +244,15 @@ for t in range(nt):
             lon = polair_lon[indx]
 
             surface_polair = earth_radius_2 * np.cos(lat * pi / 180.) * Delta_x * (pi / 180.) * Delta_y * (pi / 180.);
-            no_polair = st.eff_no / surface_polair # ug/s to ug/m2/s
-            no2_polair = st.eff_no2 / surface_polair # ug/s to ug/m2/s
-
-            emission_no[indt, 0, indy, indx] = emission_no[indt, 0, indy, indx] + no_polair
-            emission_no2[indt, 0, indy, indx] = emission_no2[indt, 0, indy, indx] + no2_polair
 
             for i, species in enumerate(emis_species_list):
-                    emission_polair = st.eff_emission[i] / surface_polair
+                    emission_polair = st.eff_emission[i] / surface_polair # ug/s to ug/m2/s
                     emission[indt, i, 0, indy, indx] = emission[indt, i, 0, indy, indx] + emission_polair
                 
 # ------------
 # Write output
 # ------------
-    emis_no, emis_no2, wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, bg_o3, bg_no2, bg_no, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
-    emis_no_all.append(emis_no)
-    emis_no2_all.append(emis_no2)
+    wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, bg_o3, bg_no2, bg_no, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
 
     emission_array_all.append(emission_array)
 
@@ -286,8 +276,6 @@ for t in range(nt):
     bg_no2_all.append(bg_no2)
     bg_no_all.append(bg_no)
 
-emis_no_all = np.array(emis_no_all)
-emis_no2_all = np.array(emis_no2_all)
 emission_array_all = np.array(emission_array_all)
 wind_dir_all = np.array(wind_dir_all)
 wind_speed_all = np.array(wind_speed_all)
@@ -308,10 +296,6 @@ lmo_inter = np.array(lmo_inter)
 bg_o3_all = np.array(bg_o3_all)
 bg_no2_all = np.array(bg_no2_all)
 bg_no_all = np.array(bg_no_all)
-
-
-file_emis_no = output_dir + "/emission/NO.bin"
-file_emis_no2 = output_dir + "/emission/NO2.bin"
 
 for i, species in enumerate(emis_species_list):
     file_emission = output_dir + "/emission/" + species + ".bin"
@@ -337,8 +321,6 @@ file_bg_o3 = output_dir + "/background/O3.bin"
 file_bg_no2 = output_dir + "/background/NO2.bin"
 file_bg_no = output_dir + "/background/NO.bin"
 
-io.save_binary(emis_no_all, file_emis_no)
-io.save_binary(emis_no2_all, file_emis_no2)
 io.save_binary(wind_dir_all, file_wind_dir)
 io.save_binary(wind_speed_all, file_wind_speed)
 io.save_binary(pblh_all, file_pblh)
@@ -359,13 +341,6 @@ io.save_binary(bg_o3_all, file_bg_o3)
 io.save_binary(bg_no2_all, file_bg_no2)
 io.save_binary(bg_no_all, file_bg_no)
 
-
-file_emission_no = output_dir + "/NO.bin"
-io.save_binary(emission_no, file_emission_no)
-
 for i, species in enumerate(emis_species_list):
-        file_emission = output_dir + "/" + species + ".bin"
+        file_emission = output_dir + "/grid_emission/" + species + ".bin"
         io.save_binary(emission[:, i], file_emission)
-
-file_emission_no2 = output_dir + "/NO2.bin"
-io.save_binary(emission_no2, file_emission_no2)

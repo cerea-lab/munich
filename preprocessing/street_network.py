@@ -30,7 +30,7 @@ class Node:
 # Class for a street
 # ------------------
 class Street:
-    def __init__(self, st_id, begin_node, end_node, length, width, height, nox, no, no2, lon_cen, lat_cen, emission):
+    def __init__(self, st_id, begin_node, end_node, length, width, height, lon_cen, lat_cen, emission):
         self.id = st_id
         self.eff_id = st_id
         self.begin = begin_node
@@ -40,12 +40,6 @@ class Street:
         self.length = length
         self.width = width
         self.height = height
-        self.nox = nox
-        self.eff_nox = nox
-        self.no = no
-        self.eff_no = no
-        self.no2 = no2
-        self.eff_no2 = no2
         self.removed = False
         self.lon_cen = lon_cen
         self.lat_cen = lat_cen
@@ -117,13 +111,7 @@ def merging_street(node_list, street_list):
             if are_streets_same(node_list, street_list[i], street_list[j]):
                 street_list[j].eff_begin = street_list[i].begin
                 street_list[j].eff_end = street_list[i].end
-                street_list[i].eff_nox = street_list[i].nox + street_list[j].nox
-                street_list[j].eff_nox = 0.0
                 street_list[j].eff_id = street_list[i].id
-                street_list[i].eff_no = street_list[i].no + street_list[j].no
-                street_list[j].eff_no = 0.0
-                street_list[i].eff_no2 = street_list[i].no2 + street_list[j].no2
-                street_list[j].eff_no2 = 0.0
                 street_list[i].eff_emission = street_list[i].emission + street_list[j].emission
                 street_list[j].eff_emission = 0.0
                 street_list[j].removed = True
@@ -161,12 +149,6 @@ def manual_merging_street(street_list):
                         if (street_list[j].id == removed_street_id):
                             street_list[j].eff_begin = street_list[i].begin
                             street_list[j].eff_end = street_list[i].end
-                            street_list[i].eff_nox = street_list[i].eff_nox + street_list[j].eff_nox
-                            street_list[j].eff_nox = 0.0
-                            street_list[i].eff_no = street_list[i].eff_no + street_list[j].eff_no
-                            street_list[j].eff_no = 0.0
-                            street_list[i].eff_no2 = street_list[i].eff_no2 + street_list[j].eff_no2
-                            street_list[j].eff_no2 = 0.0
                             street_list[i].eff_emission = street_list[i].eff_emission + street_list[j].eff_emission
                             street_list[j].eff_emission = 0.0
                             street_list[j].removed = True
@@ -352,7 +334,6 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
                     init_length = length
                     ind_i = i
                     ind_j = j
-        # print street.id, ind_i, ind_j, lons[0, ind_j, ind_i], lats[0, ind_j, ind_i]
         u10_cell = u10[ind_t, ind_j, ind_i]
         v10_cell = v10[ind_t, ind_j, ind_i]
         pblh_cell = pblh[ind_t, ind_j, ind_i]
@@ -674,12 +655,14 @@ def read_traffic_data(input_file, emis_species_list):
 
     species_ind = []
     for emis_species in emis_species_list:
+        species_check = False
         for inds, species_name in enumerate(header_info):
             if emis_species == species_name:
                 print emis_species + " found with the index:", inds 
                 species_ind.append(inds)
-
-    print species_ind
+                species_check = True
+        if (species_check == False):
+            sys.exit(emis_species + " is not found in " + input_file)
                 
     node_list = []
     street_list = []
@@ -718,22 +701,11 @@ def read_traffic_data(input_file, emis_species_list):
 
         # Conversion of the unit of the emission input data
         # from ug/km/h to ug/s
-        nox = float(line_info[10]) * (length / 1000.) / 3600.0 # conversion to ug/s
-        
-        nox_correction = True
-        if nox_correction:
-            no2 = nox * 0.2 # 20% of NOx
-        else:
-            no2 = float(line_info[18]) * (length / 1000.) / 3600.0 # conversion to ug/s
-        # NOx is given as NO2 equivalent.
-        no = (nox - no2) * 30.0 / 46.0
-
-
-        conc = np.zeros([len(species_ind)], 'float')
+        emission = np.zeros([len(species_ind)], 'float')
         for i, ind in enumerate(species_ind):
-            conc[i] = float(line_info[species_ind[i]]) * (length / 1000.) / 3600.0
+            emission[i] = float(line_info[species_ind[i]]) * (length / 1000.) / 3600.0
 
-        street = Street(street_id, id_begin, id_end, length, width, height, nox, no, no2, lon_cen, lat_cen, conc)
+        street = Street(street_id, id_begin, id_end, length, width, height, lon_cen, lat_cen, emission)        
 
         street_list.append(street)
     print " --------------------------"
@@ -763,23 +735,20 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     f.close()
 
     # Write 
-    # street_ID, begin_node, end_node, nox, -----
-    file_emission = output_dir + "emission-trafipollu-eff." + date + "-" + hour + ".txt"
+    # street_ID, begin_node, end_node, -----
+    file_emission = output_dir + "emission." + date + "-" + hour + ".txt"
     f = open(file_emission, 'w')
+
     for i in range(len(street_list_eff)):
         street = street_list_eff[i]
         street_id = street.id
         begin_node = street.eff_begin
         end_node = street.eff_end
 
-        no2 = street.eff_no2
-        no = street.eff_no
         nemis = len(street.eff_emission)
 
         f.write(str(street_id) + "\t" + str(begin_node) + "\t" + 
-                str(end_node) +
-                "\t" + str(float(no2)) + "\t" + str(float(no)) +
-                "\t")
+                str(end_node) + "\t")        
         for s in range(nemis):
             f.write(str(float(street.eff_emission[s])) + "\t")
         f.write("\n")
@@ -816,13 +785,11 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         f.write(str(street_id) + ";" + str(begin_node) + ";" + str(end_node) + 
                     ";" + str(length) + ";" + str(width) + ";" + str(height) + "\n")
     f.close()
-
+    
     # Write
-    # Emission data
     import os.path
-    emis_no = np.zeros((len(street_list_eff)), 'float')
-    emis_no2 = np.zeros((len(street_list_eff)), 'float')
-
+    
+    # Emission data
     emission_array = np.zeros([len(street_list_eff), len(emis_species_list)], 'float')
 
     wind_dir = np.zeros((len(street_list_eff)), 'float')
@@ -841,9 +808,6 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
 
     for i in range(len(street_list_eff)):
         street = street_list_eff[i]
-
-        emis_no[i] = street.eff_no
-        emis_no2[i] = street.eff_no2
 
         emission_array[i] = street.eff_emission
 
@@ -874,7 +838,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         ust_inter[i] = node.ust
         lmo_inter[i] = node.lmo
 
-    return emis_no, emis_no2, wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, bg_o3, bg_no2, bg_no, wind_dir_inter, wind_speed_inter, pblh_inter, ust_inter, lmo_inter, emission_array
+    return wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, bg_o3, bg_no2, bg_no, wind_dir_inter, wind_speed_inter, pblh_inter, ust_inter, lmo_inter, emission_array
 
 
 def get_polair_ind(polair_lon, polair_lat, street):
