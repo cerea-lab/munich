@@ -100,7 +100,7 @@ def are_streets_same(node_list, street1, street2):
 # Merge streets in the case where there are two emission data sets for both ways. 
 # --------------------
 
-def merging_street(node_list, street_list):
+def merging_street(output_file, node_list, street_list):
     ntemp = 0
     n_street = len(street_list)
     for i in range(n_street - 1):
@@ -119,7 +119,6 @@ def merging_street(node_list, street_list):
                 is_street_found = True
             j = j + 1
 
-    output_file = "street-merging-lookup-table.txt"
     f = open(output_file, 'w')
     f.write("# Street id \t Effective street id \n")
     for i in range(n_street):
@@ -153,6 +152,38 @@ def manual_merging_street(street_list):
                             street_list[j].eff_emission = 0.0
                             street_list[j].removed = True
                             ntemp = ntemp + 1
+    input_merging.close()
+    return ntemp
+
+# Merging using a look-up table.
+# -------------------------------
+def lut_merging_street(lut_file, street_list):
+    n_street = len(street_list)
+    ntemp = 0
+    print "Read the lookup-table: ", lut_file    
+    input_merging = open(lut_file)
+    header = input_merging.readline()
+    for line in input_merging.readlines():
+        line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+        if len(line_info) != 2:
+            break
+        else:
+            street_id, effective_street_id = int(line_info[0]), int(line_info[1])
+            if street_id != effective_street_id:
+                for nst in range(n_street):
+                    if (street_list[nst].id == effective_street_id):
+                        i = nst 
+                    elif (street_list[nst].id == street_id):
+                        # the emissions in this street are merged into
+                        # the street having the index i.
+                        j = nst 
+                street_list[j].eff_begin = street_list[i].begin
+                street_list[j].eff_end = street_list[i].end
+                street_list[j].eff_id = street_list[i].id
+                street_list[i].eff_emission = street_list[i].emission + street_list[j].emission
+                street_list[j].eff_emission = 0.0
+                street_list[j].removed = True
+                ntemp = ntemp + 1
     input_merging.close()
     return ntemp
 

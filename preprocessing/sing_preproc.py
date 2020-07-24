@@ -13,16 +13,21 @@ if not args:
 	parser.error("A configuration file is required.")
 
 content = [("emission_dir_weekday", "[input]", "String"), \
-                   ("emission_dir_weekend", "[input]", "String"), \
-                   ("emission_species", "[input]", "StringList"), \
-                   ("geog_info", "[input]", "String"), \
-                   ("background_concentration", "[input]", "String"), \
-                   ("meteo_dir", "[input]", "String"), \
-                   ("wrfout_prefix", "[input]", "String"),\
-                   ("Output_dir", "[output]", "String"), \
-                   ("Date_min_polair", "[domain]", "DateTime"), \
-                   ("Delta_t_polair", "[domain]", "Float"), \
-                   ("Nt_polair", "[domain]", "Int")]
+           ("emission_dir_weekend", "[input]", "String"), \
+           ("emission_species", "[input]", "StringList"), \
+           ("geog_info", "[input]", "String"), \
+           ("background_concentration", "[input]", "String"), \
+           ("meteo_dir", "[input]", "String"), \
+           ("wrfout_prefix", "[input]", "String"),\
+           ("Output_dir", "[output]", "String"), \
+           ("Date_min_polair", "[domain]", "DateTime"), \
+           ("Delta_t_polair", "[domain]", "Float"), \
+           ("Nt_polair", "[domain]", "Int"), \
+           ("is_street_merged", "[option]", "Bool"), \
+           ("is_street_manually_merged", "[option]", "Bool"), \
+           ("is_near_node_merged", "[option]", "Bool"), \
+           ("is_node_manually_merged", "[option]", "Bool")
+]
 
 config = talos.Config(sys.argv[1], content)
 
@@ -144,46 +149,25 @@ for t in range(nt):
     geog_info = config.geog_info
     get_street_geog(geog_info, street_list)
 
-    # Automatic merging for the separated roads
-    n_street = len(street_list)
-    print " - Initial number of streets: ", n_street
 
-    lut_file = "street-merging-lookup-table.txt"
-    read_lut = os.path.isfile(lut_file)
-    read_lut = True
-    if (read_lut):
-        ntemp = 0
-        print "Read the lookup-table: ", lut_file    
-        input_merging = open(lut_file)
-        header = input_merging.readline()
-        for line in input_merging.readlines():
-            line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
-            if len(line_info) != 2:
-                    break
+    # Merging streets if they have same (or very near) nodes.
+    if (config.is_street_merged):
+            n_street = len(street_list)
+            print " - Initial number of streets: ", n_street
+
+            # Automatic merging for the separated roads
+            lut_file = "street-merging-lookup-table.txt"
+            read_lut = os.path.isfile(lut_file)
+            if (read_lut):
+                    ntemp = lut_merging_street(lut_file, street_list)
             else:
-                    street_id, effective_street_id = int(line_info[0]), int(line_info[1])
-                    if street_id != effective_street_id:
-                        for nst in range(n_street):
-                            if (street_list[nst].id == effective_street_id):
-                                    i = nst 
-                            elif (street_list[nst].id == street_id):
-                                    # the emissions in this street are merged into
-                                    # the street having the index i.
-                                    j = nst 
-                        street_list[j].eff_begin = street_list[i].begin
-                        street_list[j].eff_end = street_list[i].end
-                        street_list[j].eff_id = street_list[i].id
-                        street_list[i].eff_emission = street_list[i].emission + street_list[j].emission
-                        street_list[j].eff_emission = 0.0
-                        street_list[j].removed = True
-                        ntemp = ntemp + 1
-    else:
-        ntemp = merging_street(node_list, street_list)
-    print " - Number of streets after merging the same streets: %d" % (n_street - ntemp)
+                    ntemp = merging_street(lut_file, node_list, street_list)
+                    print " - Number of streets after merging the same streets: %d" % (n_street - ntemp)
 
-    # Manual merging for the separated roads.
-    ntemp2 = manual_merging_street(street_list)
-    print " - Number of streets after manual merging of the streets: %d" % (n_street - ntemp - ntemp2)
+            # Manual merging for the separated roads.
+            if (config.is_street_manually_merged):
+                    ntemp2 = manual_merging_street(street_list)
+                    print " - Number of streets after manual merging of the streets: %d" % (n_street - ntemp - ntemp2)
 
     # Make a new node list
     street_list_eff = []
@@ -204,15 +188,18 @@ for t in range(nt):
         if node.id == node.eff_id:
             node_list_temp.append(node)
 
+    # Merging nodes if they have same coordinates or they are very near.
     print " === Merging nodes === "
     n_node = len(node_list_temp)
     print "Initial number of nodes: ", n_node
     n_node1 = merging_node(node_list_temp)
     print "Number of nodes after removing the same nodes: ", (n_node - n_node1)
-    n_node2 = merging_near_node(node_list_temp)
-    print "Number of nodes after removing the nearest nodes: ", (n_node - n_node1 - n_node2)
-    n_node3 = manual_merging_node(node_list_temp)
-    print "Number of nodes after manually removing the nearest nodes: ", (n_node - n_node1 - n_node2 - n_node3)
+    if config.is_near_node_merged:
+            n_node2 = merging_near_node(node_list_temp)
+            print "Number of nodes after removing the nearest nodes: ", (n_node - n_node1 - n_node2)
+    if config.is_node_manually_merged:
+            n_node3 = manual_merging_node(node_list_temp)
+            print "Number of nodes after manually removing the nearest nodes: ", (n_node - n_node1 - n_node2 - n_node3)
 
     node_list_eff = []
     for inode in range(len(node_list_temp)):
