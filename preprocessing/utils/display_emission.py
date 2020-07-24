@@ -94,7 +94,6 @@ for i in range(0,plot_arc_size_visum):
 # Display intervals
 size = 15
 vmax = max(emission_visum)
-vmax = 2000
 interv = range(0, int(vmax), int(vmax / size))
 alpha = 1.0
 beta = 1.
