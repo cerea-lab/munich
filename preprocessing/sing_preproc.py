@@ -26,7 +26,8 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("is_street_merged", "[option]", "Bool"), \
            ("is_street_manually_merged", "[option]", "Bool"), \
            ("is_near_node_merged", "[option]", "Bool"), \
-           ("is_node_manually_merged", "[option]", "Bool")
+           ("is_node_manually_merged", "[option]", "Bool"), \
+           ("is_voc_speciated", "[option]", "Bool")
 ]
 
 config = talos.Config(sys.argv[1], content)
@@ -331,3 +332,9 @@ io.save_binary(bg_no_all, file_bg_no)
 for i, species in enumerate(emis_species_list):
         file_emission = output_dir + "/grid_emission/" + species + ".bin"
         io.save_binary(emission[:, i], file_emission)
+
+# VOC speciated
+if (config.is_voc_speciated):
+        import speciation_aggregation
+        
+        
