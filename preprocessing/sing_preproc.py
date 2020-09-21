@@ -27,7 +27,8 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("is_street_manually_merged", "[option]", "Bool"), \
            ("is_near_node_merged", "[option]", "Bool"), \
            ("is_node_manually_merged", "[option]", "Bool"), \
-           ("is_voc_speciated", "[option]", "Bool")
+           ("is_voc_speciated", "[option]", "Bool"), \
+           ("is_nox_speciated", "[option]", "Bool")
 ]
 
 config = talos.Config(sys.argv[1], content)
@@ -336,5 +337,9 @@ for i, species in enumerate(emis_species_list):
 # VOC speciated
 if (config.is_voc_speciated):
         import speciation_aggregation
-        
+
+# NOx speciated
+if (config.is_nox_speciated):
+        import speciation_aggregation
+        speciation_aggregation.speciation_nox()
         

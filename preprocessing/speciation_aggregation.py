@@ -20,8 +20,6 @@ content = [("Output_dir", "[output]", "String"), \
 config = talos.Config("sing_preproc.cfg", content)
 
 home_dir = config.Output_dir # "/profils_cerea/kimy/work/StreetInGrid/munich/preprocessing/output/"
-input_dir = home_dir + "/emission/"
-input_file = "NMHC.bin"
 
 speciation_file = config.speciation_dir + "/COVNM.dat"
 speciation = open(speciation_file)
@@ -83,11 +81,13 @@ for s_real in range(ns_real):
 aggregation.close()
 
 
-os.chdir(input_dir)
-total = 0.0
 
 ### Compute speciated VOC emissions for street segments.
 
+input_dir = home_dir + "/emission/"
+input_file = input_dir + "NMHC.bin"
+
+total = 0.0
 # Get array shape of input file and load to an array.
 inputfile_size = io.get_filesize(input_file)
 array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
@@ -101,7 +101,7 @@ for s_model in range(ns_model):
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
         
         output_array = input_array * species_factor[s_model]
-        output_filename = model_species[s_model] + ".bin"
+        output_filename = input_dir + model_species[s_model] + ".bin"
 
         io.save_binary(output_array, output_filename)
 print "total species factor:", total
@@ -111,8 +111,7 @@ print "total species factor:", total
 
 # Get array shape of input file and load to an array.
 input_dir = home_dir + "/grid_emission/"
-input_file = "NMHC.bin"
-os.chdir(input_dir)
+input_file = input_dir + "NMHC.bin"
 
 inputfile_size = io.get_filesize(input_file)
 array_shape = (config.Nt_polair, config.Ny, config.Nx)
@@ -128,6 +127,55 @@ for s_model in range(ns_model):
         # os.system(command)
 
         output_array = input_array * species_factor[s_model]
-        output_filename = model_species[s_model] + ".bin"
+        output_filename = input_dir + model_species[s_model] + ".bin"
 
         io.save_binary(output_array, output_filename)
+
+
+
+def speciation_nox():
+        
+        home_dir = config.Output_dir
+        input_dir = home_dir + "/emission/"
+        input_file = input_dir + "NOx.bin"
+
+        ### Compute speciated VOC emissions for street segments.
+
+        # Get array shape of input file and load to an array.
+        inputfile_size = io.get_filesize(input_file)
+        array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
+        nox = io.load_binary(input_file, array_shape)
+
+        # Compute and write to binary files for NO and NO2 species;
+        # NO2 is assumed to be 20% of NOx.
+        no2 = nox * 0.2;
+        # NOx is given as NO2 equivalent.
+        no = (nox - no2) *30.0 / 44.0
+        
+        output_filename = input_dir + "NO2.bin"
+        io.save_binary(no2, output_filename)
+        output_filename = input_dir + "NO.bin"
+        io.save_binary(no, output_filename)
+
+        ### Compute speciated VOC emissions for grided data.
+
+        # Get array shape of input file and load to an array.
+        input_dir = home_dir + "/grid_emission/"
+        input_file = input_dir + "NOx.bin"
+        os.chdir(input_dir)
+
+        inputfile_size = io.get_filesize(input_file)
+        array_shape = (config.Nt_polair, config.Ny, config.Nx)
+        input_array = io.load_binary(input_file, array_shape)
+
+        # Compute and write to binary files  for NO and NO2 species;
+        # NO2 is assumed to be 20% of NOx.
+        no2 = nox * 0.2;
+        # NOx is given as NO2 equivalent.
+        no = (nox - no2) *30.0 / 44.0
+        
+        output_filename = input_dir + "NO2.bin"
+        io.save_binary(no2, output_filename)
+        output_filename = input_dir + "NO.bin"
+        io.save_binary(no, output_filename);
+        
