@@ -162,7 +162,6 @@ def speciation_nox():
         # Get array shape of input file and load to an array.
         input_dir = home_dir + "/grid_emission/"
         input_file = input_dir + "NOx.bin"
-        os.chdir(input_dir)
 
         inputfile_size = io.get_filesize(input_file)
         array_shape = (config.Nt_polair, config.Ny, config.Nx)
