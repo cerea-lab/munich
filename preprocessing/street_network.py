@@ -52,9 +52,7 @@ class Street:
         self.psfc = 0.0
         self.t2 = 0.0
         self.attenuation = 0.0
-        self.bg_no2 = 0.0
-        self.bg_no = 0.0
-        self.bg_o3 = 0.0
+        self.background={}     # in ug/m3
         self.emission = emission
         self.eff_emission = emission
 
@@ -644,6 +642,8 @@ def compute_relative_humidity(SpecificHumidity, Temperature, Pressure):
     return RelativeHumidity
 
 def get_background_concentration(input_file, current_date, street_list):
+
+
     hasBackground = False
     input_background = open(input_file)
     header = input_background.readline()
@@ -670,11 +670,106 @@ def get_background_concentration(input_file, current_date, street_list):
     else:   
         for s in range(len(street_list)):
             street = street_list[s]
-            street.bg_o3 = o3
-            street.bg_no2 = no2
-            street.bg_no = no
+            street.background['O3'] = o3
+            street.background['NO2'] = no2
+            street.background['NO'] = no
 
     return 0
+
+def get_chimere_background_concentration(current_date, street_list, melchior_spec_list,molar_mass_melchior2,chimout_dir,chimout_lab) :
+
+    import netCDF4
+    import os,sys
+
+    str_date = current_date.strftime("%Y%m%d")
+    input_file=chimout_dir+'/out.'+str_date+'00_'+chimout_lab+'.nc'
+    if not os.path.isfile(input_file) :
+       print('CHIMERE background conditions are requested but the file is not found: '+str(input_file))
+       sys.exit()
+
+    nc = netCDF4.Dataset(input_file, 'r')
+    chim_times = nc.variables["Times"][:]
+    lons = nc.variables["lon"][:]
+    lats = nc.variables["lat"][:]
+    new_spec_list=[] 
+    # New melchior species list from what is actually present in the CHIMERE out file
+    for spec in melchior_spec_list:
+        if spec in nc.variables.keys():
+           new_spec_list.append(spec)
+        else:
+           print('Warning!! '+spec+' not found in CHIMERE output file')
+
+    # Transform CHIMERE date-time to python datetime
+
+    N=chim_times.shape[0] #number of hours to parse
+    times=[]
+    for i in range(N): #loop over hours
+            s1,s2,s3,s4=chim_times[i,0:4]
+            YEAR=s1+s2+s3+s4
+            s1,s2=chim_times[i,5:7]
+            MONTH=s1+s2
+            s1,s2=chim_times[i,8:10]
+            DAY=s1+s2
+            s1,s2=chim_times[i,11:13]
+            HOUR=s1+s2
+            times.append(datetime.datetime(int(YEAR),int(MONTH),int(DAY),int(HOUR)))
+    times=np.array(times)
+
+    for spec in new_spec_list:
+        for s in range(len(street_list)):
+            street = street_list[s]
+            street.background[spec]=0.0
+
+
+    hasBackground = False
+    for t in range(len(times)):
+        background_date = times[t]
+        if current_date == background_date:
+            print "Background data are available for the date ", current_date
+            ind_t = t
+            hasBackground = True
+
+    if (hasBackground == False):
+        print "Error: background data are not available"
+        sys.exit()
+
+    print(lons.shape)
+    nx = lons.shape[1]
+    ny = lons.shape[0]
+
+    for s in range(len(street_list)):
+       street = street_list[s]
+       lat1 = street.lat_cen
+       lon1 = street.lon_cen
+       init_length = 9999.0
+       for i in range(nx):
+           for j in range(ny):
+               lat2 = lats[j, i]
+               lon2 = lons[j, i]
+               length = distance_on_unit_sphere(lat1, lon1, lat2, lon2)
+               if length < init_length:
+                   init_length = length
+                   ind_i = i
+                   ind_j = j
+       print(ind_i,ind_j)
+       tem2=nc.variables['tem2'][ind_t,ind_j,ind_i] #Kelvin
+       psfc=nc.variables['pres'][ind_t,0,ind_j,ind_i] #Pascal
+
+       if psfc > 0 :
+          molecular_volume=22.41 * (tem2/273.)  * (1013*10**2)/psfc
+       else :
+          molecular_volume=22.41
+
+       for spec in new_spec_list:
+           conc_ppb=nc.variables[spec][ind_t,0,ind_j,ind_i]
+           molecular_mass=molar_mass_melchior2[spec]
+           ppb2ug=molecular_mass / molecular_volume   #
+           if spec=='NO2' : print(s,ind_t,0,ind_j,ind_i,conc_ppb,conc_ppb * ppb2ug)
+           street.background[spec]=conc_ppb * ppb2ug
+
+    return 0     #street.background in ug/m3
+
+
 
 def read_traffic_data(input_file, emis_species_list):
     print "=================", input_file
@@ -820,10 +915,10 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     t2 = np.zeros((len(street_list_eff)), 'float')
     attenuation = np.zeros((len(street_list_eff)), 'float')
     sh = np.zeros((len(street_list_eff)), 'float')
-
-    bg_o3 = np.zeros((len(street_list_eff)), 'float')
-    bg_no2 = np.zeros((len(street_list_eff)), 'float')
-    bg_no = np.zeros((len(street_list_eff)), 'float')
+    background={}
+    street0=street_list_eff[0]
+    for spec in street0.background.keys():
+        background[spec]=np.zeros((len(street_list_eff)), 'float')
 
     for i in range(len(street_list_eff)):
         street = street_list_eff[i]
@@ -840,9 +935,8 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         sh[i] = street.sh
         attenuation[i] = street.attenuation
 
-        bg_o3[i] = street.bg_o3
-        bg_no2[i] = street.bg_no2
-        bg_no[i] = street.bg_no
+        for spec in background.keys():
+            background[spec][i]=street.background[spec]
 
     wind_dir_inter = np.zeros((len(node_list_eff)), 'float')
     wind_speed_inter = np.zeros((len(node_list_eff)), 'float')
@@ -857,7 +951,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         ust_inter[i] = node.ust
         lmo_inter[i] = node.lmo
 
-    return wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, bg_o3, bg_no2, bg_no, wind_dir_inter, wind_speed_inter, pblh_inter, ust_inter, lmo_inter, emission_array
+    return wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter, wind_speed_inter, pblh_inter, ust_inter, lmo_inter, emission_array
 
 
 def get_polair_ind(polair_lon, polair_lat, street):

@@ -28,9 +28,13 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("is_near_node_merged", "[option]", "Bool"), \
            ("is_node_manually_merged", "[option]", "Bool"), \
            ("is_voc_speciated", "[option]", "Bool"), \
-           ("is_nox_speciated", "[option]", "Bool")
+           ("is_nox_speciated", "[option]", "Bool"), \
+           ("chimere_bg","[background]","Bool"), \
+           ("chimout_dir", "[background]", "String"), \
+           ("chimout_lab", "[background]", "String"), \
+           ("Species","[background]","StringList"), \
+           ("melch2molmass_file","[background]","String"), \
 ]
-
 config = talos.Config(sys.argv[1], content)
 
 ################
@@ -76,9 +80,14 @@ t2_all = []
 sh_all = []
 attenuation_all = []
 
-bg_o3_all = []
-bg_no2_all = []
-bg_no_all = []
+
+is_chimere=config.chimere_bg
+
+#bg_o3_all = []
+#bg_no2_all = []
+#bg_no_all = []
+background_all={}
+
 
 # For the intersections
 wind_dir_inter = []
@@ -105,6 +114,34 @@ emission = np.zeros([config.Nt_polair, ns_emis, 1, Ny, Nx], 'float')
 
 earth_radius_2 = 6371229. * 6371229.
 pi = 3.14159265358979323846264
+
+
+
+
+
+#################################
+#                               #
+#    IF BACKGROUND FROM CHIMERE #
+#                               #
+#################################
+
+
+if is_chimere :
+
+
+    melchior_spec_list=config.Species
+    chimout_dir=config.chimout_dir
+    chimout_lab=config.chimout_lab
+    
+    molar_mass_melchior2={}
+
+    with open(config.melch2molmass_file,'r') as f:
+        for ln in f:
+            spec=ln.split()[0]
+            val=np.float(ln.split()[1])
+            molar_mass_melchior2[spec]=val
+    f.close()
+
 
 # Get date info
 begin_date = config.t_min
@@ -222,10 +259,17 @@ for t in range(nt):
                            street_list_eff, node_list_eff, config.wrfout_prefix)
 
     background_concentration_file = config.background_concentration
-    get_background_concentration(background_concentration_file, \
+
+
+    if is_chimere :
+        get_chimere_background_concentration(current_date, street_list_eff, \
+                             melchior_spec_list,molar_mass_melchior2, \
+                             chimout_dir,chimout_lab)
+
+
+    else :
+        get_background_concentration(background_concentration_file, \
                                          current_date, street_list_eff)
-
-
     # Compute emissions in grid cells.
     for st in street_list_eff:
             indx, indy = get_polair_ind_v2(st.lon_cen, st.lat_cen, x_min, Delta_x, y_min, Delta_y, Nx, Ny)
@@ -241,7 +285,7 @@ for t in range(nt):
 # ------------
 # Write output
 # ------------
-    wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, bg_o3, bg_no2, bg_no, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
+    wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
 
     emission_array_all.append(emission_array)
 
@@ -261,9 +305,13 @@ for t in range(nt):
     ust_inter.append(ust_inter_)
     lmo_inter.append(lmo_inter_)
 
-    bg_o3_all.append(bg_o3)
-    bg_no2_all.append(bg_no2)
-    bg_no_all.append(bg_no)
+    for spec in background.keys():
+        val=background[spec]
+        if spec in background_all.keys():
+           background_all[spec].append(val)
+        else:
+           background_all[spec]=[val]
+
 
 emission_array_all = np.array(emission_array_all)
 wind_dir_all = np.array(wind_dir_all)
@@ -282,9 +330,11 @@ pblh_inter = np.array(pblh_inter)
 ust_inter = np.array(ust_inter)
 lmo_inter = np.array(lmo_inter)
 
-bg_o3_all = np.array(bg_o3_all)
-bg_no2_all = np.array(bg_no2_all)
-bg_no_all = np.array(bg_no_all)
+for spec in background_all.keys():
+    background_all[spec]=np.array(background_all[spec])
+
+
+
 
 for i, species in enumerate(emis_species_list):
     file_emission = output_dir + "/emission/" + species + ".bin"
@@ -306,9 +356,10 @@ file_pblh_inter = output_dir + "/meteo/PBLHInter.bin"
 file_ust_inter = output_dir + "/meteo/USTInter.bin"
 file_lmo_inter = output_dir + "/meteo/LMOInter.bin"
 
-file_bg_o3 = output_dir + "/background/O3.bin"
-file_bg_no2 = output_dir + "/background/NO2.bin"
-file_bg_no = output_dir + "/background/NO.bin"
+for spec in background_all.keys():
+    filename=output_dir + "/background/"+spec+".bin"
+    io.save_binary(background_all[spec], filename)
+
 
 io.save_binary(wind_dir_all, file_wind_dir)
 io.save_binary(wind_speed_all, file_wind_speed)
@@ -325,10 +376,6 @@ io.save_binary(wind_speed_inter, file_wind_speed_inter)
 io.save_binary(pblh_inter, file_pblh_inter)
 io.save_binary(ust_inter, file_ust_inter)
 io.save_binary(lmo_inter, file_lmo_inter)
-
-io.save_binary(bg_o3_all, file_bg_o3)
-io.save_binary(bg_no2_all, file_bg_no2)
-io.save_binary(bg_no_all, file_bg_no)
 
 for i, species in enumerate(emis_species_list):
         file_emission = output_dir + "/grid_emission/" + species + ".bin"
