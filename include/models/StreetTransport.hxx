@@ -47,6 +47,9 @@ namespace Polyphemus
     //! Building height in the street (m)
     T height_;
 
+    //! Street volume (m3)
+    T street_volume_;    
+
     //! Street angle (rad). 
     T street_angle_;
 
@@ -144,6 +147,7 @@ namespace Polyphemus
     void SetCoordinate(T longitude, T latitude);
     T GetPhotolysisRate(int r) const;
     void SetPhotolysisRate(Array<T, 1> photolysis_rate);
+    T GetVolume() const;
     T GetLength() const;
     T GetWidth() const;
     T GetHeight() const;

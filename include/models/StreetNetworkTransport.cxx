@@ -1220,9 +1220,8 @@ namespace Polyphemus
         T transfer_velocity = street->GetTransferVelocity(); // m/s
         T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
         T outgoing_flux = street->GetOutgoingFlux(); // m3/s
-        T street_volume = street->GetHeight() *
-          street->GetWidth() * street->GetLength(); // m3
-
+        T street_volume = street->GetVolume(); // m3        
+        
         bool is_stationary_local = true;
         for (int s = 0; s < this->Ns; ++s)
           {
@@ -1313,8 +1312,7 @@ namespace Polyphemus
         T transfer_velocity = street->GetTransferVelocity(); // m/s
 	T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
         T outgoing_flux = street->GetOutgoingFlux(); // m3/s
-        T street_volume = street->GetHeight() *
-          street->GetWidth() * street->GetLength(); // m3
+        T street_volume = street->GetVolume();
 	T inflow_flux = street->GetIncomingFlux();
 
 	for (int s = 0; s < this->Ns; ++s)

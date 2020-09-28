@@ -52,6 +52,7 @@ namespace Polyphemus
     lmo_ = 0.0;
     photolysis_rate_.resize(nr_photolysis);
     photolysis_rate_ = 0.0;
+    street_volume_ = height_ * width_ * length_;
   }
 
   //! Destructor
@@ -130,6 +131,18 @@ namespace Polyphemus
     photolysis_rate_ = photolysis_rate;
   }
 
+
+  //! Returns the street volume.
+  /*!
+    \return The street volume (m3).
+  */
+  template<class T>
+  inline T Street<T>::GetVolume() const
+  {
+    return street_volume_;
+  }
+
+  
   //! Returns the street length.
   /*!
     \return The street length (m).
