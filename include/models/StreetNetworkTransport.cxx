@@ -430,8 +430,6 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::InitStep()
   {
-    BaseModel<T>::InitStep();
-
     Array<T, 1> emission_rate(this->Ns);
     Array<T, 2> street_emission;
     Date date_min;
