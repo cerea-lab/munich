@@ -15,13 +15,14 @@ import numpy as np
 
 content = [("Output_dir", "[output]", "String"), \
            ("speciation_dir", "[input]", "String"), \
+           ("meca","[option]","String"), \
            ("Nt_polair", "[domain]", "Int")
 ]
 config = talos.Config("sing_preproc.cfg", content)
-
+meca = config.meca
 home_dir = config.Output_dir # "/profils_cerea/kimy/work/StreetInGrid/munich/preprocessing/output/"
 
-speciation_file = config.speciation_dir + "/COVNM.dat"
+speciation_file = config.speciation_dir + "/COVNM_"+meca+".dat"
 speciation = open(speciation_file)
 header = speciation.readline()
 
@@ -38,6 +39,7 @@ sp_real_name = []
 speciation_coeff = []
 mw_real = []
 total = 0.0
+intoh=1.  # for melchior2 aggreagation
 for line in speciation.readlines():
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         sp_real_name.append(line_info[0])
@@ -51,7 +53,14 @@ ns_real = len(sp_real_name)
 print "Number of the real species: ", ns_real
 
 # Get VOC aggregation to model species.
-aggregation_file = config.speciation_dir + "/aggregation_cb05-siream.dat"
+if meca == "cb05":
+    aggregation_file = config.speciation_dir + "/aggregation_cb05-siream.dat"
+elif meca == "melchior2": 
+    aggregation_file = config.speciation_dir + "/aggregation_melchior2.dat"
+else:
+    print('For now the "meca" flag at the [option] section of the sing_preproc.cfg has to be set to either cb05 or melchior2')
+    sys.exit()
+
 aggregation = open(aggregation_file)
 # Read the line for the list of the model species.
 line = aggregation.readline()
@@ -70,13 +79,34 @@ for n, line in enumerate(line_info):
                 mw_model.append(float(line))
 
 header = aggregation.readline()
+
+if meca == 'melchior2' :
+   line_info = [x for x in re.split('\t| ', header) if x.strip() != '']
+   reac_model = []
+   for n, line in enumerate(line_info):
+        if n > 2:
+                reac_model.append(float(line))
+
+
+
+
 species_factor = np.zeros([ns_model], 'float')
 for s_real in range(ns_real):
         line = aggregation.readline()
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+        if meca == 'melchior2' :
+           reac_real=float(line_info[2])
         for s_model in range(ns_model):
                 aggregation_coeff = float(line_info[s_model + 3])
-                temp = speciation_coeff[s_real] * 0.01 * aggregation_coeff * mw_model[s_model] / mw_real[s_real]
+                if meca=="cb05":
+                    temp = speciation_coeff[s_real] * 0.01 * aggregation_coeff * mw_model[s_model] / mw_real[s_real]
+                elif meca == "melchior2":
+                    temp=speciation_coeff[s_real] * 0.01 * aggregation_coeff * mw_model[s_model] / mw_real[s_real] * \
+                                               (1.-np.exp(-intoh*reac_real))/(1.-np.exp(-intoh*reac_model[s_model]))
+                else:
+                    print('For now the "meca" flag at the [option] section of the sing_preproc.cfg has to be set to either cb05 or melchior2')
+                    sys.exit()
+
                 species_factor[s_model] += temp
 aggregation.close()
 
