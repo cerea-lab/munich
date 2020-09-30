@@ -194,8 +194,9 @@ def speciation_nox():
         input_file = input_dir + "NOx.bin"
 
         inputfile_size = io.get_filesize(input_file)
+        print (config.Nt_polair, config.Ny, config.Nx)
         array_shape = (config.Nt_polair, config.Ny, config.Nx)
-        input_array = io.load_binary(input_file, array_shape)
+        nox = io.load_binary(input_file, array_shape)
 
         # Compute and write to binary files  for NO and NO2 species;
         # NO2 is assumed to be 20% of NOx.
