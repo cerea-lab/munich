@@ -3,14 +3,6 @@ from compute_distance import *
 import datetime
 import numpy as np
 
-#
-# Define the projections input/output
-# -----------------------------------
-import pyproj
-wgs84 = pyproj.Proj('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
-lambert93 = pyproj.Proj('+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
-
-
 # Class for a node (intersection)
 # -------------------------------
 class Node:
@@ -771,13 +763,17 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
 
 
 
-def read_traffic_data(input_file, emis_species_list, projection):
+def read_traffic_data(input_file, emis_species_list, epsg_code):
 
-    if (projection == "lambert93"):
-        proj_in = lambert93
-    else:
-        print('Error: unsupported projection "{}"'.format(projection))
-        sys.exit()
+    #
+    # Define the projections input/output
+    # -----------------------------------
+    import pyproj
+    
+    epsg_code = 'epsg:' + epsg_code
+    proj_in = pyproj.Proj(init=epsg_code)
+    # WGS84
+    proj_out = pyproj.Proj(init='epsg:4326') 
 
     print "=================", input_file
     node_id = 0
@@ -806,7 +802,7 @@ def read_traffic_data(input_file, emis_species_list, projection):
         id_begin = node_id
         x = float(line_info[3])
         y = float(line_info[4])
-        lon1, lat1 = pyproj.transform(proj_in, wgs84, x, y)        
+        lon1, lat1 = pyproj.transform(proj_in, proj_out, x, y)
         node = Node(node_id, lon1, lat1)
         node.connected_street.append(street_id)
         node_list.append(node)
@@ -814,7 +810,7 @@ def read_traffic_data(input_file, emis_species_list, projection):
         id_end = node_id
         x = float(line_info[5])
         y = float(line_info[6])
-        lon2, lat2 = pyproj.transform(proj_in, wgs84, x, y)
+        lon2, lat2 = pyproj.transform(proj_in, proj_out, x, y)
         node = Node(node_id, lon2, lat2)
         node.connected_street.append(street_id)
         node_list.append(node)
@@ -1030,3 +1026,12 @@ def utc_to_local(utc, zone = 'Europe/Paris'):
 
     # Convert time zone
     return utc.astimezone(to_zone)
+
+
+# def projection_conversion(epsg_code):
+# #
+# # Define the projections input/output
+# # -----------------------------------
+#     import pyproj
+#     wgs84 = pyproj.Proj('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
+#     lambert93 = pyproj.Proj('+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
