@@ -14,6 +14,7 @@ if not args:
 
 content = [("emission_dir_weekday", "[input]", "String"), \
            ("emission_dir_weekend", "[input]", "String"), \
+           ("projection", "[input]", "String"), \
            ("emission_species", "[input]", "StringList"), \
            ("geog_info", "[input]", "String"), \
            ("background_concentration", "[input]", "String"), \
@@ -182,7 +183,8 @@ for t in range(nt):
 
     print "Read the input data (segment coordinates and emission rates) from the file --- ",input_file
     
-    street_list, node_list = read_traffic_data(input_file, emis_species_list)
+    street_list, node_list = read_traffic_data(input_file,
+                                               emis_species_list, config.projection)
 
     # Get street geographical informations: length, width, builiding height.
     geog_info = config.geog_info

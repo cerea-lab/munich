@@ -771,7 +771,14 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
 
 
 
-def read_traffic_data(input_file, emis_species_list):
+def read_traffic_data(input_file, emis_species_list, projection):
+
+    if (projection == "lambert93"):
+        proj_in = lambert93
+    else:
+        print('Error: unsupported projection "{}"'.format(projection))
+        sys.exit()
+
     print "=================", input_file
     node_id = 0
     street_id = 0
@@ -799,7 +806,7 @@ def read_traffic_data(input_file, emis_species_list):
         id_begin = node_id
         x = float(line_info[3])
         y = float(line_info[4])
-        lon1, lat1 = pyproj.transform(lambert93, wgs84, x, y)
+        lon1, lat1 = pyproj.transform(proj_in, wgs84, x, y)        
         node = Node(node_id, lon1, lat1)
         node.connected_street.append(street_id)
         node_list.append(node)
@@ -807,7 +814,7 @@ def read_traffic_data(input_file, emis_species_list):
         id_end = node_id
         x = float(line_info[5])
         y = float(line_info[6])
-        lon2, lat2 = pyproj.transform(lambert93, wgs84, x, y)
+        lon2, lat2 = pyproj.transform(proj_in, wgs84, x, y)
         node = Node(node_id, lon2, lat2)
         node.connected_street.append(street_id)
         node_list.append(node)
