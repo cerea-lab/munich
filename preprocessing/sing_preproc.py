@@ -15,6 +15,7 @@ if not args:
 content = [("emission_dir_weekday", "[input]", "String"), \
            ("emission_dir_weekend", "[input]", "String"), \
            ("epsg_code", "[input]", "String"), \
+           ("country_code", "[input]", "String"), \
            ("weekday_file_prefix", "[input]", "String"), \
            ("weekend_file_prefix", "[input]", "String"), \
            ("emission_species", "[input]", "StringList"), \
@@ -173,8 +174,7 @@ for t in range(nt):
     hour = str_date[8:10]
     # Should take into account the French holidays during the period.
     if (current_date.weekday() >= 0) and (current_date.weekday() <= 4):
-            print "The current day is a weekday."
-            if is_holiday(current_date):
+            if is_holiday(current_date, config.country_code):
                     print "The current day is a holiday."
                     input_file = config.emission_dir_weekend + "/" + \
                     config.weekend_file_prefix + hour

@@ -982,36 +982,33 @@ def get_polair_ind_v2(lon, lat, x_min, Delta_x, y_min, Delta_y, Nx, Ny):
 
     return index_x, index_y
 
-def is_holiday(date):
-    # 20140421 Lundi de Paques
-    # 20140501 Fete du travail
-    # 20140508 Victoire 1945
-    # 20140529 Ascension
-    # 20140609 Lundi de Pentecote
-    if date.date() == datetime.datetime(year=2014,month=1,day=1).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=4,day=21).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=5,day=1).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=5,day=8).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=5,day=29).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=6,day=9).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=7,day=14).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=8,day=15).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=11,day=1).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=11,day=11).date():
-        return True
-    elif date.date() == datetime.datetime(year=2014,month=12,day=25).date():
-        return True
-    else:
+def is_holiday(date, country_code):
+    # Requirement: holidays python library (https://pypi.org/project/holidays/)
+    # Install: pip install holidays
+    try:
+        import holidays
+        isCountryFound = False
+        for country in holidays.list_supported_countries():
+            if country_code == country:
+                print ('Found country code "{}"'.format(country_code))
+                country_holidays = holidays.CountryHoliday(country_code)
+                isCountryFound = True
+                break
+        
+        if (isCountryFound == False):
+            print ('Error: given country code "{}" is not found in supported country codes'.format(country_code))
+            print holidays.list_supported_countries()
+            return False
+        
+        return date.date() in country_holidays
+        
+    except ImportError as err:
+        print('*** Could not import "holidays" Python module ***')
+        print('Please install "holidays", or Holidays are not taken into account.')
+        print('To install, type pip install holidays')
         return False
+  
+    
 
 from dateutil import tz
 
