@@ -18,6 +18,8 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("country_code", "[input]", "String"), \
            ("weekday_file_prefix", "[input]", "String"), \
            ("weekend_file_prefix", "[input]", "String"), \
+           ("is_local_hour", "[input]", "Bool"), \
+           ("time_zone", "[input]", "String"), \
            ("emission_species", "[input]", "StringList"), \
            ("geog_info", "[input]", "String"), \
            ("background_concentration", "[input]", "String"), \
@@ -166,7 +168,11 @@ for t in range(nt):
     indt = int(time_diff_seconds / 3600)
     print "Time index: ", indt 
 
-    current_date_local = utc_to_local(current_date, 'Europe/Paris')
+    if config.is_local_hour:
+            print('Conversion from {} to UTC'.format(config.time_zone))
+            current_date_local = utc_to_local(current_date, config.time_zone)
+    else:
+            current_date_local = current_date
 
     print "Current date (local hour): ", current_date_local
     str_date = current_date_local.strftime("%Y%m%d%H")

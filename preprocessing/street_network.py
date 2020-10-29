@@ -1010,10 +1010,12 @@ def is_holiday(date, country_code):
   
     
 
-from dateutil import tz
 
 def utc_to_local(utc, zone = 'Europe/Paris'):
-
+    # Need to install dateutil
+    # pip install python-dateutil
+    from dateutil import tz
+    
     from_zone = tz.gettz('UTC')
     to_zone = tz.gettz(zone)
 
