@@ -15,6 +15,8 @@ if not args:
 content = [("emission_dir_weekday", "[input]", "String"), \
            ("emission_dir_weekend", "[input]", "String"), \
            ("epsg_code", "[input]", "String"), \
+           ("weekday_file_prefix", "[input]", "String"), \
+           ("weekend_file_prefix", "[input]", "String"), \
            ("emission_species", "[input]", "StringList"), \
            ("geog_info", "[input]", "String"), \
            ("background_concentration", "[input]", "String"), \
@@ -174,12 +176,16 @@ for t in range(nt):
             print "The current day is a weekday."
             if is_holiday(current_date):
                     print "The current day is a holiday."
-                    input_file = config.emission_dir_weekend + "/EL.traf.20140330" + hour
+                    input_file = config.emission_dir_weekend + "/" + \
+                    config.weekend_file_prefix + hour
             else:
-                    input_file = config.emission_dir_weekday + "/EL.traf.20140325" + hour
+                    print "The current day is a weekday."
+                    input_file = config.emission_dir_weekday + "/" + \
+                    config.weekday_file_prefix + hour
     else:
             print "The current day is a weekend."
-            input_file = config.emission_dir_weekend + "/EL.traf.20140330" + hour
+            input_file = config.emission_dir_weekend + "/" + \
+            config.weekend_file_prefix + hour
 
     print "Read the input data (segment coordinates and emission rates) from the file --- ",input_file
     
