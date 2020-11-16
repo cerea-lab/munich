@@ -1,4 +1,5 @@
-*** What is MUNICH ***
+What is MUNICH
+==============
 
 The Model of Urban Network of Intersecting Canyons and Highways (MUNICH) is
 used to simulate subgrid concentrations in the urban canopy represented by the
@@ -9,30 +10,35 @@ MUNICH is distributed under the GNU General Public License.
 
 For more information on MUNICH, see http://cerea.enpc.fr/munich/
 
-*** Download
+Download
+========
 
 https://gitlab.enpc.fr/cerea/munich
 
 
-*** Installation ***
+Installation
+============
 
 Buliding
 --------
 
+```
 $ cd processing/photochemistry
 $ scons
+```
 
 Run
 ---
 
+```
 $ munich munich.cfg
-
+```
 
 Input files
 -----------
 
 A Python preprocessing tool is available to generate the input data and
-visualize then by contact with Youngseob Kim (youngseob.kim@enpc.fr). 
+visualize then by contact with Youngseob Kim (youngseob.kim@enpc.fr).
 
 
 ## --- intersection.dat
