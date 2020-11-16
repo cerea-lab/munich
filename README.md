@@ -19,7 +19,7 @@ https://gitlab.enpc.fr/cerea/munich
 Installation
 ============
 
-Buliding
+Building
 --------
 
 ```
@@ -41,19 +41,22 @@ A Python preprocessing tool is available to generate the input data and
 visualize then by contact with Youngseob Kim (youngseob.kim@enpc.fr).
 
 
-## --- intersection.dat
+### intersection.dat
 
 This file contains the informations concerning intersections.
 
 The format of the input data is as follows:
 
+```
 <intersection id>;<longitude>;<latitude>;<number of streets> (which are connected to the intersection);<a series of street id>;
+```
 
-
-## --- street.dat
+###  street.dat
 
 This file contains the input data of each street segment.
 
 The format of the input data is as follows:
 
+```
 <street id>;<intersection 1>;<intersection 2>;<street length>;<averaged builing height>;<street width>
+```
