@@ -269,6 +269,7 @@ for t in range(nt):
         get_background_concentration(background_concentration_file, \
                                          current_date, street_list_eff)
     # Compute emissions in grid cells.
+    emission = 0.0
     for st in street_list_eff:
             indx, indy = get_polair_ind_v2(st.lon_cen, st.lat_cen, x_min, Delta_x, y_min, Delta_y, Nx, Ny)
             lat = polair_lat[indy]
