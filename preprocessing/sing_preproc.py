@@ -70,35 +70,9 @@ print emis_species_list
 # Number of emitted species
 ns_emis = len(emis_species_list)
 
-# emis_no_all = []
-# emis_no2_all = []
-emission_array_all = []
-
-wind_dir_all = []
-wind_speed_all = []
-pblh_all = []
-ust_all = []
-lmo_all = []
-psfc_all = []
-t2_all = []
-sh_all = []
-attenuation_all = []
-
-
 is_chimere=config.chimere_bg
 
-#bg_o3_all = []
-#bg_no2_all = []
-#bg_no_all = []
 background_all={}
-
-
-# For the intersections
-wind_dir_inter = []
-wind_speed_inter = []
-pblh_inter = []
-ust_inter = []
-lmo_inter = []
 
 # Make input files for SinG simulations.
 x_min = config.x_min
@@ -112,9 +86,7 @@ y_max = y_min + Delta_y * (Ny - 1) + Delta_y * 0.5
 polair_lon = np.arange(x_min, x_max, Delta_x)
 polair_lat = np.arange(y_min, y_max, Delta_y)
 
-emission_no = np.zeros([config.Nt_polair, 1, Ny, Nx], 'float')
-emission_no2 = np.zeros([config.Nt_polair, 1, Ny, Nx], 'float')
-emission = np.zeros([config.Nt_polair, ns_emis, 1, Ny, Nx], 'float')
+emission = np.zeros([ns_emis, 1, Ny, Nx], 'float')
 
 earth_radius_2 = 6371229. * 6371229.
 pi = 3.14159265358979323846264
@@ -306,15 +278,13 @@ for t in range(nt):
 
             for i, species in enumerate(emis_species_list):
                     emission_polair = st.eff_emission[i] / surface_polair # ug/s to ug/m2/s
-                    emission[indt, i, 0, indy, indx] = emission[indt, i, 0, indy, indx] + emission_polair
-                
+                    emission[i, 0, indy, indx] = emission[i, 0, indy, indx] + emission_polair
+
+                    
 # ------------
 # Write output
 # ------------
     wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
-
-    emission_array_all.append(emission_array)
-
 
     append_binary(wind_dir, file_wind_dir)
     append_binary(wind_speed, file_wind_speed)
@@ -340,10 +310,10 @@ for t in range(nt):
             filename = output_dir + "/background/" + spec + ".bin"
             append_binary(background[spec], filename)            
         
-# Write grid-averaged emissions.
-for i, species in enumerate(emis_species_list):
-        file_emission = output_dir + "/grid_emission/" + species + ".bin"
-        io.save_binary(emission[:, i], file_emission)
+    # Write grid-averaged emissions.
+    for i, species in enumerate(emis_species_list):
+            file_emission = output_dir + "/grid_emission/" + species + ".bin"
+            append_binary(emission[i], file_emission)
 
 # VOC speciated
 if (config.is_voc_speciated):
