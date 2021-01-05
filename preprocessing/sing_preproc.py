@@ -5,6 +5,7 @@ import sys, datetime, math, os
 from atmopy import *
 from street_network import *
 from optparse import OptionParser
+from io_tools import *
 
 parser = OptionParser(usage = "%prog configuration_file")
 (options, args) = parser.parse_args()
@@ -47,24 +48,21 @@ config = talos.Config(sys.argv[1], content)
 # Main program #
 ################
 
+
+import shutil
 output_dir = config.Output_dir
-if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+shutil.rmtree(output_dir, ignore_errors=True)
+os.makedirs(output_dir)
 emis_dir = output_dir + "/emission/"
-if not os.path.exists(emis_dir):
-        os.makedirs(emis_dir)
+os.makedirs(emis_dir)
 meteo_dir = output_dir + "/meteo/"
-if not os.path.exists(meteo_dir):
-        os.makedirs(meteo_dir)
+os.makedirs(meteo_dir)
 background_dir = output_dir + "/background/"
-if not os.path.exists(background_dir):
-        os.makedirs(background_dir)
+os.makedirs(background_dir)
 textfile_dir = output_dir + "/textfile/"
-if not os.path.exists(textfile_dir):
-        os.makedirs(textfile_dir)
+os.makedirs(textfile_dir)
 emis_dir = output_dir + "/grid_emission/"
-if not os.path.exists(emis_dir):
-        os.makedirs(emis_dir)
+os.makedirs(emis_dir)
         
 emis_species_list = config.emission_species
 print emis_species_list
@@ -122,9 +120,6 @@ earth_radius_2 = 6371229. * 6371229.
 pi = 3.14159265358979323846264
 
 
-
-
-
 #################################
 #                               #
 #    IF BACKGROUND FROM CHIMERE #
@@ -147,6 +142,23 @@ if is_chimere :
             val=np.float(ln.split()[1])
             molar_mass_melchior2[spec]=val
     f.close()
+
+# Output file names
+file_wind_dir = output_dir + "/meteo/WindDirection.bin"
+file_wind_speed = output_dir + "/meteo/WindSpeed.bin"
+file_pblh = output_dir + "/meteo/PBLH.bin"
+file_ust = output_dir + "/meteo/UST.bin"
+file_lmo = output_dir + "/meteo/LMO.bin"
+file_psfc = output_dir + "/meteo/SurfacePressure.bin"
+file_t2 = output_dir + "/meteo/SurfaceTemperature.bin"
+file_sh = output_dir + "/meteo/SpecificHumidity.bin"
+file_attenuation = output_dir + "/meteo/Attenuation.bin"
+
+file_wind_dir_inter = output_dir + "/meteo/WindDirectionInter.bin"
+file_wind_speed_inter = output_dir + "/meteo/WindSpeedInter.bin"
+file_pblh_inter = output_dir + "/meteo/PBLHInter.bin"
+file_ust_inter = output_dir + "/meteo/USTInter.bin"
+file_lmo_inter = output_dir + "/meteo/LMOInter.bin"
 
 
 # Get date info
@@ -303,94 +315,32 @@ for t in range(nt):
 
     emission_array_all.append(emission_array)
 
-    wind_dir_all.append(wind_dir)
-    wind_speed_all.append(wind_speed)
-    pblh_all.append(pblh)
-    ust_all.append(ust)
-    lmo_all.append(lmo)
-    psfc_all.append(psfc)
-    t2_all.append(t2)
-    sh_all.append(sh)
-    attenuation_all.append(attenuation)
 
-    wind_dir_inter.append(wind_dir_inter_)
-    wind_speed_inter.append(wind_speed_inter_)
-    pblh_inter.append(pblh_inter_)
-    ust_inter.append(ust_inter_)
-    lmo_inter.append(lmo_inter_)
+    append_binary(wind_dir, file_wind_dir)
+    append_binary(wind_speed, file_wind_speed)
+    append_binary(pblh, file_pblh)
+    append_binary(ust, file_ust)
+    append_binary(lmo, file_lmo)
+    append_binary(psfc, file_psfc)
+    append_binary(t2, file_t2)
+    append_binary(sh, file_sh)
+    append_binary(attenuation, file_attenuation)
+
+    append_binary(wind_dir_inter_, file_wind_dir_inter)
+    append_binary(wind_speed_inter_, file_wind_speed_inter)
+    append_binary(pblh_inter_, file_pblh_inter)
+    append_binary(ust_inter_, file_ust_inter)
+    append_binary(lmo_inter_, file_lmo_inter)
+
+    for i, species in enumerate(emis_species_list):
+            file_emission = output_dir + "/emission/" + species + ".bin"
+            append_binary(emission_array[:,i], file_emission)
 
     for spec in background.keys():
-        val=background[spec]
-        if spec in background_all.keys():
-           background_all[spec].append(val)
-        else:
-           background_all[spec]=[val]
-
-
-emission_array_all = np.array(emission_array_all)
-wind_dir_all = np.array(wind_dir_all)
-wind_speed_all = np.array(wind_speed_all)
-pblh_all = np.array(pblh_all)
-ust_all = np.array(ust_all)
-lmo_all = np.array(lmo_all)
-psfc_all = np.array(psfc_all)
-t2_all = np.array(t2_all)
-sh_all = np.array(sh_all)
-attenuation_all = np.array(attenuation_all)
-
-wind_dir_inter = np.array(wind_dir_inter)
-wind_speed_inter = np.array(wind_speed_inter)
-pblh_inter = np.array(pblh_inter)
-ust_inter = np.array(ust_inter)
-lmo_inter = np.array(lmo_inter)
-
-for spec in background_all.keys():
-    background_all[spec]=np.array(background_all[spec])
-
-
-
-
-for i, species in enumerate(emis_species_list):
-    file_emission = output_dir + "/emission/" + species + ".bin"
-    io.save_binary(emission_array_all[:,:,i], file_emission)
-
-file_wind_dir = output_dir + "/meteo/WindDirection.bin"
-file_wind_speed = output_dir + "/meteo/WindSpeed.bin"
-file_pblh = output_dir + "/meteo/PBLH.bin"
-file_ust = output_dir + "/meteo/UST.bin"
-file_lmo = output_dir + "/meteo/LMO.bin"
-file_psfc = output_dir + "/meteo/SurfacePressure.bin"
-file_t2 = output_dir + "/meteo/SurfaceTemperature.bin"
-file_sh = output_dir + "/meteo/SpecificHumidity.bin"
-file_attenuation = output_dir + "/meteo/Attenuation.bin"
-
-file_wind_dir_inter = output_dir + "/meteo/WindDirectionInter.bin"
-file_wind_speed_inter = output_dir + "/meteo/WindSpeedInter.bin"
-file_pblh_inter = output_dir + "/meteo/PBLHInter.bin"
-file_ust_inter = output_dir + "/meteo/USTInter.bin"
-file_lmo_inter = output_dir + "/meteo/LMOInter.bin"
-
-for spec in background_all.keys():
-    filename=output_dir + "/background/"+spec+".bin"
-    io.save_binary(background_all[spec], filename)
-
-
-io.save_binary(wind_dir_all, file_wind_dir)
-io.save_binary(wind_speed_all, file_wind_speed)
-io.save_binary(pblh_all, file_pblh)
-io.save_binary(ust_all, file_ust)
-io.save_binary(lmo_all, file_lmo)
-io.save_binary(psfc_all, file_psfc)
-io.save_binary(t2_all, file_t2)
-io.save_binary(sh_all, file_sh)
-io.save_binary(attenuation_all, file_attenuation)
-
-io.save_binary(wind_dir_inter, file_wind_dir_inter)
-io.save_binary(wind_speed_inter, file_wind_speed_inter)
-io.save_binary(pblh_inter, file_pblh_inter)
-io.save_binary(ust_inter, file_ust_inter)
-io.save_binary(lmo_inter, file_lmo_inter)
-
+            filename = output_dir + "/background/" + spec + ".bin"
+            append_binary(background[spec], filename)            
+        
+# Write grid-averaged emissions.
 for i, species in enumerate(emis_species_list):
         file_emission = output_dir + "/grid_emission/" + species + ".bin"
         io.save_binary(emission[:, i], file_emission)
