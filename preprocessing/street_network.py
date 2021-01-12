@@ -127,6 +127,7 @@ def manual_merging_street(street_list):
     header = input_merging.readline()
     ntemp = 0
     for line in input_merging.readlines():
+        line = line.replace('\n','')
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         if len(line_info) != 2:
             break
@@ -154,6 +155,7 @@ def lut_merging_street(lut_file, street_list):
     input_merging = open(lut_file)
     header = input_merging.readline()
     for line in input_merging.readlines():
+        line = line.replace('\n','')
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         if len(line_info) != 2:
             break
@@ -231,26 +233,27 @@ def manual_merging_node(node_list):
     input_merging = open(input_file)
     header = input_merging.readline()
     for line in input_merging.readlines():
-      line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
-      if len(line_info) != 2:
-        break
-      else:
-        removed_node_id, remained_node_id = int(line_info[0]), int(line_info[1])
-        for i in range(len(node_list)):
-            if (node_list[i].id == removed_node_id): 
-                for j in range(len(node_list)):
-                    if (node_list[j].id == remained_node_id): 
-                        id_old = node_list[i].eff_id
-                        node_list[i].eff_id = node_list[j].eff_id
-                        id_new = node_list[i].eff_id
-                        node_list[i].removed = True
-                        n_node = n_node + 1
-                        for st_ in node_list[i].connected_street:
-                            node_list[j].connected_street.append(st_)
-                        #     
-                        for node_ in node_list:
-                            if (node_.eff_id == id_old):
-                                node_.eff_id = id_new
+        line = line.replace('\n','')
+        line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+        if len(line_info) != 2:
+            break
+        else:
+            removed_node_id, remained_node_id = int(line_info[0]), int(line_info[1])
+            for i in range(len(node_list)):
+                if (node_list[i].id == removed_node_id): 
+                    for j in range(len(node_list)):
+                        if (node_list[j].id == remained_node_id): 
+                            id_old = node_list[i].eff_id
+                            node_list[i].eff_id = node_list[j].eff_id
+                            id_new = node_list[i].eff_id
+                            node_list[i].removed = True
+                            n_node = n_node + 1
+                            for st_ in node_list[i].connected_street:
+                                node_list[j].connected_street.append(st_)
+                            #     
+                            for node_ in node_list:
+                                if (node_.eff_id == id_old):
+                                    node_.eff_id = id_new
     input_merging.close()
     return n_node
 
@@ -263,6 +266,7 @@ def get_street_geog(input_file, street_list):
     header = input_street_geog.readline()
     nstreet = 0
     for line in input_street_geog.readlines():
+        line = line.replace('\n','')        
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         street_id = int(line_info[0])    
         for i in range(len(street_list)):
@@ -641,6 +645,7 @@ def get_background_concentration(input_file, current_date, street_list):
     header = input_background.readline()
     nstreet = 0
     for line in input_background.readlines():
+        line = line.replace('\n','')
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         str_times = line_info[0]
         year = int(str_times[0:4])
@@ -796,6 +801,7 @@ def read_traffic_data(input_file, emis_species_list, epsg_code):
     node_list = []
     street_list = []
     for line in input_street.readlines():
+        line = line.replace('\n','')
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         street_id = int(line_info[0])
         node_id = node_id + 1
