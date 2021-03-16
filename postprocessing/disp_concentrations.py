@@ -118,11 +118,30 @@ w_0 = 1
 fig = plt.figure()
 ax = plt.subplot(111)
 
+
+# Options to display the node/street id.
+# ------------------------
+disp_node_number = True  # True or False
+disp_street_number = False # True or False
+
+# Display the node id
+if (disp_node_number):
+  for inode in node:
+      ax.text(node[inode][0], node[inode][1], str(inode), size=10, color='b')
+
+
 lw_max = 2
 for i in range(len(node_begin)):
     xy_begin = node[node_begin[i]]
     xy_end = node[node_end[i]]
 
+
+    # Display the street id
+    if (disp_street_number):
+        x_ = (xy_begin[0] + xy_end[0]) / 2.0
+        y_ = (xy_begin[1] + xy_end[1]) / 2.0
+        ax.text(x_, y_, str(street_id[i]), size=10, color='r')        
+    
     if street_concentration[i] >= interval[0] and street_concentration[i] < interval[1]:
             ax.plot([xy_begin[0], xy_end[0]],
                      [xy_begin[1], xy_end[1]],
