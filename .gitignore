@@ -5,6 +5,7 @@ test
 include/SeldonData/
 include/AtmoData/
 include/Talos/
+include/ssh-aerosol/
 
 ### Binaries
 *.o
@@ -25,6 +26,8 @@ munich
 src/munich
 .build/*
 .nfs*
+*.sav
+*.old
 
 ### SCons files
 *.scon*

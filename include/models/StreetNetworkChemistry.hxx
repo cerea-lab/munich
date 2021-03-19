@@ -1,9 +1,8 @@
 #ifndef POLYPHEMUS_FILE_MODELS_STREETNETWORKCHEMISTRY_HXX
 
 #include "StreetNetworkTransport.cxx"
-#include "StreetTransport.cxx"
-
-//#include "BaseModuleParallel.cxx" // YK
+#include "StreetChemistry.cxx"
+#include "BaseModuleParallel.cxx" // YK
 
 namespace Polyphemus
 {
@@ -21,7 +20,7 @@ namespace Polyphemus
   //! StreetNetworkChemistry model.
   template<class T, class ClassChemistry>
   class StreetNetworkChemistry: public StreetNetworkTransport<T>,
-                                public BaseModuleParallel
+				public BaseModuleParallel
   {
 
   protected:
@@ -29,10 +28,31 @@ namespace Polyphemus
     static const T pi;
    
     /*** Meteorological data ***/
-    Array<T, 2> attenuation;
-    Array<T, 2> specific_humidity;
-    Array<T, 2> pressure;
-    Array<T, 2> temperature;
+
+    //! at current date.
+    Data<T, 2> PhotolysisRate_i;    
+    //!  at next date.
+    Data<T, 2> PhotolysisRate_f;    
+
+    //! at current date.
+    Data<T, 1> Attenuation_i;    
+    //!  at next date.
+    Data<T, 1> Attenuation_f;    
+    //!  buffer.
+    Data<T, 1> FileAttenuation_i;
+    //!  buffer.
+    Data<T, 1> FileAttenuation_f;
+
+    //! at current date.
+    Data<T, 1> SpecificHumidity_i;    
+    //!  at next date.
+    Data<T, 1> SpecificHumidity_f;    
+    //!  buffer.
+    Data<T, 1> FileSpecificHumidity_i;
+    //!  buffer.
+    Data<T, 1> FileSpecificHumidity_f;
+    
+    //-----------------------------------------------------------------
 
     //***** Chemistry *****//
 
@@ -46,8 +66,6 @@ namespace Polyphemus
     RegularGrid<T> GridR_photolysis;
     //! List of species with photolysis reactions.
     vector<string> photolysis_reaction_list;
-    //! List of photolysis rates.
-    Array<T, 1> photolysis_rate_;
     //! List of altitudes at which photolysis rates are available.
     vector<string> altitudes_photolysis;
 
@@ -92,16 +110,15 @@ namespace Polyphemus
     /*** Initializations ***/
 
     void ReadConfiguration();
+    void DisplayConfiguration();
     void CheckConfiguration();
     void Allocate();    
-    void InitPhotolysis(Date date);
+    void InitPhotolysis(Date date, Data<T, 2>& Rates);
 
     void Init();
-    
     void InitStreet();
     void InitStep();
-    void InitData();
-    void InitData(string input_file, Array<T, 2>& input_data);
+    void InitAllData();
 
     /*** Access Methods ***/
 
@@ -112,8 +129,7 @@ namespace Polyphemus
     /*** Computational Methods ***/
     
     void Forward();
-
-    //LL: Remove stationary regime*****************************************
+    void Transport();
     void ComputeStreetConcentrationNoStationary();
     void Chemistry(Date current_date_tmp,
 		   Array<T, 1>& concentration_array,
@@ -140,7 +156,6 @@ namespace Polyphemus
 
     bool WithChemistry();
     string GetChemicalMechanism();
-    
   };
 
 

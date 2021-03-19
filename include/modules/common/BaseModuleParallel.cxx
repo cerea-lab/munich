@@ -62,7 +62,6 @@ namespace Polyphemus
     MPI_Comm_size(MPI_COMM_WORLD, &number_slices_);
     parallelized_on_species_ = (Ns_ > 1 && Ns_ >= number_slices_);
     parallelized_on_aer_species_ = (Ns_aer_ > 1 && Ns_aer_ >= number_slices_);
-
 #endif
 
 #ifdef POLYPHEMUS_PARALLEL_WITH_OPENMP
@@ -230,7 +229,6 @@ namespace Polyphemus
     last_index = last_slice_index_source_(rank_);
   }
 
-  
   //! Copies Array<T,3> object in an Array<T,3> permuting the axis order.
   /*! 321 gives the matching between dimensions of both objects:
     A3_out -> A3_in, 1st -> 3rd, 2nd -> 2nd, 3rd -> 1st.
@@ -629,6 +627,20 @@ namespace Polyphemus
                  dim_slice_source_, TypeSlice_source, 0, MPI_COMM_WORLD);    
   }
 
+  // Scatter buffers for Street-type arrays to all processes.
+  template<class T>
+  void BaseModuleParallel::ScatterSlice_source_MPI(Array<T, 3>& A3)
+  {
+    MPI_Datatype TypeSlice_source;
+    MPI_Type_contiguous(A3.extent(1) * A3.extent(2),
+                        MPI_DOUBLE, &TypeSlice_source);
+    MPI_Type_commit(&TypeSlice_source);
+    MPI_Scatterv(&(A3(0, 0, 0)), count_slice_source_.data(),
+                 offset_slice_source_.data(), TypeSlice_source,
+                 &(A3(first_slice_index_source_(rank_), 0, 0)),
+                 dim_slice_source_, TypeSlice_source, 0, MPI_COMM_WORLD);    
+  }
+  
 
   // Gather buffers for Street-type arrays to all processes.
   template<class T>
@@ -650,6 +662,27 @@ namespace Polyphemus
               MPI_DOUBLE, 0, MPI_COMM_WORLD);
   }  
 
+  // Gather buffers for Street-type arrays to all processes.
+  template<class T>
+  void BaseModuleParallel::GatherSlice_source_MPI(Array<T, 3>& A3)
+  {
+    MPI_Datatype TypeSlice_source;
+    MPI_Type_contiguous(A3.extent(1) * A3.extent(2),
+                        MPI_DOUBLE, &TypeSlice_source);
+    MPI_Type_commit(&TypeSlice_source);
+
+    // Gather sliced data from processes to the process 0.
+    MPI_Gatherv(&(A3(first_slice_index_source_(rank_), 0, 0)),
+                dim_slice_source_,
+                TypeSlice_source,
+                &(A3(0, 0, 0)),
+                count_slice_source_.data(), offset_slice_source_.data(),
+                TypeSlice_source, 0, MPI_COMM_WORLD);
+
+    // Cast all data from the process 0 to all processes.
+    MPI_Bcast(&(A3(0, 0, 0)), A3.extent(2) * A3.extent(1) * A3.extent(0),
+              MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  }  
   
   //! Gathers a Array<T, 3> object using an Array<T, 3>.
   /*! As order matters, this method should be used in the case of a

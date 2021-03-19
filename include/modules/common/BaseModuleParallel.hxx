@@ -191,7 +191,6 @@ namespace Polyphemus
     void GetEdgePartition_y(int& first_index, int& last_index);
     void GetEdgePartition_source(int& first_index, int& last_index);
 
-    
     template<class T>
     void CopyFromSlice_x(Array<T, 3>& A3_int, Array<T, 3>& A3_out);
     template<class T>
@@ -315,9 +314,13 @@ namespace Polyphemus
 
     template<class T>
     void ScatterSlice_source_MPI(Array<T, 2>& A2);
-
     template<class T>
     void GatherSlice_source_MPI(Array<T, 2>& A2);
+
+    template<class T>
+    void ScatterSlice_source_MPI(Array<T, 3>& A3);
+    template<class T>
+    void GatherSlice_source_MPI(Array<T, 3>& A3);
 
     template<class T>
     void GatherSlice_x_MPI(Array<T, 3>& A3_in, Array<T, 3>& A3_out);

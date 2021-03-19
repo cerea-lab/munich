@@ -1,5 +1,5 @@
-// Copyright (C) 2005-2007, ENPC - INRIA - EDF R&D
-// Author(s): Vivien Mallet
+// Copyright (C) 2005-2018, ENPC - INRIA - EDF R&D
+// Author(s): Vivien Mallet, Shupeng Zhu
 //
 // This file is part of the air quality modeling system Polyphemus.
 //
@@ -24,15 +24,25 @@
 
 
 #include "BaseModel.hxx"
+// #include "BasePointEmission.cxx" // YK
+#include "InputFiles.cxx"
+#include "AtmoData.hxx"
 
 
 namespace Polyphemus
 {
 
 
-  ////////////////////////////////
-  // CONSTRUCTOR AND DESTRUCTOR //
-  ////////////////////////////////
+  /////////////////////////////////
+  // CONSTRUCTORS AND DESTRUCTOR //
+  /////////////////////////////////
+
+
+  //! Default constructor.
+  template<class T>
+  BaseModel<T>::BaseModel()
+  {
+  }
 
 
   //! Main constructor.
@@ -41,10 +51,29 @@ namespace Polyphemus
     \param config_file configuration file.
   */
   template<class T>
-  BaseModel<T>::BaseModel(string config_file):
-    file_config(config_file), config(config_file), current_time(0.), step(0),
-    backward(false)
+  BaseModel<T>::BaseModel(string config_file)
   {
+    Construct(config_file);
+  }
+
+
+  //! Constructs the model.
+  /*!
+    \param config_file configuration file.
+  */
+  template<class T>
+  void BaseModel<T>::Construct(string config_file)
+  {
+    file_config = config_file;
+    config.Open(file_config);
+
+    current_time = 0.;
+    step = 0;
+    backward = false;
+
+    data_gone_through_initstep = false;
+    data_gone_through_forward = false;
+
     field_species["Concentration"] = &species_list;
     field_species["Concentration_aer"] = &species_list_aer;
 
@@ -74,6 +103,7 @@ namespace Polyphemus
   template<class T>
   void BaseModel<T>::ReadConfiguration()
   {
+
     /*** Dates ***/
 
     config.SetSection("[domain]");
@@ -86,17 +116,46 @@ namespace Polyphemus
 
     config.PeekValue("Species", file_species);
     // Opens the file that describes species.
-    ConfigStream species_stream(file_species);
+    ConfigStreams species_stream(file_config, file_species);
+
     // Section "[species]" contains all species names.
     species_stream.SetSection("[species]");
     while (!species_stream.IsEmpty())
-      species_list.push_back(species_stream.GetElement());
+      {
+        string elm = species_stream.GetElement();
+        if (elm == "file")
+          {
+            ConfigStream included_species(species_stream.GetElement());
+            included_species.SetSection("[species]");
+            while (!included_species.IsEmpty())
+              species_list.push_back(included_species.GetElement());
+          }
+        else
+          species_list.push_back(elm);
+      }
     Ns = int(species_list.size());
 
     /*** Spatial extent ***/
 
     config.PeekValue("Vertical_levels", file_vertical_levels);
     config.PeekValue("Nz", "positive", Nz);
+
+    string value;
+    ifstream infile;
+    int nvalue = 0;
+    infile.open(file_vertical_levels.c_str());
+    while(getline(infile, value))
+      {
+        if (value.length() != 0)
+          ++nvalue;
+      }
+    infile.close();
+    if (Nz + 1 != nvalue)
+      throw string("Number of vertical layer interfaces in \"")  + 
+        file_config + "\", Nz + 1 is " + to_str(Nz + 1) + 
+        ". However " + to_str(nvalue) + " levels are given in \"" + 
+        file_vertical_levels + "\"";
+
     LayerInterface.resize(Nz + 1);
     FormatText().Read(file_vertical_levels, LayerInterface);
 
@@ -130,12 +189,12 @@ namespace Polyphemus
   {
     GridS3D = RegularGrid<T>(Ns);
     GridS4D = RegularGrid<T>(Ns);
-    
+
     GridZ3D = RegularGrid<T>(Nz);
     GridZ3D_interf = RegularGrid<T>(Nz + 1);
     GridZ4D = RegularGrid<T>(Nz);
     GridZ4D_interf = RegularGrid<T>(Nz + 1);
-    
+
     GridX2D = RegularGrid<T>(x_min, Delta_x, Nx);
     GridX3D = RegularGrid<T>(x_min, Delta_x, Nx);
     GridX3D_interf = RegularGrid<T>(x_min - Delta_x / 2., Delta_x, Nx + 1);
@@ -147,7 +206,7 @@ namespace Polyphemus
     GridY3D_interf = RegularGrid<T>(y_min - Delta_y / 2., Delta_y, Ny + 1);
     GridY4D = RegularGrid<T>(y_min, Delta_y, Ny);
     GridY4D_interf = RegularGrid<T>(y_min - Delta_y / 2., Delta_y, Ny + 1);
-    
+
     // None of the grids should be duplicated in order to save memory.
     GridS4D.SetVariable(0);
     GridS4D.SetDuplicate(false);
@@ -185,7 +244,7 @@ namespace Polyphemus
 
     Concentration.Resize(GridS4D, GridZ4D, GridY4D, GridX4D);
   }
-  
+
 
   //! Model initialization.
   /*! It reads the configuration and allocates memory.
@@ -195,16 +254,16 @@ namespace Polyphemus
   {
     this->ReadConfiguration();
     this->CheckConfiguration();
- 
+
     this->Allocate();
 
     // Vertical layers heights.
     FormatText().Read(file_vertical_levels, GridZ3D_interf);
-    for (int k=0; k<Nz; k++)
+    for (int k = 0; k < Nz; k++)
       GridZ4D(k) = GridZ3D(k)
-	= (GridZ3D_interf(k) + GridZ3D_interf(k+1)) / 2.0;
+        = (GridZ3D_interf(k) + GridZ3D_interf(k + 1)) / 2.0;
 
-    for (int k=0; k<Nz+1; k++)
+    for (int k = 0; k < Nz + 1; k++)
       GridZ4D_interf(k) = GridZ3D_interf(k);
 
     BaseModel<T>::SetDate(Date_min);
@@ -217,7 +276,7 @@ namespace Polyphemus
   void BaseModel<T>::InitStep()
   {
   }
-  
+
 
   //! Moves the model to a given date.
   /*! This method prepares the model for a time integration at a given
@@ -227,13 +286,17 @@ namespace Polyphemus
   template<class T>
   void BaseModel<T>::SetDate(Date date)
   {
+    current_time = date.GetSecondsFrom(Date_min);
+
     // Sets the dates involved during the integration.
     previous_date = date;
     current_date = date;
     next_date = date;
     next_date.AddSeconds(Delta_t);
+
+    step = int(current_time / Delta_t + .5);
   }
-  
+
 
   //! Moves back to the beginning of the previous step.
   /*! Moves back to the beginning of the previous step without changes in the
@@ -260,7 +323,7 @@ namespace Polyphemus
     SubtractTime(Delta_t);
     this->step--;
   }
- 
+
 
   /////////////////
   // INTEGRATION //
@@ -274,7 +337,17 @@ namespace Polyphemus
   {
   }
 
-  
+  //! Checks whether the model has finished.
+  /*!
+    \return True if no more forward step is required, false otherwise.
+  */
+  template <class T>
+  bool BaseModel<T>::HasFinished() const
+  {
+    return step >= Nt;
+  }
+
+
   //! Prepares for backward integration.
   /*! It sets flag for backward integration, then allocates memories for
     adjoint concentration data, finally it initilizes the adjoint
@@ -287,8 +360,8 @@ namespace Polyphemus
     backward = flag;
     if (backward)
       {
-	Concentration_ccl.Resize(GridS4D, GridZ4D, GridY4D, GridX4D);
-	Concentration_ccl.GetArray() = T(0.);
+        Concentration_ccl.Resize(GridS4D, GridZ4D, GridY4D, GridX4D);
+        Concentration_ccl.GetArray() = T(0.);
       }
   }
 
@@ -305,7 +378,7 @@ namespace Polyphemus
   // ACCESS METHODS //
   ////////////////////
 
-  
+
   //! Returns the name of the configuration file.
   /*!
     \return The name of the configuration file.
@@ -325,6 +398,56 @@ namespace Polyphemus
   bool BaseModel<T>::IsBackward()
   {
     return backward;
+  }
+
+
+  //! Has data gone though 'InitStep'?
+  /*!
+    \return Has data gone though 'InitStep'?
+  */
+  template<class T>
+  bool BaseModel<T>::HasDataGoneThroughInitStep()
+  {
+    return data_gone_through_initstep;
+  }
+
+
+  //! Has data gone though 'InitStep'?
+  /*!
+    \param[in] new_value new value for the Boolean.
+    \return Has data gone though 'InitStep'?
+  */
+  template<class T>
+  bool BaseModel<T>::HasDataGoneThroughInitStep(bool new_value)
+  {
+    bool output = data_gone_through_initstep;
+    data_gone_through_initstep = new_value;
+    return output;
+  }
+
+
+  //! Has data gone though 'Forward'?
+  /*!
+    \return Has data gone though 'Forward'?
+  */
+  template<class T>
+  bool BaseModel<T>::HasDataGoneThroughForward()
+  {
+    return data_gone_through_forward;
+  }
+
+
+  //! Has data gone though 'Forward'?
+  /*!
+    \param[in] new_value new value for the Boolean.
+    \return Has data gone though 'Forward'?
+  */
+  template<class T>
+  bool BaseModel<T>::HasDataGoneThroughForward(bool new_value)
+  {
+    bool output = data_gone_through_forward;
+    data_gone_through_forward = new_value;
+    return output;
   }
 
 
@@ -392,7 +515,7 @@ namespace Polyphemus
   {
     return Ns_aer;
   }
-  
+
 
   //! Returns the number of aerosol species.
   /*!
@@ -403,7 +526,7 @@ namespace Polyphemus
   {
     return Ns_aer;
   }
-  
+
 
   //! Returns the number of bins (aerosols).
   /*!
@@ -414,7 +537,36 @@ namespace Polyphemus
   {
     return Nbin_aer;
   }
+
+  //! Returns the number of groups (aerosols).
+  /*!
+    \return The number of groups.
+  */
+  template<class T>
+  int BaseModel<T>::GetNgroup_aer() const
+  {
+    return Ngroup_aer;
+  }
+
+  //! Returns the number of composition possibilities (aerosols).
+  /*!
+    \return The number of composition possibilities.
+  */
+  template<class T>
+  int BaseModel<T>::GetNcomposition_aer() const
+  {
+    return Ncomposition_aer;
+  }
   
+  //! Returns the number of size sections (aerosols).
+  /*!
+    \return The number of size sections.
+  */
+  template<class T>
+  int BaseModel<T>::GetNsize_section_aer() const
+  {
+    return Nsize_section_aer;
+  }
 
   //! Returns simulation starting date.
   /*!
@@ -436,7 +588,7 @@ namespace Polyphemus
   {
     return Nz;
   }
-  
+
 
   //! Returns the domain origin along y.
   /*!
@@ -495,7 +647,7 @@ namespace Polyphemus
   {
     return Delta_x;
   }
-  
+
 
   //! Returns the number of points along x.
   /*!
@@ -561,8 +713,8 @@ namespace Polyphemus
       throw string("Species \"") + species + "\" unknown.";
     return index;
   }
-  
-  
+
+
   //! Returns the index in a given vector of a species.
   /*! If the species is not found, an exception is thrown.
     \param species the species name.
@@ -571,7 +723,7 @@ namespace Polyphemus
   */
   template<class T>
   int BaseModel<T>::GetSpeciesIndex(string species,
-				    const vector<string>& ref_species_list)
+                                    const vector<string>& ref_species_list)
     const
   {
     int index = 0;
@@ -608,6 +760,27 @@ namespace Polyphemus
     return species_list_aer;
   }
 
+  //! Returns the group list of aerosol group.
+  /*! The group order in the model (e.g. in the concentrations Data) is the
+    same as the order of the returned list.
+    \return The group list.
+  */
+  template<class T>
+  vector<string> BaseModel<T>::GetGroupList_aer() const
+  {
+    return groups_list_aer;
+  }
+
+  //! Returns the name of an aerosol group on the basis of its index.
+  /*!
+    \param i group index (in the model).
+    \return Aerosol group name.
+  */
+  template<class T>
+  string BaseModel<T>::GetGroupName_aer(int i) const
+  {
+    return groups_list_aer[i];
+  }
 
   //! Returns the name of an aerosol on the basis of its index.
   /*!
@@ -618,6 +791,17 @@ namespace Polyphemus
   string BaseModel<T>::GetSpeciesName_aer(int i) const
   {
     return species_list_aer[i];
+  }
+
+  //! Returns the name of an aerosol on the basis of its index.
+  /*!
+    \param i species index (in the model).
+    \return Aerosol name.
+  */
+  template<class T>
+  string BaseModel<T>::GetName_aer(int i) const
+  {
+	return list_aer[i];
   }
 
 
@@ -645,6 +829,16 @@ namespace Polyphemus
     return GetSpeciesIndex(species, species_list_aer);
   }
 
+  //! Returns the index of an aerosol groups.
+  /*! If the group is not found, an exception is thrown.
+    \param species the group name.
+    \return The index (in the model) of the group named \a species.
+  */
+  template<class T>
+  int BaseModel<T>::GetGroupIndex_aer(string species) const
+  {
+    return GetSpeciesIndex(species, groups_list_aer);
+  }
 
   //! Returns the species list associated with a given field.
   /*! The species order in the model is the same as the order of the returned
@@ -810,7 +1004,7 @@ namespace Polyphemus
       type.push_back("2D data");
     else if (A2_map.find(field) != A2_map.end())
       type.push_back("2D array");
-    
+
     // Is it a 3D field?
     if (D3_map.find(field) != D3_map.end())
       type.push_back("3D data");
@@ -832,8 +1026,8 @@ namespace Polyphemus
     // The field was not found.
     if (type.size() == 0)
       return string("Field \"") + field
-	+ string("\" is not part of the interface.");
-    
+        + string("\" is not part of the interface.");
+
     // The field was found.
     string message = string("Field \"") + field
       + string("\" may be found in ") + type[0];
@@ -860,7 +1054,7 @@ namespace Polyphemus
       return 2;
     else if (A2_map.find(field) != A2_map.end())
       return 2;
-    
+
     // Is it a 3D field?
     if (D3_map.find(field) != D3_map.end())
       return 3;
@@ -894,15 +1088,15 @@ namespace Polyphemus
   {
     if (A2_map.find(field) == A2_map.end())
       if (D2_map.find(field) == D2_map.end())
-	throw string("Field \"") + field + string("\" cannot be found in 2D")
-	  + string(" arrays. ") + FindField(field);
+        throw string("Field \"") + field + string("\" cannot be found in 2D")
+          + string(" arrays. ") + FindField(field);
       else
-	return D2_map[field]->GetArray();
+        return D2_map[field]->GetArray();
     else
       return *A2_map[field];
   }
 
-  
+
   //! Returns the Data instance that stores a 2D field.
   /*! If the field is not found, an exception is thrown.
     \param field field name.
@@ -913,11 +1107,11 @@ namespace Polyphemus
   {
     if (D2_map.find(field) == D2_map.end())
       throw string("Field \"") + field + string("\" cannot be found in 2D")
-	+ string(" data. ") + FindField(field);
+        + string(" data. ") + FindField(field);
     return *D2_map[field];
   }
 
-  
+
   //! Returns the array that stores a 3D field.
   /*! If the field is not found, an exception is thrown.
     \param field field name.
@@ -928,15 +1122,15 @@ namespace Polyphemus
   {
     if (A3_map.find(field) == A3_map.end())
       if (D3_map.find(field) == D3_map.end())
-	throw string("Field \"") + field + string("\" cannot be found in 3D")
-	  + string(" arrays. ") + FindField(field);
+        throw string("Field \"") + field + string("\" cannot be found in 3D")
+          + string(" arrays. ") + FindField(field);
       else
-	return D3_map[field]->GetArray();
+        return D3_map[field]->GetArray();
     else
       return *A3_map[field];
   }
 
-  
+
   //! Returns the Data instance that stores a 3D field.
   /*! If the field is not found, an exception is thrown.
     \param field field name.
@@ -947,11 +1141,11 @@ namespace Polyphemus
   {
     if (D3_map.find(field) == D3_map.end())
       throw string("Field \"") + field + string("\" cannot be found in 3D")
-	+ string(" data. ") + FindField(field);
+        + string(" data. ") + FindField(field);
     return *D3_map[field];
   }
 
-  
+
   //! Returns the array that stores a 4D field.
   /*! If the field is not found, an exception is thrown.
     \param field field name.
@@ -962,15 +1156,15 @@ namespace Polyphemus
   {
     if (A4_map.find(field) == A4_map.end())
       if (D4_map.find(field) == D4_map.end())
-	throw string("Field \"") + field + string("\" cannot be found in 4D")
-	  + string(" arrays. ") + FindField(field);
+        throw string("Field \"") + field + string("\" cannot be found in 4D")
+          + string(" arrays. ") + FindField(field);
       else
-	return D4_map[field]->GetArray();
+        return D4_map[field]->GetArray();
     else
       return *A4_map[field];
   }
 
-  
+
   //! Returns the Data instance that stores a 4D field.
   /*! If the field is not found, an exception is thrown.
     \param field field name.
@@ -981,7 +1175,7 @@ namespace Polyphemus
   {
     if (D4_map.find(field) == D4_map.end())
       throw string("Field \"") + field + string("\" cannot be found in 4D")
-	+ string(" data. ") + FindField(field);
+        + string(" data. ") + FindField(field);
     return *D4_map[field];
   }
 
@@ -996,15 +1190,15 @@ namespace Polyphemus
   {
     if (A5_map.find(field) == A5_map.end())
       if (D5_map.find(field) == D5_map.end())
-	throw string("Field \"") + field + string("\" cannot be found in 5D")
-	  + string(" arrays. ") + FindField(field);
+        throw string("Field \"") + field + string("\" cannot be found in 5D")
+          + string(" arrays. ") + FindField(field);
       else
-	return D5_map[field]->GetArray();
+        return D5_map[field]->GetArray();
     else
       return *A5_map[field];
   }
 
-  
+
   //! Returns the Data instance that stores a 5D field.
   /*! If the field is not found, an exception is thrown.
     \param field field name.
@@ -1015,9 +1209,65 @@ namespace Polyphemus
   {
     if (D5_map.find(field) == D5_map.end())
       throw string("Field \"") + field + string("\" cannot be found in 5D")
-	+ string(" data. ") + FindField(field);
+        + string(" data. ") + FindField(field);
     return *D5_map[field];
   }
+
+
+  //! Adds a name to the list of input parameters.
+  /*! Here, an input parameter is an input of the model time stepper, except
+    the state vector.
+    \param[in] name name of the parameter.
+  */
+  template<class T>
+  void BaseModel<T>::RegisterParameter(string name)
+  {
+    if (find(parameter_name.begin(), parameter_name.end(), name)
+        != parameter_name.end())
+      throw "Parameter \"" + name + "\" is already registered.";
+
+    parameter_name.push_back(name);
+  }
+
+
+  //! Returns the total number of input parameters.
+  /*! Here, an input parameter is an input of the model time stepper, except
+    the state vector.
+    \return The total number of input parameters.
+  */
+  template<class T>
+  int BaseModel<T>::GetNparameter() const
+  {
+    return int(parameter_name.size());
+  }
+
+
+  //! Returns the name of a parameter.
+  /*!
+    \param[in] i index of the parameter.
+    \return The name of the parameter \a i.
+  */
+  template<class T>
+  string BaseModel<T>::GetParameterName(int i) const
+  {
+    if (i < 0 || i >= GetNparameter())
+      throw "In \"BaseModel::GetParameterName(int)\", "
+        "parameter index should be in [0, "
+        + to_str(GetNparameter()) + "], but "
+        + to_str(i) + " was provided.";
+    return parameter_name[i];
+  }
+
+
+  // //! Returns the manager of point emissions.
+  // /*!
+  //   \return The manager of point emissions.
+  // */
+  // template<class T>
+  // BasePointEmission<T>* BaseModel<T>::GetPointEmission()
+  // {
+  //   return PointEmissionManager;
+  // } // YK
 
 
   //! Returns the concentrations Data.
@@ -1074,6 +1324,15 @@ namespace Polyphemus
     return Concentration_aer;
   }
 
+  //! Returns the Vertical Wind Data for aerosols.
+  /*!
+    \return The Vertical Wind Data for aerosols.
+  */
+  template<class T>
+  Data<T, 3>& BaseModel<T>::GetVertical_Wind()
+  {
+    return Vertical_Wind;
+  }
 
   //! Returns the concentrations Data for aerosols.
   /*!
@@ -1085,6 +1344,26 @@ namespace Polyphemus
     return Concentration_aer;
   }
 
+  //! Returns the concentrations Data for aerosols.
+  /*!
+    \return The concentrations Data for aerosols.
+  */
+  template<class T>
+  Data<T, 4>& BaseModel<T>::GetNumberConcentration_aer()
+  {
+    return NumberConcentration_aer;
+  }
+  
+  
+  //! Returns the concentrations Data for aerosols.
+  /*!
+    \return The concentrations Data for aerosols.
+  */
+  template<class T>
+  const Data<T, 4>& BaseModel<T>::GetNumberConcentration_aer() const
+  {
+    return NumberConcentration_aer;
+  }
 
   //! Computes mean concentration over a given volume (virtual method).
   /*!
@@ -1092,7 +1371,7 @@ namespace Polyphemus
   */
   template<class T>
   T BaseModel<T>::GetIntegratedConcentration(int species, T z, T y, T x,
-					     T lz, T ly, T lx)
+                                             T lz, T ly, T lx)
   {
     throw string("\"BaseModel<T>::GetIntegratedConcentration(int, T, T, T, ")
       + "T, T, T)\" is not defined.";
@@ -1117,18 +1396,36 @@ namespace Polyphemus
   */
   template<class T>
   T BaseModel<T>::GetConcentration_aer(int species, int diameter,
-				       T z, T y, T x)
+                                       T z, T y, T x)
   {
     throw string("\"BaseModel<T>::GetConcentration_aer(int, int, T, T, T)\"")
       + " is not defined.";
   }
-
+  //! Computes number concentration at a given point (virtual method) for aerosols.
+  /*!
+    \return The aerosol number concentration at the point.
+  */
+  template<class T>
+  T BaseModel<T>::GetNumberConcentration_aer(int diameter,
+											 T z, T y, T x)
+  {
+    throw string("\"BaseModel<T>::GetNumberConcentration_aer(int, T, T, T)\"")
+      + " is not defined.";
+  }
+  
+  
+  //! Checks whether a field is managed by the model (virtual method).
+  template<class T>
+  bool BaseModel<T>::HasNumberConcentration_aer()
+  {
+    return false;
+  }
 
   //! Computes concentration for a list of species and levels (virtual
   //! method).
   template<class T>
   void BaseModel<T>::ComputeConcentration(const vector<int>& species_index,
-					  const vector<int>& levels)
+                                          const vector<int>& levels)
   {
   }
 
@@ -1204,7 +1501,7 @@ namespace Polyphemus
 
     current_time += time;
   }
-  
+
 
   //! Subtracts time to current time.
   /*! Sets the next date to the (old) current date, subtracts \a time seconds
@@ -1224,12 +1521,101 @@ namespace Polyphemus
 
     current_time -= time;
   }
-  
+
 
   ///////////////////////
   // PROTECTED METHODS //
   ///////////////////////
 
+
+  //! Registers in maps "D2_map".
+  /*!
+    \param Data_i (input) data stored on file at the step before a date.
+    \param Data_f (input) data stored on file at the step after a date.
+    \param name_field input file.
+  */
+  template<class T>
+  void BaseModel<T>::Register(Data<T, 2>& Data_i, Data<T, 2>&  Data_f,
+                              string name_field)
+  {
+    this->D2_map[name_field] = &Data_f;
+    this->D2_map[name_field + "_i"] = &Data_i;
+    this->D2_map[name_field + "_f"] = &Data_f;
+  }
+
+
+  //! Registers in maps "D2_map".
+  /*!
+    \param Data_i (input) data stored on file at the step before a date.
+    \param name_field input file.
+  */
+  template<class T>
+  void BaseModel<T>::Register(Data<T, 2>& Data_i, string name_field)
+  {
+    this->D2_map[name_field] = &Data_i;
+    this->D2_map[name_field + "_i"] = &Data_i;
+  }
+
+
+  //! Registers in "D3_map".
+  /*!
+    \param Data_i (input) data stored on file at the step before a date.
+    \param Data_f (input) data stored on file at the step after a date.
+    \param name_field input file.
+  */
+  template<class T>
+  void BaseModel<T>::Register(Data<T, 3>& Data_i, Data<T, 3>& Data_f,
+                              string name_field)
+  {
+    this->D3_map[name_field] = &Data_f;
+    this->D3_map[name_field + "_i"] = &Data_i;
+    this->D3_map[name_field + "_f"] = &Data_f;
+  }
+
+
+  //! Registers in "D3_map".
+  /*!
+    \param Data_i (input) data stored on file at the step before a date.
+    \param Data_f (input) data stored on file at the step after a date.
+    \param name_field input file.
+  */
+  template<class T>
+  void BaseModel<T>::Register(Data<T, 3>& Data_i, string name_field)
+  {
+    this->D3_map[name_field] = &Data_i;
+    this->D3_map[name_field + "_i"] = &Data_i;
+  }
+
+
+  //! Registers in "D4_map".
+  /*!
+    \param Data_i (input) data stored on file at the step before a date.
+    \param Data_f (input) data stored on file at the step after a date.
+    \param name_field input file.
+  */
+  template<class T>
+  void BaseModel<T>::Register(Data<T, 4>& Data_i, Data<T, 4>& Data_f,
+                              string name_field)
+  {
+    this->D4_map[name_field] = &Data_f;
+    this->D4_map[name_field + "_i"] = &Data_i;
+    this->D4_map[name_field + "_f"] = &Data_f;
+  }
+
+
+  //! Registers in "D4_map".
+  /*!
+    \param Data_i (input) data stored on file at the step before a date.
+    \param Data_f (input) data stored on file at the step after a date.
+    \param name_field input file.
+  */
+  template<class T>
+  void BaseModel<T>::Register(Data<T, 4>& Data_i, string name_field)
+  {
+    this->D4_map[name_field] = &Data_i;
+    this->D4_map[name_field + "_i"] = &Data_i;
+  }
+  
 
   //! Initializes data at a given date.
   /*! Reads, on file, data associated with \a field in group \a section. It
@@ -1249,17 +1635,20 @@ namespace Polyphemus
   */
   template<class T>
   template<int N>
-  void BaseModel<T>::InitData(string section, string field,
-			      Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-			      Date date, Data<T, N>& CurrentData,
-			      bool interpolated)
+  void BaseModel<T>::InitData(string section,
+			      string field,
+                              Data<T, N>& FileData_i,
+			      Data<T, N>& FileData_f,
+                              Date date,
+			      Data<T, N>& CurrentData,
+                              bool interpolated)
   {
     InitData(input_files[section](field), input_files[section].GetDateMin(),
-	     input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	     date, CurrentData, interpolated);
+             input_files[section].GetDelta_t(), FileData_i, FileData_f,
+             date, CurrentData, interpolated);
   }
-  
-  
+
+
   //! Initializes sub-data at a given date.
   /*! Reads, on file, data associated with \a field in group \a section. It
     reads the two steps surrounding the date \a date. Field \a CurrentData is
@@ -1281,16 +1670,16 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::InitData(string section, string field,
-			      Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-			      Date date, int index, Data<T, N>& CurrentData,
-			      bool interpolated)
+                              Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                              Date date, int index, Data<T, N>& CurrentData,
+                              bool interpolated)
   {
     InitData(input_files[section](field), input_files[section].GetDateMin(),
-	     input_files[section].GetDelta_t(), FileData_i, FileData_f, date,
-	     index, CurrentData, interpolated);
+             input_files[section].GetDelta_t(), FileData_i, FileData_f, date,
+             index, CurrentData, interpolated);
   }
-  
-  
+
+
   //! Initializes sub-data at a given date.
   /*! Reads, on file, data associated with \a field in group \a section. It
     reads the two steps surrounding the date \a date and it interpolates
@@ -1313,16 +1702,16 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::InitData(string section, string field,
-			      Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-			      Date date, int first_index, int second_index,
-			      Data<T, N>& CurrentData)
+                              Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                              Date date, int first_index, int second_index,
+                              Data<T, N>& CurrentData)
   {
     InitData(input_files[section](field), input_files[section].GetDateMin(),
-	     input_files[section].GetDelta_t(), FileData_i, FileData_f, date,
-	     first_index, second_index, CurrentData);
+             input_files[section].GetDelta_t(), FileData_i, FileData_f, date,
+             first_index, second_index, CurrentData);
   }
-  
-  
+
+
   //! Initializes data at a given date.
   /*! Reads data in file \a input_file. It reads the two steps surrounding the
     date \a date. Field \a CurrentData is then computed by linear
@@ -1343,33 +1732,39 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::InitData(string input_file, Date date_min_file,
-			      T Delta_t_file, Data<T, N>& FileData_i,
-			      Data<T, N>& FileData_f, Date date,
-			      Data<T, N>& CurrentData,
-			      bool interpolated)
+                              T Delta_t_file, Data<T, N>& FileData_i,
+                              Data<T, N>& FileData_f, Date date,
+                              Data<T, N>& CurrentData,
+                              bool interpolated)
   {
     if (is_num(input_file))
       {
-	T value = to_num<T>(input_file);
-	FileData_i.Fill(value);
-	FileData_f.Fill(value);
-	CurrentData.Fill(value);
-	return;
+        T value = to_num<T>(input_file);
+        FileData_i.Fill(value);
+        FileData_f.Fill(value);
+        CurrentData.Fill(value);
+        return;
       }
 
     T time_distance = date.GetSecondsFrom(date_min_file);
     int record = int(floor(time_distance / Delta_t_file));
+    if (record < 0)
+      throw string("ERROR! the begining date \"") + to_str(date) + 
+        string("\" is out of the given input data.\t") + 
+        string("The begining date for the input data is \"") + to_str(date_min_file) + 
+        string("\".");
+
     FormatBinary<float>().ReadRecord(input_file, record, FileData_i);
     FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
 
     if (interpolated)
       Interpolate(date_min_file, Delta_t_file, record, FileData_i, FileData_f,
-		  date, CurrentData);
+                  date, CurrentData);
     else
       CurrentData.GetArray() = FileData_f.GetArray();
   }
-  
-  
+
+
   //! Initializes sub-data at a given date.
   /*! Reads data in file \a input_file. It reads the two steps surrounding the
     date \a date. Field \a CurrentData is then computed by linear
@@ -1393,29 +1788,76 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::InitData(string input_file, Date date_min_file,
-			      T Delta_t_file, Data<T, N>& FileData_i,
-			      Data<T, N>& FileData_f, Date date, int index,
-			      Data<T, N>& CurrentData,
-			      bool interpolated)
+                              T Delta_t_file, Data<T, N>& FileData_i,
+                              Data<T, N>& FileData_f, Date date, int index,
+                              Data<T, N>& CurrentData,
+                              bool interpolated)
   {
     // Extracts sub-data first.
-    TinyVector<int, N-1> new_shape;
+    TinyVector < int, N - 1 > new_shape;
     for (int i = 0; i < N - 1; i++)
       new_shape(i) = FileData_i.GetArray().shape()(i + 1);
     unsigned int position = index * FileData_i.GetNbElements()
       / FileData_i.GetLength(0);
+    Data < T, N - 1 > FileData_extract_i(&FileData_i.GetData()[position],
+                                         new_shape);
+    Data < T, N - 1 > FileData_extract_f(&FileData_f.GetData()[position],
+                                         new_shape);
+    Data < T, N - 1 > CurrentData_extract(&CurrentData.GetData()[position],
+                                          new_shape);
+
+    InitData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
+             FileData_extract_f, date, CurrentData_extract, interpolated);
+  }
+
+  //! Initializes sub-data at a given date.
+  /*!This reloaded function initialized number concentration from external format data
+    Reads data in file \a input_file. It reads the two steps surrounding the
+    date \a date. Field \a CurrentData is then computed by linear
+    interpolation or set to \a FileData_f, depending on \a interpolated.
+    Output data is stored in the ith sub-array of output Data instances, where
+    i is the index along the first dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (output) data stored on file at the step before \a date.
+    \param FileData_f (output) data stored on file at the step after \a date.
+    \param date date at which data are computed.
+    \param i index, along the first dimension, where output data is stored.
+    \param CurrentData (output) data at date \a date.
+    \param Nc number of composition, for external data    
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>
+  template<int N>
+  void BaseModel<T>::InitData(string input_file, Date date_min_file,
+			      T Delta_t_file, Data<T, N>& FileData_i,
+			      Data<T, N>& FileData_f, Date date, int index,
+			      Data<T, N>& CurrentData,
+			      int Nc)
+  {
+    // Extracts sub-data first.
+    TinyVector<int, N-1> new_shape;
+    
+    for (int i = 0; i < N - 1; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 1);
+    
+    new_shape(0) =new_shape(0) * Nc;
+    
+    unsigned data_size=FileData_i.GetNbElements()/FileData_i.GetLength(0);
+    unsigned int position = index * Nc * data_size;
     Data<T, N-1> FileData_extract_i(&FileData_i.GetData()[position],
 				    new_shape);
     Data<T, N-1> FileData_extract_f(&FileData_f.GetData()[position],
 				    new_shape);
     Data<T, N-1> CurrentData_extract(&CurrentData.GetData()[position],
-				     new_shape);
+				    new_shape);
 
     InitData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
-	     FileData_extract_f, date, CurrentData_extract, interpolated);
+	    FileData_extract_f, date, CurrentData_extract);
   }
-
-
+  
   //! Initializes sub-data at a given date.
   /*! Reads data in file \a input_file. It reads the two steps surrounding the
     date \a date and it interpolates linearly to compute the data at date \a
@@ -1440,18 +1882,72 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::InitData(string input_file, Date date_min_file,
+                              T Delta_t_file, Data<T, N>& FileData_i,
+                              Data<T, N>& FileData_f, Date date,
+                              int first_index, int second_index,
+                              Data<T, N>& CurrentData)
+  {
+    // Extracts sub-data first.
+    TinyVector < int, N - 2 > new_shape;
+    for (int i = 0; i < N - 2; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 2);
+    unsigned int position = first_index * FileData_i.GetNbElements()
+      + second_index * FileData_i.GetNbElements() / FileData_i.GetLength(1);
+    position /= FileData_i.GetLength(0);
+    Data < T, N - 2 > FileData_extract_i(&FileData_i.GetData()[position],
+                                         new_shape);
+    Data < T, N - 2 > FileData_extract_f(&FileData_f.GetData()[position],
+                                         new_shape);
+    Data < T, N - 2 > CurrentData_extract(&CurrentData.GetData()[position],
+                                          new_shape);
+
+    InitData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
+             FileData_extract_f, date, CurrentData_extract);
+  }
+
+  //! Initializes sub-data at a given date.
+  /*! This reloaded function initialized concentration from internal format data
+    Reads data in file \a input_file. It reads the two steps surrounding the
+    date \a date and it interpolates linearly to compute the data at date \a
+    date. Output data is stored in the sub-array at (first_index,
+    second_index) of output Data instances, where \a first_index is the index
+    along the first dimension, and \a second_index is the index along the
+    second dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (output) data stored on file at the step before \a date.
+    \param FileData_f (output) data stored on file at the step after \a date.
+    \param date date at which data are computed.
+    \param first_index index, along the first dimension, where output data is
+    stored.
+    \param second_index index, along the second dimension, where output data
+    is stored.
+    \param third_index index, along the third dimension (aerosol composition),
+    where output data is stored.
+    \param CurrentData (output) data at date \a date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T> 
+  template<int N>
+  void BaseModel<T>::InitData(string input_file, Date date_min_file,
 			      T Delta_t_file, Data<T, N>& FileData_i,
 			      Data<T, N>& FileData_f, Date date,
-			      int first_index, int second_index,
+			      int first_index, int second_index, int third_index,
 			      Data<T, N>& CurrentData)
   {
     // Extracts sub-data first.
     TinyVector<int, N-2> new_shape;
     for (int i = 0; i < N - 2; i++)
       new_shape(i) = FileData_i.GetArray().shape()(i + 2);
-    unsigned int position = first_index * FileData_i.GetNbElements()
-      + second_index * FileData_i.GetNbElements() / FileData_i.GetLength(1);
-    position /= FileData_i.GetLength(0);
+    
+    unsigned data_size=FileData_i.GetNbElements()/ FileData_i.GetLength(1)
+      /FileData_i.GetLength(0);
+    
+    unsigned int position = first_index * FileData_i.GetNbElements()/FileData_i.GetLength(0)
+      + second_index * data_size * Ncomposition_aer +third_index*data_size;
+
     Data<T, N-2> FileData_extract_i(&FileData_i.GetData()[position],
 				    new_shape);
     Data<T, N-2> FileData_extract_f(&FileData_f.GetData()[position],
@@ -1463,6 +1959,86 @@ namespace Polyphemus
 	     FileData_extract_f, date, CurrentData_extract);
   }
 
+  //! Initializes sub-data at a given date.
+  /*!This reloaded function initialized concentration from external format data
+    Reads data in file \a input_file. It reads the two steps surrounding the
+    date \a date and it interpolates linearly to compute the data at date \a
+    date. Output data is stored in the sub-array at (first_index,
+    second_index) of output Data instances, where \a first_index is the index
+    along the first dimension, and \a second_index is the index along the
+    second dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (output) data stored on file at the step before \a date.
+    \param FileData_f (output) data stored on file at the step after \a date.
+    \param date date at which data are computed.
+    \param first_index index, along the first dimension, where output data is
+    stored.
+    \param second_index index, along the second dimension, where output data
+    is stored.
+    \param Nc number of composition, for external data
+    \param CurrentData (output) data at date \a date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>
+  template<int N>
+  void BaseModel<T>::InitData(string input_file, Date date_min_file,
+			      T Delta_t_file, Data<T, N>& FileData_i,
+			      Data<T, N>& FileData_f, Date date,
+			      int first_index, int second_index,
+			      Data<T, N>& CurrentData,int Nc)
+  {
+    // Extracts sub-data first.
+    TinyVector<int, N-2> new_shape;
+    for (int i = 0; i < N - 2; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 2);
+    
+    new_shape(0)=new_shape(0)* Nc;
+    
+    unsigned data_size=FileData_i.GetNbElements()/ FileData_i.GetLength(1)/FileData_i.GetLength(0);
+    unsigned int position = first_index * FileData_i.GetNbElements()/FileData_i.GetLength(0)
+      + second_index * Nc * data_size;
+    Data<T, N-2> FileData_extract_i(&FileData_i.GetData()[position],
+				    new_shape);
+    Data<T, N-2> FileData_extract_f(&FileData_f.GetData()[position],
+				    new_shape);
+    Data<T, N-2> CurrentData_extract(&CurrentData.GetData()[position],
+				    new_shape);
+
+    InitData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
+	    FileData_extract_f, date, CurrentData_extract);
+      
+  }
+
+  //LL !!--------------------------------------------------------------
+  template<class T>
+  template<int N>
+  void BaseModel<T>::InitData(string section,
+			      string field,
+                              Data<T, N>& FileData)
+  {
+    string input_file = input_files[section](field);
+    FormatBinary<float>().Read(input_file, FileData);
+  }
+  
+  //! Street source initialization.
+  template<class T>
+  template<int N>
+  void BaseModel<T>::InitData(string input_file, Array<T, N>& input_data)
+  {
+    if (is_num(input_file))
+      {
+	T value = to_num<T>(input_file);
+        if (value < 0.0)
+          throw string("Negative value is not allowed. ") + input_file;
+	input_data = value;
+	return;
+      }
+    FormatBinary<float>().Read(input_file, input_data);
+  }  
+  //-------------------------------------------------------------------
 
   //! Updates data at current date.
   /*! Depending on \a interpolated, it interpolates data at the current date,
@@ -1488,14 +2064,14 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string section, string field,
-				Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				Data<T, N>& CurrentData,
-				bool interpolated)
+                                Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                Data<T, N>& CurrentData,
+                                bool interpolated)
   {
     UpdateData(input_files[section](field), input_files[section].GetDateMin(),
-	       input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	       CurrentData, interpolated);
+               input_files[section].GetDelta_t(), FileData_i, FileData_f,
+               CurrentData, interpolated);
   }
 
 
@@ -1526,14 +2102,14 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string section, string field,
-				Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				int index, Data<T, N>& CurrentData,
-				bool interpolated)
+                                Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                int index, Data<T, N>& CurrentData,
+                                bool interpolated)
   {
     UpdateData(input_files[section](field), input_files[section].GetDateMin(),
-	       input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	       index, CurrentData, interpolated);
+               input_files[section].GetDelta_t(), FileData_i, FileData_f,
+               index, CurrentData, interpolated);
   }
 
 
@@ -1564,14 +2140,14 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string section, string field,
-				Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				int first_index, int second_index,
-				Data<T, N>& CurrentData)
+                                Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                int first_index, int second_index,
+                                Data<T, N>& CurrentData)
   {
     UpdateData(input_files[section](field), input_files[section].GetDateMin(),
-	       input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	       first_index, second_index, CurrentData);
+               input_files[section].GetDelta_t(), FileData_i, FileData_f,
+               first_index, second_index, CurrentData);
   }
 
 
@@ -1600,50 +2176,51 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
-				T Delta_t_file, Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				Data<T, N>& CurrentData,
-				bool interpolated)
+                                T Delta_t_file, Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                Data<T, N>& CurrentData,
+                                bool interpolated)
   {
     if (is_num(input_file))
       {
-	T value = to_num<T>(input_file);
-	FileData_i.Fill(value);
-	FileData_f.Fill(value);
-	CurrentData.Fill(value);
-	return;
+        T value = to_num<T>(input_file);
+        FileData_i.Fill(value);
+        FileData_f.Fill(value);
+        CurrentData.Fill(value);
+        return;
       }
 
     // Computes the record of the previous step, to check whether
     // any update of FileData_{i,f} is needed.
     T time_distance = previous_date.GetSecondsFrom(date_min_file);
-    int previous_record = int(floor(time_distance / Delta_t_file));
+    int previous_record = int((time_distance / Delta_t_file));
     // Computes the record to be read in the file for the current date.
     time_distance = current_date.GetSecondsFrom(date_min_file);
     int record = int(floor(time_distance / Delta_t_file));
-
+    //cout<<"record no update data= "<<record<<" previous_record= "<<previous_record<<endl;
+    //throw;
     if (previous_record == record - 1)
       // FileData_{i,f} should be updated, and the new value of FileData_i
       // is the old value of FileData_f.
       {
-	FileData_i.GetArray() = FileData_f.GetArray();
-	FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
+        FileData_i.GetArray() = FileData_f.GetArray();
+        FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
       }
     else if (previous_record < record)
       // All should be read.
       {
-	FormatBinary<float>().ReadRecord(input_file, record, FileData_i);
-	FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
+        FormatBinary<float>().ReadRecord(input_file, record, FileData_i);
+        FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
       }
 
     if (interpolated)
       Interpolate(date_min_file, Delta_t_file, record, FileData_i, FileData_f,
-		  current_date, CurrentData);
+                  current_date, CurrentData);
     else
       CurrentData.GetArray() = FileData_f.GetArray();
   }
-  
-  
+
+
   //! Updates sub-data at current date.
   /*! Depending on \a interpolated, it interpolates data at the current date,
     on the basis of \a FileData_i and \a FileData_f or sets it to \a
@@ -1672,28 +2249,134 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
+                                T Delta_t_file, Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                int index, Data<T, N>& CurrentData,
+                                bool interpolated)
+  {
+    // Extracts sub-data first.
+    TinyVector < int, N - 1 > new_shape;
+    for (int i = 0; i < N - 1; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 1);
+    unsigned int position = index * FileData_i.GetNbElements()
+      / FileData_i.GetLength(0);
+    Data < T, N - 1 > FileData_extract_i(&FileData_i.GetData()[position],
+                                         new_shape);
+    Data < T, N - 1 > FileData_extract_f(&FileData_f.GetData()[position],
+                                         new_shape);
+    Data < T, N - 1 > CurrentData_extract(&CurrentData.GetData()[position],
+                                          new_shape);
+
+    UpdateData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
+               FileData_extract_f, CurrentData_extract, interpolated);
+  }
+
+  //! Updates sub-data at current date.
+  /*!This reloaded function updates number concentration from external format data
+    Depending on \a interpolated, it interpolates data at the current date,
+    on the basis of \a FileData_i and \a FileData_f or sets it to \a
+    FileData_f. On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that surround the previous date. If they do not surround the current
+    date, they are updated (i.e. read on file). Output data is stored in the
+    ith sub-array of output Data instances, where i is the index along the
+    first dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (input/output) data stored on file at the step before
+    \a date.
+    \param FileData_f (input/output) data stored on file at the step after
+    \a date.
+    \param i index, along the first dimension, where output data is stored.
+    \param CurrentData (output) data at current date.
+    \param Nc  number of composition, for external data    
+    \warning On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that must surround the previous date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>
+  template<int N>
+  void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
 				T Delta_t_file, Data<T, N>& FileData_i,
 				Data<T, N>& FileData_f,
 				int index, Data<T, N>& CurrentData,
-				bool interpolated)
+				int Nc)
   {
     // Extracts sub-data first.
     TinyVector<int, N-1> new_shape;
     for (int i = 0; i < N - 1; i++)
       new_shape(i) = FileData_i.GetArray().shape()(i + 1);
-    unsigned int position = index * FileData_i.GetNbElements()
-      / FileData_i.GetLength(0);
+
+    new_shape(0)=new_shape(0)* Nc;
+    unsigned data_size=FileData_i.GetNbElements()/FileData_i.GetLength(0);
+    unsigned int position = index * data_size * Nc;
     Data<T, N-1> FileData_extract_i(&FileData_i.GetData()[position],
 				    new_shape);
     Data<T, N-1> FileData_extract_f(&FileData_f.GetData()[position],
 				    new_shape);
     Data<T, N-1> CurrentData_extract(&CurrentData.GetData()[position],
-				     new_shape);
+				    new_shape);
 
     UpdateData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
-	       FileData_extract_f, CurrentData_extract, interpolated);
+	      FileData_extract_f, CurrentData_extract);
+  }  
+
+  //! Updates sub-data at current date.
+  /*! This reloaded function updates concentration from external format data
+    Depending on \a interpolated, it interpolates data at the current date,
+    on the basis of \a FileData_i and \a FileData_f or sets it to \a
+    FileData_f. On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that surround the previous date. If they do not surround the current
+    date, they are updated (i.e. read on file). Output data is stored in the
+    ith sub-array of output Data instances, where i is the index along the
+    first dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (input/output) data stored on file at the step before
+    \a date.
+    \param FileData_f (input/output) data stored on file at the step after
+    \a date.
+    \param i index, along the first dimension, where output data is stored.
+    \param CurrentData_i (output) data at current date.
+    \param CurrentData_f (input/output) on entry, data at current date; on
+    exit, data at next date.
+    \param Nc  number of composition, for external data
+    \warning On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that must surround the previous date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>
+  template<int N>
+  void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
+				T Delta_t_file, Data<T, N>& FileData_i,
+				Data<T, N>& FileData_f,
+				int index, Data<T, N>& CurrentData_i,
+				Data<T, N>& CurrentData_f, int Nc)
+  {
+    // Extracts sub-data first.
+    TinyVector<int, N-1> new_shape;
+    for (int i = 0; i < N - 1; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 1);
+
+    new_shape(0)=new_shape(0)* Nc;
+    unsigned data_size=FileData_i.GetNbElements()/FileData_i.GetLength(0);
+    unsigned int position = index * data_size * Nc;
+    Data<T, N-1> FileData_extract_i(&FileData_i.GetData()[position],
+				    new_shape);
+    Data<T, N-1> FileData_extract_f(&FileData_f.GetData()[position],
+				    new_shape);
+    Data<T, N-1> CurrentData_extract_i(&CurrentData_i.GetData()[position],
+				       new_shape);
+    Data<T, N-1> CurrentData_extract_f(&CurrentData_f.GetData()[position],
+				       new_shape);
+
+    UpdateData(input_file, date_min_file, Delta_t_file,
+	       FileData_extract_i, FileData_extract_f,
+	       CurrentData_extract_i, CurrentData_extract_f);
   }
-  
   
   //! Updates sub-data at current date.
   /*! Interpolates data at the current date, on the basis of \a FileData_i and
@@ -1723,29 +2406,211 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
-				T Delta_t_file, Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				int first_index, int second_index,
-				Data<T, N>& CurrentData)
+                                T Delta_t_file, Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                int first_index, int second_index,
+                                Data<T, N>& CurrentData)
   {
     // Extracts sub-data first.
-    TinyVector<int, N-2> new_shape;
+    TinyVector < int, N - 2 > new_shape;
     for (int i = 0; i < N - 2; i++)
       new_shape(i) = FileData_i.GetArray().shape()(i + 2);
     unsigned int position = first_index * FileData_i.GetNbElements()
       + second_index * FileData_i.GetNbElements() / FileData_i.GetLength(1);
     position /= FileData_i.GetLength(0);
+    Data < T, N - 2 > FileData_extract_i(&FileData_i.GetData()[position],
+                                         new_shape);
+    Data < T, N - 2 > FileData_extract_f(&FileData_f.GetData()[position],
+                                         new_shape);
+    Data < T, N - 2 > CurrentData_extract(&CurrentData.GetData()[position],
+                                          new_shape);
+
+    UpdateData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
+               FileData_extract_f, CurrentData_extract);
+  }
+  
+    //! Updates sub-data at current date.
+  /*!This reloaded function updates concentration from internal format data
+    Interpolates data at the current date, on the basis of \a FileData_i and
+    \a FileData_f. On entry, \a FileData_i and \a FileData_f are arrays (read
+    on file) that surround the previous date. If they do not surround the
+    current date, they are updated (i.e. read on file). Output data is stored
+    in the sub-array at (first_index, second_index) of output Data instances,
+    where \a first_index is the index along the first dimension, and \a
+    second_index is the index along the second dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (input/output) data stored on file at the step before
+    \a date.
+    \param FileData_f (input/output) data stored on file at the step after
+    \a date.
+    \param first_index index, along the first dimension, where output data is
+    stored.
+    \param second_index index, along the second dimension, where output data
+    is stored.
+    \param third_index index, along the third dimension (aerosol composition),
+    where output data is stored.
+    \param CurrentData_i (output) data at current date.
+    \param CurrentData_f (input/output) on entry, data at current date; on
+    exit, data at next date.
+    \warning On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that must surround the previous date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>// read internal data -> external position
+  template<int N>
+  void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
+				T Delta_t_file, Data<T, N>& FileData_i,
+				Data<T, N>& FileData_f,
+				int first_index, int second_index, int third_index,
+				Data<T, N>& CurrentData_i,
+				Data<T, N>& CurrentData_f)
+  {
+    // Extracts sub-data first.
+    TinyVector<int, N-2> new_shape;
+    for (int i = 0; i < N - 2; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 2);
+
+    unsigned data_size=FileData_i.GetNbElements()/ FileData_i.GetLength(1)
+      /FileData_i.GetLength(0);
+
+    unsigned int position = first_index * FileData_i.GetNbElements()/FileData_i.GetLength(0)
+      + second_index * data_size * Ncomposition_aer +third_index*data_size;
+
+    Data<T, N-2> FileData_extract_i(&FileData_i.GetData()[position],
+				    new_shape);
+    Data<T, N-2> FileData_extract_f(&FileData_f.GetData()[position],
+				    new_shape);
+    Data<T, N-2> CurrentData_extract_i(&CurrentData_i.GetData()[position],
+				       new_shape);
+    Data<T, N-2> CurrentData_extract_f(&CurrentData_f.GetData()[position],
+				       new_shape);
+				       
+    UpdateData(input_file, date_min_file, Delta_t_file,
+	       FileData_extract_i, FileData_extract_f,
+	       CurrentData_extract_i, CurrentData_extract_f);
+  }
+
+    //! Updates sub-data at current date.
+  /*!This reloaded function updates concentration from external format data
+    Interpolates data at the current date, on the basis of \a FileData_i and
+    \a FileData_f. On entry, \a FileData_i and \a FileData_f are arrays (read
+    on file) that surround the previous date. If they do not surround the
+    current date, they are updated (i.e. read on file). Output data is stored
+    in the sub-array at (first_index, second_index) of output Data instances,
+    where \a first_index is the index along the first dimension, and \a
+    second_index is the index along the second dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (input/output) data stored on file at the step before
+    \a date.
+    \param FileData_f (input/output) data stored on file at the step after
+    \a date.
+    \param first_index index, along the first dimension, where output data is
+    stored.
+    \param second_index index, along the second dimension, where output data
+    is stored.
+    \param Nc  number of composition, for external data
+    \param CurrentData_i (output) data at current date.
+    \param CurrentData_f (input/output) on entry, data at current date; on
+    exit, data at next date.
+    \warning On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that must surround the previous date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>
+  template<int N>
+  void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
+				T Delta_t_file, Data<T, N>& FileData_i,
+				Data<T, N>& FileData_f,
+				int first_index, int second_index,
+				Data<T, N>& CurrentData_i,
+				Data<T, N>& CurrentData_f, int Nc)
+  {
+    // Extracts sub-data first.
+    TinyVector<int, N-2> new_shape;
+    for (int i = 0; i < N - 2; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 2);
+
+    new_shape(0) =new_shape(0)*Nc;
+
+    unsigned data_size=FileData_i.GetNbElements()/ FileData_i.GetLength(1)/FileData_i.GetLength(0);
+    unsigned int position = first_index * FileData_i.GetNbElements()/FileData_i.GetLength(0)
+      + second_index * data_size *Nc;
+
+    Data<T, N-2> FileData_extract_i(&FileData_i.GetData()[position],
+				    new_shape);
+    Data<T, N-2> FileData_extract_f(&FileData_f.GetData()[position],
+				    new_shape);
+    Data<T, N-2> CurrentData_extract_i(&CurrentData_i.GetData()[position],
+				       new_shape);
+    Data<T, N-2> CurrentData_extract_f(&CurrentData_f.GetData()[position],
+				       new_shape);
+
+    UpdateData(input_file, date_min_file, Delta_t_file,
+	       FileData_extract_i, FileData_extract_f,
+	       CurrentData_extract_i, CurrentData_extract_f);
+  }
+
+    //! Updates sub-data at current date.
+  /*!This reloaded function updates concentration from external format data
+    Interpolates data at the current date, on the basis of \a FileData_i and
+    \a FileData_f. On entry, \a FileData_i and \a FileData_f are arrays (read
+    on file) that surround the previous date. If they do not surround the
+    current date, they are updated (i.e. read on file). Output data is stored
+    in the sub-array at (first_index, second_index) of output Data instances,
+    where \a first_index is the index along the first dimension, and \a
+    second_index is the index along the second dimension.
+    \param input_file input file.
+    \param date_min_file date of the first step stored in the input file.
+    \param Delta_t_file time step of the input file, in seconds.
+    \param FileData_i (input/output) data stored on file at the step before
+    \a date.
+    \param FileData_f (input/output) data stored on file at the step after
+    \a date.
+    \param first_index index, along the first dimension, where output data is
+    stored.
+    \param second_index index, along the second dimension, where output data
+    is stored.
+    \param Nc  number of composition, for external data
+    \param CurrentData (output) data at current date.
+    \warning On entry, \a FileData_i and \a FileData_f are arrays (read on
+    file) that must surround the previous date.
+    \warning If the input-file name is a number, the data is set to this
+    number.
+  */
+  template<class T>
+  template<int N>
+  void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
+				T Delta_t_file, Data<T, N>& FileData_i,
+				Data<T, N>& FileData_f,
+				int first_index, int second_index,
+				Data<T, N>& CurrentData, int Nc)
+  {
+    // Extracts sub-data first.
+    TinyVector<int, N-2> new_shape;
+    for (int i = 0; i < N - 2; i++)
+      new_shape(i) = FileData_i.GetArray().shape()(i + 2);
+
+    new_shape(0) =new_shape(0)*Nc;
+    
+    unsigned data_size=FileData_i.GetNbElements()/ FileData_i.GetLength(1)/FileData_i.GetLength(0);
+    unsigned int position = first_index * FileData_i.GetNbElements()/FileData_i.GetLength(0)
+      + second_index * data_size *Nc;
     Data<T, N-2> FileData_extract_i(&FileData_i.GetData()[position],
 				    new_shape);
     Data<T, N-2> FileData_extract_f(&FileData_f.GetData()[position],
 				    new_shape);
     Data<T, N-2> CurrentData_extract(&CurrentData.GetData()[position],
-				     new_shape);
+				    new_shape);
 
     UpdateData(input_file, date_min_file, Delta_t_file, FileData_extract_i,
-	       FileData_extract_f, CurrentData_extract);
+	      FileData_extract_f, CurrentData_extract);
   }
-  
   
   //! Updates data at current date and at next date.
   /*! Depending on \a interpolated, it interpolates data at the current date,
@@ -1774,17 +2639,17 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string section, string field,
-				Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				Data<T, N>& CurrentData_i,
-				Data<T, N>& CurrentData_f,
-				bool interpolated)
+                                Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                Data<T, N>& CurrentData_i,
+                                Data<T, N>& CurrentData_f,
+                                bool interpolated)
   {
     UpdateData(input_files[section](field), input_files[section].GetDateMin(),
-	       input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	       CurrentData_i, CurrentData_f, interpolated);
+               input_files[section].GetDelta_t(), FileData_i, FileData_f,
+               CurrentData_i, CurrentData_f, interpolated);
   }
-  
+
 
   //! Updates sub-data at current date and at next date.
   /*! Depending on \a interpolated, it interpolates data at the current date,
@@ -1816,17 +2681,17 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string section, string field,
-				Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f, int index,
-				Data<T, N>& CurrentData_i,
-				Data<T, N>& CurrentData_f,
-				bool interpolated)
+                                Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f, int index,
+                                Data<T, N>& CurrentData_i,
+                                Data<T, N>& CurrentData_f,
+                                bool interpolated)
   {
     UpdateData(input_files[section](field), input_files[section].GetDateMin(),
-	       input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	       index, CurrentData_i, CurrentData_f, interpolated);
+               input_files[section].GetDelta_t(), FileData_i, FileData_f,
+               index, CurrentData_i, CurrentData_f, interpolated);
   }
-  
+
 
   //! Updates sub-data at current date and at next date.
   /*! Interpolates data at the current date and at the next date, on the basis
@@ -1859,16 +2724,16 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string section, string field,
-				Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f, int first_index,
-				int second_index, Data<T, N>& CurrentData_i,
-				Data<T, N>& CurrentData_f)
+                                Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f, int first_index,
+                                int second_index, Data<T, N>& CurrentData_i,
+                                Data<T, N>& CurrentData_f)
   {
     UpdateData(input_files[section](field), input_files[section].GetDateMin(),
-	       input_files[section].GetDelta_t(), FileData_i, FileData_f,
-	       first_index, second_index, CurrentData_i, CurrentData_f);
+               input_files[section].GetDelta_t(), FileData_i, FileData_f,
+               first_index, second_index, CurrentData_i, CurrentData_f);
   }
-  
+
 
   //! Updates data at current date and at next date.
   /*! Depending on \a interpolated, it interpolates data at the current date,
@@ -1897,11 +2762,11 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
-				T Delta_t_file, Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f,
-				Data<T, N>& CurrentData_i,
-				Data<T, N>& CurrentData_f,
-				bool interpolated)
+                                T Delta_t_file, Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f,
+                                Data<T, N>& CurrentData_i,
+                                Data<T, N>& CurrentData_f,
+                                bool interpolated)
   {
 
     /*** CurrentData_i ***/
@@ -1913,8 +2778,8 @@ namespace Polyphemus
 
     if (is_num(input_file))
       {
-	CurrentData_f.Fill(to_num<T>(input_file));
-	return;
+        CurrentData_f.Fill(to_num<T>(input_file));
+        return;
       }
 
     // Computes the record of the previous step, to check whether
@@ -1925,29 +2790,31 @@ namespace Polyphemus
     // Computes the record to be read in the file for the next date.
     time_distance = next_date.GetSecondsFrom(date_min_file);
     int record = int(floor(time_distance / Delta_t_file));
-
+    //LL
+    //cout<<"Date= "<< this->current_date <<"record= "<<record<<endl;
+    //throw;
     if (previous_record == record - 1)
       // FileData_{i,f} should be updated, and the new value of FileData_i
       // is the old value of FileData_f.
       {
-	FileData_i.GetArray() = FileData_f.GetArray();
-	FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
+        FileData_i.GetArray() = FileData_f.GetArray();
+        FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
       }
     else if (previous_record < record)
       // All should be read.
       {
-	FormatBinary<float>().ReadRecord(input_file, record, FileData_i);
-	FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
+        FormatBinary<float>().ReadRecord(input_file, record, FileData_i);
+        FormatBinary<float>().ReadRecord(input_file, record + 1, FileData_f);
       }
 
     if (interpolated)
       Interpolate(date_min_file, Delta_t_file, record, FileData_i, FileData_f,
-		  next_date, CurrentData_f);
+                  next_date, CurrentData_f);
     else
       CurrentData_f.GetArray() = FileData_f.GetArray();
   }
-  
-  
+
+
   //! Updates sub-data at current date and at next date.
   /*! Depending on \a interpolated, it interpolates data at the current date,
     on the basis of \a FileData_i and \a FileData_f or sets it to \a
@@ -1978,30 +2845,30 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
-				T Delta_t_file, Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f, int index,
-				Data<T, N>& CurrentData_i,
-				Data<T, N>& CurrentData_f,
-				bool interpolated)
+                                T Delta_t_file, Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f, int index,
+                                Data<T, N>& CurrentData_i,
+                                Data<T, N>& CurrentData_f,
+                                bool interpolated)
   {
     // Extracts sub-data first.
-    TinyVector<int, N-1> new_shape;
+    TinyVector < int, N - 1 > new_shape;
     for (int i = 0; i < N - 1; i++)
       new_shape(i) = FileData_i.GetArray().shape()(i + 1);
     unsigned int position = index * FileData_i.GetNbElements()
       / FileData_i.GetLength(0);
-    Data<T, N-1> FileData_extract_i(&FileData_i.GetData()[position],
-				    new_shape);
-    Data<T, N-1> FileData_extract_f(&FileData_f.GetData()[position],
-				    new_shape);
-    Data<T, N-1> CurrentData_extract_i(&CurrentData_i.GetData()[position],
-				       new_shape);
-    Data<T, N-1> CurrentData_extract_f(&CurrentData_f.GetData()[position],
-				       new_shape);
+    Data < T, N - 1 > FileData_extract_i(&FileData_i.GetData()[position],
+                                         new_shape);
+    Data < T, N - 1 > FileData_extract_f(&FileData_f.GetData()[position],
+                                         new_shape);
+    Data < T, N - 1 > CurrentData_extract_i(&CurrentData_i.GetData()[position],
+                                            new_shape);
+    Data < T, N - 1 > CurrentData_extract_f(&CurrentData_f.GetData()[position],
+                                            new_shape);
 
     UpdateData(input_file, date_min_file, Delta_t_file,
-	       FileData_extract_i, FileData_extract_f,
-	       CurrentData_extract_i, CurrentData_extract_f, interpolated);
+               FileData_extract_i, FileData_extract_f,
+               CurrentData_extract_i, CurrentData_extract_f, interpolated);
   }
 
 
@@ -2035,30 +2902,30 @@ namespace Polyphemus
   template<class T>
   template<int N>
   void BaseModel<T>::UpdateData(string input_file, Date date_min_file,
-				T Delta_t_file, Data<T, N>& FileData_i,
-				Data<T, N>& FileData_f, int first_index,
-				int second_index, Data<T, N>& CurrentData_i,
-				Data<T, N>& CurrentData_f)
+                                T Delta_t_file, Data<T, N>& FileData_i,
+                                Data<T, N>& FileData_f, int first_index,
+                                int second_index, Data<T, N>& CurrentData_i,
+                                Data<T, N>& CurrentData_f)
   {
     // Extracts sub-data first.
-    TinyVector<int, N-2> new_shape;
+    TinyVector < int, N - 2 > new_shape;
     for (int i = 0; i < N - 2; i++)
       new_shape(i) = FileData_i.GetArray().shape()(i + 2);
     unsigned int position = first_index * FileData_i.GetNbElements()
       + second_index * FileData_i.GetNbElements() / FileData_i.GetLength(1);
     position /= FileData_i.GetLength(0);
-    Data<T, N-2> FileData_extract_i(&FileData_i.GetData()[position],
-				    new_shape);
-    Data<T, N-2> FileData_extract_f(&FileData_f.GetData()[position],
-				    new_shape);
-    Data<T, N-2> CurrentData_extract_i(&CurrentData_i.GetData()[position],
-				       new_shape);
-    Data<T, N-2> CurrentData_extract_f(&CurrentData_f.GetData()[position],
-				       new_shape);
+    Data < T, N - 2 > FileData_extract_i(&FileData_i.GetData()[position],
+                                         new_shape);
+    Data < T, N - 2 > FileData_extract_f(&FileData_f.GetData()[position],
+                                         new_shape);
+    Data < T, N - 2 > CurrentData_extract_i(&CurrentData_i.GetData()[position],
+                                            new_shape);
+    Data < T, N - 2 > CurrentData_extract_f(&CurrentData_f.GetData()[position],
+                                            new_shape);
 
     UpdateData(input_file, date_min_file, Delta_t_file,
-	       FileData_extract_i, FileData_extract_f,
-	       CurrentData_extract_i, CurrentData_extract_f);
+               FileData_extract_i, FileData_extract_f,
+               CurrentData_extract_i, CurrentData_extract_f);
   }
 
 
@@ -2075,24 +2942,58 @@ namespace Polyphemus
   */
   template<class T>
   void BaseModel<T>::Interpolate(Date date_min_file, T Delta_t_file,
-				 int record, const Data<T, 3>& FileData_i,
-				 const Data<T, 3>& FileData_f, Date date,
-				 Data<T, 3>& InterpolatedData)
+                                 int record, const Data<T, 4>& FileData_i,
+                                 const Data<T, 4>& FileData_f, Date date,
+                                 Data<T, 4>& InterpolatedData)
+  {
+    int Nr = FileData_i.GetLength(0);
+    int Nz = FileData_i.GetLength(1);
+    int Ny = FileData_i.GetLength(2);
+    int Nx = FileData_i.GetLength(3);
+
+    T time_distance = date.GetSecondsFrom(date_min_file);
+    T weight_f = (time_distance - T(record) * Delta_t_file) / Delta_t_file;
+    T weight_i = 1. - weight_f;
+
+    for (int ir = 0; ir < Nr; ir++)
+      for (int k = 0; k < Nz; k++)
+        for (int j = 0; j < Ny; j++)
+          for (int i = 0; i < Nx; i++)
+            InterpolatedData(ir, k, j, i) = FileData_i(ir, k, j, i) * weight_i
+              + FileData_f(ir, k, j, i) * weight_f;
+  }
+
+  //! Interpolates linearly in time.
+  /*! Data on which the interpolation is based is assumed to come from a file.
+    \param date_min_file starting date of the file.
+    \param Delta_t_file file time-step.
+    \param record record of \a FileData_i in the file.
+    \param FileData_i data read in the file at record \a record.
+    \param FileData_f data read in the file at record \a record + 1.
+    \param date date at which data is interpolated.
+    \param InterpolatedData (output) data linearly interpolated between
+    \a FileData_i and \a FileData_f.
+  */
+  template<class T>
+  void BaseModel<T>::Interpolate(Date date_min_file, T Delta_t_file,
+                                 int record, const Data<T, 3>& FileData_i,
+                                 const Data<T, 3>& FileData_f, Date date,
+                                 Data<T, 3>& InterpolatedData)
   {
     int k, j, i;
     int Nz = FileData_i.GetLength(0);
     int Ny = FileData_i.GetLength(1);
     int Nx = FileData_i.GetLength(2);
-    
+
     T time_distance = date.GetSecondsFrom(date_min_file);
     T weight_f = (time_distance - T(record) * Delta_t_file) / Delta_t_file;
     T weight_i = 1. - weight_f;
 
     for (k = 0; k < Nz; k++)
       for (j = 0; j < Ny; j++)
-	for (i = 0; i < Nx; i++)
-	  InterpolatedData(k, j, i) = FileData_i(k, j, i) * weight_i
-	    + FileData_f(k, j, i) * weight_f;
+        for (i = 0; i < Nx; i++)
+          InterpolatedData(k, j, i) = FileData_i(k, j, i) * weight_i
+            + FileData_f(k, j, i) * weight_f;
   }
 
 
@@ -2109,9 +3010,9 @@ namespace Polyphemus
   */
   template<class T>
   void BaseModel<T>::Interpolate(Date date_min_file, T Delta_t_file,
-				 int record, const Data<T, 2>& FileData_i,
-				 const Data<T, 2>& FileData_f, Date date,
-				 Data<T, 2>& InterpolatedData)
+                                 int record, const Data<T, 2>& FileData_i,
+                                 const Data<T, 2>& FileData_f, Date date,
+                                 Data<T, 2>& InterpolatedData)
   {
     int j, i;
     int Ny = FileData_i.GetLength(0);
@@ -2123,10 +3024,39 @@ namespace Polyphemus
 
     for (j = 0; j < Ny; j++)
       for (i = 0; i < Nx; i++)
-	InterpolatedData(j, i) = FileData_i(j, i) * weight_i
-	  + FileData_f(j, i) * weight_f;
+        InterpolatedData(j, i) = FileData_i(j, i) * weight_i
+          + FileData_f(j, i) * weight_f;
   }
 
+  //LL*
+  //! Interpolates linearly in time.
+  /*! Data on which the interpolation is based is assumed to come from a file.
+    \param date_min_file starting date of the file.
+    \param Delta_t_file file time-step.
+    \param record record of \a FileData_i in the file.
+    \param FileData_i data read in the file at record \a record.
+    \param FileData_f data read in the file at record \a record + 1.
+    \param date date at which data is interpolated.
+    \param InterpolatedData (output) data linearly interpolated between
+    \a FileData_i and \a FileData_f.
+  */
+  template<class T>
+  void BaseModel<T>::Interpolate(Date date_min_file, T Delta_t_file,
+				 int record, const Data<T, 1>& FileData_i,
+				 const Data<T, 1>& FileData_f, Date date,
+				 Data<T, 1>& InterpolatedData)
+  {
+    int j, i, st;
+    int Nst = FileData_i.GetLength(0);
+    T time_distance = date.GetSecondsFrom(date_min_file);
+    T weight_f = (time_distance - T(record) * Delta_t_file) / Delta_t_file;
+    T weight_i = 1. - weight_f;
+
+    for (st = 0; st < Nst; st++)
+      InterpolatedData(st) = FileData_i(st) * weight_i
+	+ FileData_f(st) * weight_f;
+  }
+  //LL  
 
 } // namespace Polyphemus.
 

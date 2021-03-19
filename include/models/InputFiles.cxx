@@ -24,6 +24,7 @@
 
 
 #include "InputFiles.hxx"
+#include "AtmoData.hxx"
 
 
 namespace Polyphemus
@@ -78,6 +79,8 @@ namespace Polyphemus
   template<class T>
   string& InputFiles<T>::operator()(string name)
   {
+    if (files_[name] == "")
+      cout << "Warning: undefined variable " << name << ".\n"; 
     return files_[name];
   }
 
@@ -173,7 +176,7 @@ namespace Polyphemus
     # Other Fields.
     Rain   /home/user/data/new_meteo/Rain.bin
     Albedo /home/user/data/ground/RawAlbedo.bin \endverbatim
-    
+
     \param config_file configuration file.
     \param section section in the configuration file.
   */
@@ -185,26 +188,25 @@ namespace Polyphemus
 
     date_min_ = config_stream.PeekValue("Date_min");
     config_stream.PeekValue("Delta_t", "> 0", Delta_t_);
-
     config_stream.Find("Fields");
     vector<string> fields;
     string fields_string = config_stream.GetLine();
     // If there is any field.
     if (trim(fields_string) != "---" && trim(fields_string) != "--"
-	&& trim(fields_string) != "-")
+        && trim(fields_string) != "-")
       fields = split(fields_string);
-    
+
     string generic_filename = config_stream.GetValue("Filename");
-    
+
     for (unsigned int i = 0; i < fields.size(); i++)
       files_[fields[i]] = generic_filename;
-    
+
     // Other fields (not specified in the configuration-file field 'Fields').
     string field;
     while (!config_stream.IsEmpty())
       {
-	field = config_stream.GetElement();
-	files_[field] = config_stream.GetElement();
+        field = config_stream.GetElement();
+        files_[field] = config_stream.GetElement();
       }
 
     Expand();
@@ -230,7 +232,7 @@ namespace Polyphemus
     # Other Fields.
     Rain   /home/user/data/new_meteo/Rain.bin
     Albedo /home/user/data/ground/RawAlbedo.bin \endverbatim
-    
+
     \param config_file configuration file.
     \param section section in the configuration file.
   */
@@ -245,20 +247,20 @@ namespace Polyphemus
     string fields_string = config_stream.GetLine();
     // If there is any field.
     if (trim(fields_string) != "---" && trim(fields_string) != "--"
-	&& trim(fields_string) != "-")
+        && trim(fields_string) != "-")
       fields = split(fields_string);
-    
+
     string generic_filename = config_stream.GetValue("Filename");
-    
+
     for (unsigned int i = 0; i < fields.size(); i++)
       files_[fields[i]] = generic_filename;
-    
+
     // Other fields (not specified in the configuration-file field 'Fields').
     string field;
     while (!config_stream.IsEmpty())
       {
-	field = config_stream.GetElement();
-	files_[field] = config_stream.GetElement();
+        field = config_stream.GetElement();
+        files_[field] = config_stream.GetElement();
       }
 
     Expand();
@@ -274,7 +276,7 @@ namespace Polyphemus
     # This is a comment line.
     Fields: Pressure Temperature Rain Albedo
     \endverbatim
-    
+
     \param config_file configuration file.
     \param section section in the configuration file.
   */
@@ -288,7 +290,7 @@ namespace Polyphemus
     vector<string> fields;
     string fields_string = config_stream.GetLine();
     if (trim(fields_string) != "---" && trim(fields_string) != "--"
-	&& trim(fields_string) != "-")
+        && trim(fields_string) != "-")
       fields = split(fields_string);
     for (unsigned i = 0; i < fields.size(); i++)
       files_[fields[i]] = "---";
@@ -311,68 +313,68 @@ namespace Polyphemus
     // Loop over all fields and associated files.
     for (iter = old_files.begin(); iter != old_files.end(); iter++)
       {
-	// Field name.
-	field = iter->first;
-	// File name.
-	file = iter->second;
+        // Field name.
+        field = iter->first;
+        // File name.
+        file = iter->second;
 
-	// Splits the field name and its numbers (enclosed in {}).
-	vsplit = split(field, "{}");
-	if (field[0] == '{')
-	  // Only numbers (no field base name).
-	  {
-	    bounds = split(vsplit[0], "-");
-	    // First bound.
-	    first = convert<int>(bounds[0]);
-	    // Last bound.
-	    if (bounds.size() != 1)
-	      last = convert<int>(bounds[1]);
-	    else
-	      last = first;
-	    string filename;
-	    // Loop over bounds.
-	    for (int i = first; i < last + 1; i++)
-	      {
-		// Field base name is empty.
-		filename = find_replace(file, "&f", "");
-		// Field number is replaced.
-		filename = find_replace(filename, "&n", to_str(i));
-		// The field name is 'to_str(i)'.
-		files_[to_str(i)] = filename;
-	      }
-	  }
-	else if (vsplit.size() == 1)
-	  // No numbers.
-	  {
-	    // Field base name is replaced.
-	    file = find_replace(file, "&f", field);
-	    // No number.
-	    file = find_replace(file, "&n", "");
-	    files_[field] = file;
-	  }
-	else
-	  // With numbers (bounds) and a field base name.
-	  {
-	    bounds = split(vsplit[1], "-");
-	    // First bound.
-	    first = convert<int>(bounds[0]);
-	    // Last bound.
-	    if (bounds.size() != 1)
-	      last = convert<int>(bounds[1]);
-	    else
-	      last = first;
-	    string filename;
-	    // Loop over bounds.
-	    for (int i = first; i < last + 1; i++)
-	      {
-		// Field base name is replaced.
-		filename = find_replace(file, "&f", split(field, "_")[0]);
-		// Field number is replaced.
-		filename = find_replace(filename, "&n", to_str(i));
-		// Complete field name is 'vsplit[0] + to_str(i)'.
-		files_[vsplit[0] + to_str(i)] = filename;
-	      }
-	  }
+        // Splits the field name and its numbers (enclosed in {}).
+        vsplit = split(field, "{}");
+        if (field[0] == '{')
+          // Only numbers (no field base name).
+          {
+            bounds = split(vsplit[0], "-");
+            // First bound.
+            first = convert<int>(bounds[0]);
+            // Last bound.
+            if (bounds.size() != 1)
+              last = convert<int>(bounds[1]);
+            else
+              last = first;
+            string filename;
+            // Loop over bounds.
+            for (int i = first; i < last + 1; i++)
+              {
+                // Field base name is empty.
+                filename = find_replace(file, "&f", "");
+                // Field number is replaced.
+                filename = find_replace(filename, "&n", to_str(i));
+                // The field name is 'to_str(i)'.
+                files_[to_str(i)] = filename;
+              }
+          }
+        else if (vsplit.size() == 1)
+          // No numbers.
+          {
+            // Field base name is replaced.
+            file = find_replace(file, "&f", field);
+            // No number.
+            file = find_replace(file, "&n", "");
+            files_[field] = file;
+          }
+        else
+          // With numbers (bounds) and a field base name.
+          {
+            bounds = split(vsplit[1], "-");
+            // First bound.
+            first = convert<int>(bounds[0]);
+            // Last bound.
+            if (bounds.size() != 1)
+              last = convert<int>(bounds[1]);
+            else
+              last = first;
+            string filename;
+            // Loop over bounds.
+            for (int i = first; i < last + 1; i++)
+              {
+                // Field base name is replaced.
+                filename = find_replace(file, "&f", split(field, "_")[0]);
+                // Field number is replaced.
+                filename = find_replace(filename, "&n", to_str(i));
+                // Complete field name is 'vsplit[0] + to_str(i)'.
+                files_[vsplit[0] + to_str(i)] = filename;
+              }
+          }
       } // Loop over all fields and associated files.
   }
 

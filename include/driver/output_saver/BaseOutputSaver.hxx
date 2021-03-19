@@ -24,6 +24,14 @@
 
 
 #include "SaverUnitStreet.cxx"
+#include "SaverUnitStreet_aer.cxx"
+#include "SaverUnitStreetDryDeposition.cxx"
+#include "SaverUnitStreetDryDepositionVelocity.cxx"
+#include "SaverUnitStreetSurfaceDepositedMass.cxx"
+#include "SaverUnitStreetSurfaceDepositedMass_aer.cxx"
+#include "SaverUnitStreetResuspensionRate_aer.cxx"
+#include "SaverUnitStreetWashoffRate_aer.cxx"
+#include "SaverUnitStreetSurfaceDryDepositionRate_aer.cxx"
 // #include "SaverUnitStreetDryDeposition.cxx"
 // #include "SaverUnitStreetWetDeposition.cxx"
 

@@ -1,5 +1,5 @@
-// Copyright (C) 2005-2007, ENPC - INRIA - EDF R&D
-// Author(s): Vivien Mallet
+// Copyright (C) 2005-2018, ENPC - INRIA - EDF R&D
+// Author(s): Vivien Mallet, Shupeng Zhu
 //
 // This file is part of the air quality modeling system Polyphemus.
 //
@@ -23,13 +23,12 @@
 #ifndef POLYPHEMUS_FILE_MODELS_BASEMODEL_HXX
 
 
-//#include "BasePointEmission.cxx"
-//#include "BasePointEmission_aer.cxx"
-#include "InputFiles.cxx"
+#include "SeldonDataHeader.hxx"
+//#include "BasePointEmission.hxx"
+#include "InputFiles.hxx"
 #include <vector>
 #include <map>
 #include <cmath>
-#include "AtmoData.hxx"
 
 
 namespace Polyphemus
@@ -37,7 +36,10 @@ namespace Polyphemus
 
 
   using namespace std;
+  using namespace SeldonData;
   using namespace AtmoData;
+  using Talos::to_num;
+  using Talos::to_str;
 
 
   ///////////////
@@ -96,10 +98,22 @@ namespace Polyphemus
     int Ns;
     //! List of aerosol species.
     vector<string> species_list_aer;
+    //! List of aerosol related variables (species mass + number).
+    vector<string> list_aer;
     //! Number of aerosol species.
     int Ns_aer;
+    //! List of aerosol groups.
+    vector<string> groups_list_aer;
+    //! Number of aerosol groups.
+    int Ngroup_aer;
     //! Number of bins (for aerosols).
+    //!(internal: equal to Nsize_section_aer;
+    //!external: equal to Nsize_section_aer*Ncomposition_aer)
     int Nbin_aer;
+    //! Number of size sections (for aerosols).
+    int Nsize_section_aer;
+    //! Number of aerosol compositions
+    int Ncomposition_aer;
 
     //! File storing vertical-levels coordinates.
     string file_vertical_levels;
@@ -164,6 +178,14 @@ namespace Polyphemus
     Date current_date;
     //! Date of the next time-step.
     Date next_date;
+    //! Date at which the data currently is.
+    Date data_date;
+    //! Has the data already been processed in InitStep?
+    bool data_gone_through_initstep;
+    /*! \brief Has the data already been transformed in Forward? In Forward,
+      input data can sometimes be transformed, after which this flag is
+      activated. */
+    bool data_gone_through_forward;
     //! Number of seconds between the simulation beginning and the current
     //! date.
     T current_time;
@@ -197,10 +219,14 @@ namespace Polyphemus
     //! Map from field names to bins lists.
     map<string, vector<int>* > field_bins;
 
-    /*** Source terms ***/
+    /*! List of input parameters that are considered input of the model time
+      stepper, except the state vector. */
+    vector<string> parameter_name;
 
-    //! Interface to manage point emissions.
-//    BasePointEmission<T>* PointEmissionManager;
+    // /*** Source terms ***/
+
+    // //! Interface to manage point emissions.
+    // BasePointEmission<T>* PointEmissionManager; // YK
 
     /*** State ***/
 
@@ -208,14 +234,33 @@ namespace Polyphemus
     Data<T, 4> Concentration;
     //! Adjoint data for concentrations.
     Data<T, 4> Concentration_ccl;
+    Data<T, 3> Vertical_Wind;
     //! Aerosols concentrations.
     Data<T, 5> Concentration_aer;
+	//! Aerosols number concentrations.
+    Data<T, 4> NumberConcentration_aer;
 
+    // //**LL: Remove stationary regime
+    // //! Time step chemistry in seconds.
+    // T Delta_t_chem;
+    //LL*
+    // string file_species_aer;
+    // vector<string> groups_list_aer;
+    // vector<string> list_aer;
+    // int Nsize_section_aer;
+    // int Ngroup_aer;
+    // int Ncomposition_aer;
+    string scavenging_model;
+    T building_density;
+    //LL
+    
   public:
 
-    /*** Constructor and destructor ***/
+    /*** Constructors and destructor ***/
 
+    BaseModel();
     BaseModel(string config_file);
+    void Construct(string config_file);
     virtual ~BaseModel();
 
     /*** Configuration ***/
@@ -236,6 +281,7 @@ namespace Polyphemus
     /*** Integration ***/
 
     virtual void Forward();
+    bool HasFinished() const;
     virtual void SetBackward(bool flag);
     virtual void Backward();
 
@@ -244,6 +290,10 @@ namespace Polyphemus
     string GetConfigurationFile() const;
 
     bool IsBackward();
+    bool HasDataGoneThroughInitStep();
+    bool HasDataGoneThroughInitStep(bool new_value);
+    bool HasDataGoneThroughForward();
+    bool HasDataGoneThroughForward(bool new_value);
 
     T GetDelta_t() const;
     int GetNt() const;
@@ -254,7 +304,10 @@ namespace Polyphemus
     int GetNs_aer() const;
     int GetNumSpecies_aer() const;
     int GetNbin_aer() const;
-
+    int GetNgroup_aer() const;
+    int GetNcomposition_aer() const;
+    int GetNsize_section_aer() const;
+    
     Date GetDate_min() const;
     int GetNz() const;
     T GetY_min() const;
@@ -269,14 +322,18 @@ namespace Polyphemus
     bool IsSpecies(string name) const;
     int GetSpeciesIndex(string species) const;
     int GetSpeciesIndex(string species,
-			const vector<string>& ref_species_list) const;
+                        const vector<string>& ref_species_list) const;
     int GetSpeciesIndex(string field, string species);
-
+    
+    vector<string> GetGroupList_aer() const;
     vector<string> GetSpeciesList_aer() const;
+    string GetGroupName_aer(int i) const;
     string GetSpeciesName_aer(int i) const;
+	string GetName_aer(int i) const;
     bool IsSpecies_aer(string name) const;
     int GetSpeciesIndex_aer(string species) const;
-
+    int GetGroupIndex_aer(string species) const;
+        
     const vector<string>& GetSpeciesList(string field);
     const vector<int>& GetBinsList_aer(string field);
 
@@ -302,18 +359,30 @@ namespace Polyphemus
     Array<T, 5>& A5(string field);
     Data<T, 5>& D5(string field);
 
+    void RegisterParameter(string name);
+    int GetNparameter() const;
+    string GetParameterName(int i) const;
+
+    // BasePointEmission<T>* GetPointEmission(); // YK
+
     const Data<T, 4>& GetConcentration() const;
     Data<T, 4>& GetConcentration();
     const Data<T, 4>& GetConcentration_ccl() const;
     Data<T, 4>& GetConcentration_ccl();
     const Data<T, 5>& GetConcentration_aer() const;
     Data<T, 5>& GetConcentration_aer();
+    Data<T, 3>& GetVertical_Wind();
+    const Data<T, 4>& GetNumberConcentration_aer() const;
+    Data<T, 4>& GetNumberConcentration_aer();
     virtual T GetConcentration(int species, T z, T y, T x);
     virtual T GetIntegratedConcentration(int species, T z, T y, T x,
-					 T lz, T ly, T lx);
+                                         T lz, T ly, T lx);
     virtual T GetConcentration_aer(int species, int diameter, T z, T y, T x);
+    virtual T GetNumberConcentration_aer(int diameter, T z, T y, T x);
+    virtual bool HasNumberConcentration_aer();
+
     virtual void ComputeConcentration(const vector<int>& species_index,
-				      const vector<int>& levels);
+                                      const vector<int>& levels);
     virtual void ComputeConcentration();
 
     bool IsManaged(string field) const;
@@ -327,104 +396,173 @@ namespace Polyphemus
 
   protected:
 
+    void Register(Data<T, 2>& Data_i, Data<T, 2>& Data_f, string field_name);
+    void Register(Data<T, 2>& Data_i, string field_name);
+
+    void Register(Data<T, 3>& Data_i, Data<T, 3>& Data_f, string field_name);
+    void Register(Data<T, 3>& Data_i, string field_name);
+
+    void Register(Data<T, 4>& Data_i, Data<T, 4>& Data_f, string field_name);
+    void Register(Data<T, 4>& Data_i, string field_name);
+
     template<int N>
     void InitData(string section, string field,
-		  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-		  Date date, Data<T, N>& CurrentData,
-		  bool interpolated = true);
+                  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                  Date date, Data<T, N>& CurrentData,
+                  bool interpolated = true);
     template<int N>
     void InitData(string section, string field,
-		  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-		  Date date, int index, Data<T, N>& CurrentData,
-		  bool interpolated = true);
+                  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                  Date date, int index, Data<T, N>& CurrentData,
+                  bool interpolated = true);
     template<int N>
     void InitData(string section, string field,
+                  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                  Date date, int first_index, int second_index,
+                  Data<T, N>& CurrentData);
+    template<int N>
+    void InitData(string input_file, Date date_min_file, T Delta_t_file,
+                  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                  Date date, Data<T, N>& CurrentData,
+                  bool interpolated = true);
+    template<int N>
+    void InitData(string input_file, Date date_min_file, T Delta_t_file,
+                  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
+                  Date date, int index, Data<T, N>& CurrentData,
+                  bool interpolated = true);
+    template<int N>
+    void InitData(string input_file, Date date_min_file, T Delta_t_file,
 		  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
 		  Date date, int first_index, int second_index,
 		  Data<T, N>& CurrentData);
     template<int N>
     void InitData(string input_file, Date date_min_file, T Delta_t_file,
 		  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-		  Date date, Data<T, N>& CurrentData,
-		  bool interpolated = true);
+		  Date date, int index, Data<T, N>& CurrentData,
+		  int Nc);
     template<int N>
     void InitData(string input_file, Date date_min_file, T Delta_t_file,
 		  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
-		  Date date, int index, Data<T, N>& CurrentData,
-		  bool interpolated = true);
+		  Date date, int first_index, int second_index, int third_index,
+		  Data<T, N>& CurrentData);
     template<int N>
     void InitData(string input_file, Date date_min_file, T Delta_t_file,
 		  Data<T, N>& FileData_i, Data<T, N>& FileData_f,
 		  Date date, int first_index, int second_index,
-		  Data<T, N>& CurrentData);
+		  Data<T, N>& CurrentData, int Nc);
 
+    //LL------------------------------------------------------------
+    template<int N>
+    void InitData(string section, string field,
+		  Data<T, N>& FileData);
+    template<int N>
+    void InitData(string input_file, Array<T, N>& input_data);
+    //--------------------------------------------------------------
+		  
     template<int N>
     void UpdateData(string section, string field, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, Data<T, N>& CurrentData,
-		    bool interpolated = true);
+                    Data<T, N>& FileData_f, Data<T, N>& CurrentData,
+                    bool interpolated = true);
     template<int N>
     void UpdateData(string section, string field, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, int index,
-		    Data<T, N>& CurrentData, bool interpolated = true);
+                    Data<T, N>& FileData_f, int index,
+                    Data<T, N>& CurrentData, bool interpolated = true);
     template<int N>
     void UpdateData(string section, string field, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, int first_index, int second_index,
+                    Data<T, N>& CurrentData);
+    template<int N>
+    void UpdateData(string input_file, Date date_min_file,
+                    T Delta_t_file, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, Data<T, N>& CurrentData,
+                    bool interpolated = true);
+    template<int N>
+    void UpdateData(string input_file, Date date_min_file,
+                    T Delta_t_file, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, int index,
+                    Data<T, N>& CurrentData, bool interpolated = true);
+    template<int N>
+    void UpdateData(string input_file, Date date_min_file,
+		    T Delta_t_file, Data<T, N>& FileData_i,
 		    Data<T, N>& FileData_f, int first_index, int second_index,
 		    Data<T, N>& CurrentData);
     template<int N>
     void UpdateData(string input_file, Date date_min_file,
 		    T Delta_t_file, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, Data<T, N>& CurrentData,
-		    bool interpolated = true);
+		    Data<T, N>& FileData_f, int index,
+		    Data<T, N>& CurrentData, int Nc);
     template<int N>
     void UpdateData(string input_file, Date date_min_file,
 		    T Delta_t_file, Data<T, N>& FileData_i,
 		    Data<T, N>& FileData_f, int index,
-		    Data<T, N>& CurrentData, bool interpolated = true);
+		    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f, int Nc);
     template<int N>
     void UpdateData(string input_file, Date date_min_file,
 		    T Delta_t_file, Data<T, N>& FileData_i,
 		    Data<T, N>& FileData_f, int first_index, int second_index,
-		    Data<T, N>& CurrentData);
+		    int third_index, Data<T, N>& CurrentData_i,
+		    Data<T, N>& CurrentData_f);
 
     template<int N>
-    void UpdateData(string section, string field, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, Data<T, N>& CurrentData_i,
-		    Data<T, N>& CurrentData_f, bool interpolated = true);
-    template<int N>
-    void UpdateData(string section, string field, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, int index,
-		    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f,
-		    bool interpolated = true);
-    template<int N>
-    void UpdateData(string section, string field, Data<T, N>& FileData_i,
+    void UpdateData(string input_file, Date date_min_file,
+		    T Delta_t_file, Data<T, N>& FileData_i,
 		    Data<T, N>& FileData_f, int first_index, int second_index,
-		    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f);
-    template<int N>
-    void UpdateData(string input_file, Date date_min_file,
-		    T Delta_t_file, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, Data<T, N>& CurrentData_i,
-		    Data<T, N>& CurrentData_f, bool interpolated = true);
-    template<int N>
-    void UpdateData(string input_file, Date date_min_file,
-		    T Delta_t_file, Data<T, N>& FileData_i,
-		    Data<T, N>& FileData_f, int index,
-		    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f,
-		    bool interpolated = true);
+		    Data<T, N>& CurrentData, int Nc);
     template<int N>
     void UpdateData(string input_file, Date date_min_file,
 		    T Delta_t_file, Data<T, N>& FileData_i,
 		    Data<T, N>& FileData_f, int first_index, int second_index,
-		    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f);
+		    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f, int Nc);
+		    
+    template<int N>
+    void UpdateData(string section, string field, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, Data<T, N>& CurrentData_i,
+                    Data<T, N>& CurrentData_f, bool interpolated = true);
+    template<int N>
+    void UpdateData(string section, string field, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, int index,
+                    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f,
+                    bool interpolated = true);
+    template<int N>
+    void UpdateData(string section, string field, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, int first_index, int second_index,
+                    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f);
+    template<int N>
+    void UpdateData(string input_file, Date date_min_file,
+                    T Delta_t_file, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, Data<T, N>& CurrentData_i,
+                    Data<T, N>& CurrentData_f, bool interpolated = true);
+    template<int N>
+    void UpdateData(string input_file, Date date_min_file,
+                    T Delta_t_file, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, int index,
+                    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f,
+                    bool interpolated = true);
+    template<int N>
+    void UpdateData(string input_file, Date date_min_file,
+                    T Delta_t_file, Data<T, N>& FileData_i,
+                    Data<T, N>& FileData_f, int first_index, int second_index,
+                    Data<T, N>& CurrentData_i, Data<T, N>& CurrentData_f);
 
     void Interpolate(Date date_min_file, T Delta_t_file, int record,
-		     const Data<T, 3>& FileData_i,
-		     const Data<T, 3>& FileData_f,
-		     Date date, Data<T, 3>& InterpolatedData);
+                     const Data<T, 3>& FileData_i,
+                     const Data<T, 3>& FileData_f,
+                     Date date, Data<T, 3>& InterpolatedData);
     void Interpolate(Date date_min_file, T Delta_t_file, int record,
-		     const Data<T, 2>& FileData_i,
-		     const Data<T, 2>& FileData_f,
-		     Date date, Data<T, 2>& InterpolatedData);
-
+                     const Data<T, 4>& FileData_i,
+                     const Data<T, 4>& FileData_f,
+                     Date date, Data<T, 4>& InterpolatedData);
+    void Interpolate(Date date_min_file, T Delta_t_file, int record,
+                     const Data<T, 2>& FileData_i,
+                     const Data<T, 2>& FileData_f,
+                     Date date, Data<T, 2>& InterpolatedData);
+    //LL--------------------------------------------------------
+    void Interpolate(Date date_min_file, T Delta_t_file, int record,
+		     const Data<T, 1>& FileData_i,
+		     const Data<T, 1>& FileData_f,
+		     Date date, Data<T, 1>& InterpolatedData);  
+    //----------------------------------------------------------
+    
   };
 
 

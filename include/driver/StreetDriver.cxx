@@ -27,7 +27,6 @@
 namespace Polyphemus
 {
 
-
   //! Main constructor.
   /*! Builds the driver and reads option keys in the configuration file.
     \param config_file configuration file.
@@ -47,13 +46,11 @@ namespace Polyphemus
     config.PeekValue("Show_date", option_display["show_date"]);
   }
 
-
   //! Destructor.
   template<class T, class ClassModel, class ClassOutputSaver>
   StreetDriver<T, ClassModel, ClassOutputSaver>::~StreetDriver()
   {
   }
-
 
   //! Performs the simulation.
   /*! Initializes the model and the output saver, and then performs the loop
@@ -63,6 +60,7 @@ namespace Polyphemus
   template<class T, class ClassModel, class ClassOutputSaver>
   void StreetDriver<T, ClassModel, ClassOutputSaver>::Run()
   {
+
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI
     MPI::Init();
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -70,38 +68,40 @@ namespace Polyphemus
     rank = 0;
 #endif
 
+    string line;
 
     /*** Initializations ***/
 
+    //read configuration options in configuration files
     Model.ReadConfiguration();
+    //Read number of streets and intersections
     Model.Init();
-    Model.InitData();
-    if (rank == 0)
-      {
-        OutputSaver.Init(Model);
-        Model.InitOutputSaver();
-      }
-
+    //Initialize input data
+    Model.InitAllData();
+    
+    OutputSaver.Init(Model);
+    Model.InitOutputSaver();
+    
     for (int i = 0; i < Model.GetNt(); i++)
       {
-        if (option_display["show_iterations"] and rank == 0)
-          cout << "Performing iteration #" << i << endl;
+	if (option_display["show_iterations"] && (rank == 0))
+	  cout << "Performing iteration #" << i << endl;
 
-	if (option_display["show_date"] and rank == 0)
+	if (option_display["show_date"] && (rank == 0))
 	  cout << "Current date: "
 	       << Model.GetCurrentDate().GetDate("%y-%m-%d %h:%i") << endl;
+	//update input data
+	Model.InitStep();
+	if (rank == 0)
+	  OutputSaver.InitStep(Model);
 
-        Model.InitStep();
-        if (rank == 0)
-          OutputSaver.InitStep(Model);
+	Model.Forward();
 
-        Model.Forward();
-
-        if (rank == 0)
+	if (rank == 0)
           {
-            OutputSaver.Save(Model);
-            Model.OutputSaver();
-          }
+	    OutputSaver.Save(Model);
+	    Model.OutputSaver();
+	  }
       }
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI
     MPI::Finalize();

@@ -22,6 +22,10 @@
 
 #ifndef POLYPHEMUS_FILE_OUTPUT_SAVER_BASESAVERUNIT_HXX
 
+#include <vector>
+#include <fstream>
+
+#include "AtmoDataHeader.hxx"
 
 namespace Polyphemus
 {
@@ -32,11 +36,7 @@ namespace Polyphemus
   //////////////
 
 
-#include <vector>
-#include <fstream>
   using namespace std;
-
-#include "AtmoData.hxx"
   using namespace AtmoData;
 
 
@@ -91,10 +91,10 @@ namespace Polyphemus
   public:
 
     /*** Constructor and destructor ***/
-    
+
     BaseSaverUnit();
     virtual ~BaseSaverUnit();
-    
+
     /*** Initializations ***/
 
     virtual void Init(ConfigStream& config, ClassModel& Model);

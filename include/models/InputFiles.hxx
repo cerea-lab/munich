@@ -25,7 +25,6 @@
 
 #include <vector>
 #include <map>
-#include "AtmoData.hxx"
 
 
 namespace Polyphemus

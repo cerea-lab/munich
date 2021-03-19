@@ -15,12 +15,16 @@ namespace Polyphemus
 
    */
   template<class T>
-  Street<T>::Street(int street_id, int begin_inter, int end_inter,
-                    T length, T width, T height,
-                    int ns_local, int nr_photolysis):
+  Street<T>::Street(int street_id,
+		    int begin_inter,
+		    int end_inter,
+		    T length,
+		    T width,
+		    T height,
+		    int typo,
+		    int ns_local):
     street_id_(street_id), begin_inter_(begin_inter), end_inter_(end_inter),
-    length_(length), width_(width), height_(height), 
-    ns_local_(ns_local)
+    length_(length), width_(width), height_(height), typo_(typo), ns_local_(ns_local)
   {
     emission_.resize(ns_local_);
     emission_ = 0.0;
@@ -50,9 +54,39 @@ namespace Polyphemus
     pblh_ = 0.0;
     ust_ = 0.0;
     lmo_ = 0.0;
-    photolysis_rate_.resize(nr_photolysis);
-    photolysis_rate_ = 0.0;
-    street_volume_ = height_ * width_ * length_;
+    pressure_ = 0.0;
+    temperature_ = 0.0;
+    rain_ = 0.0;
+    liquidwatercontent_ = 0.0;
+    cloud_height_ = 0.0;
+    relative_humidity_ = 0.0;
+    specific_humidity_ = 0.0;
+    richardson_ = 0.0;
+    solar_radiation_ = 0.0;
+    canopy_wetness_ = 0.0;
+    pardiff_ = 0.0;
+    pardir_ = 0.0;
+    pH_ = 4.5;
+
+    /*** Dry deposition ***/
+    street_dry_deposition_velocity_.resize(ns_local_);
+    street_dry_deposition_velocity_ = 0.0;
+    street_dry_deposition_flux_.resize(ns_local_);
+    street_dry_deposition_flux_ = 0.0;
+    wall_dry_deposition_velocity_.resize(ns_local_);
+    wall_dry_deposition_velocity_ = 0.0;
+    wall_dry_deposition_flux_.resize(ns_local_);
+    wall_dry_deposition_flux_ = 0.0;
+    roof_dry_deposition_velocity_.resize(ns_local_);
+    roof_dry_deposition_velocity_ = 0.0;
+
+    /*** Scavenging ***/
+    street_scavenging_flux_overcanopy_.resize(ns_local_);
+    street_scavenging_flux_overcanopy_ = 0.0;
+    street_scavenging_coefficient_.resize(ns_local_);
+    street_scavenging_coefficient_ = 0.0;
+    street_scavenging_flux_.resize(ns_local_);
+    street_scavenging_flux_ = 0.0;
   }
 
   //! Destructor
@@ -110,39 +144,28 @@ namespace Polyphemus
   }
 
   //! Sets the street coordinate.
+  //! Returns the latitude of the street center.
   template<class T>
   inline void Street<T>::SetCoordinate(T longitude, T latitude)
   {
     longitude_ = longitude;
     latitude_ = latitude;
   }
-
-  //! Returns the photolysis rate for reaction r.
+  
   template<class T>
   inline T Street<T>::GetPhotolysisRate(int r) const
   {
-    return photolysis_rate_(r);
+    return 1;
   }
 
   //! Sets the photolysis rate.
   template<class T>
   inline void Street<T>::SetPhotolysisRate(Array<T, 1> photolysis_rate)
   {
-    photolysis_rate_ = photolysis_rate;
+    throw string("\"Street<T>::SetPhotolysisRate(Array<T, 1> photolysis_rate)\"")
+      + " is not defined.";
   }
 
-
-  //! Returns the street volume.
-  /*!
-    \return The street volume (m3).
-  */
-  template<class T>
-  inline T Street<T>::GetVolume() const
-  {
-    return street_volume_;
-  }
-
-  
   //! Returns the street length.
   /*!
     \return The street length (m).
@@ -173,6 +196,16 @@ namespace Polyphemus
     return height_;
   }
 
+  //! Returns the building height.
+  /*!
+    \return The building height in the street (m).
+  */
+  // template<class T>
+  // inline int Street<T>::GetIsTunnel() const
+  // {
+  //   return is_tunnel_;
+  // }
+  
   //! Returns the street angle.
   /*!
     \return The street angle from the begin intersection to the end intersection (rad).
@@ -375,15 +408,15 @@ namespace Polyphemus
     emission_ = emission;
   }
 
-  //! Returns the wind speed.
+    //! Returns the emission rate.
   /*!
-    \return the wind speed (m/s)
+    \return The emission rate in the street (ug/s).
   */
   template<class T>
   inline T Street<T>::GetWindSpeed() const
   {
     return wind_speed_;
-  } 
+  }
 
   //! Returns the wind direction.
   /*!
@@ -415,6 +448,16 @@ namespace Polyphemus
     return lmo_;
   }
 
+  //! Returns rain in the street.
+  /*!
+    \return rain in the street (mm).
+  */
+  template<class T>
+  inline T Street<T>::GetRain() const
+  {
+    return rain_;
+  }
+
 
   //! Sets the meteo data.
   /*!
@@ -423,16 +466,41 @@ namespace Polyphemus
     \param pblh the PBL height.
     \param ust the friction velocity.
     \param lmo the Monin-Obukhov length
+    \param pressure the pressure
+    \param temperature the temperature
   */
   template<class T>
-  inline void Street<T>::SetMeteo(T wind_direction, T wind_speed, 
-                                  T pblh, T ust, T lmo)
+  inline void Street<T>::SetMeteoTransport(T wind_direction,
+					   T wind_speed, 
+					   T pblh,
+					   T ust,
+					   T lmo,
+                                           T pressure,
+					   T temperature,
+					   T rain,
+					   //new meteo for SVOC deposition
+					   T specific_humidity,
+					   T richardson,
+					   T solar_radiation,
+					   T canopy_wetness,
+					   T pardiff,
+					   T pardir)
   {
     wind_direction_ = wind_direction;
     wind_speed_ = wind_speed;
     pblh_ = pblh;
     ust_ = ust;
     lmo_ = lmo;
+    pressure_ = pressure;
+    temperature_ = temperature;
+    rain_ = rain;
+    //new meteo for SVOC deposition
+    specific_humidity_ = specific_humidity;
+    richardson_ = richardson;
+    solar_radiation_ = solar_radiation;
+    canopy_wetness_ = canopy_wetness;
+    pardiff_ = pardiff;
+    pardir_ = pardir;
   }
 
   //! Returns the attenuation
@@ -442,7 +510,7 @@ namespace Polyphemus
   template<class T>
   inline T Street<T>::GetAttenuation() const
   {
-    return attenuation_;
+    return 1;
   }
 
   //! Returns the specific humidity
@@ -483,14 +551,31 @@ namespace Polyphemus
     \param temperature the temperature.
   */
   template<class T>
-  inline void Street<T>::SetMeteoChemistry(T attenuation, T specific_humidity, 
-                                           T pressure, T temperature)
+  inline void Street<T>::SetAttenuation(T attenuation)
   {
-    attenuation_ = attenuation;
-    specific_humidity_ = specific_humidity;
-    pressure_ = pressure;
-    temperature_ = temperature;
+    throw string("\"Street<T>::SetAttenuation(T attenuation)\"")
+      + " is not defined.";
   }
+
+  //! 
+  /*!
+    \return (1/s)
+  */
+  template<class T>
+  inline T Street<T>::GetStreetScavengingCoefficient(int s) const
+  {
+    return street_scavenging_coefficient_(s);
+  }
+
+  //! 
+  /*!
+    \param 1/s
+  */
+  template<class T>
+  inline void Street<T>::SetStreetScavengingCoefficient(T street_scavenging_coefficient, int s)
+  {
+    street_scavenging_coefficient_(s) = street_scavenging_coefficient;
+  }  
 
   //! Returns the inflow rate.
   /*!
@@ -653,6 +738,52 @@ namespace Polyphemus
     deposition_rate_ = deposition_rate;
   }
 
+  
+  template<class T>
+  inline T Street<T>::GetStreetDryDepositionVelocity(int s) const
+  {
+    return street_dry_deposition_velocity_(s);
+  }
+
+    template<class T>
+  inline void Street<T>::SetStreetDryDepositionVelocity(T street_dry_deposition_velocity,
+                                                        int s)
+  {
+    street_dry_deposition_velocity_(s) = street_dry_deposition_velocity;
+  }
+
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetDryDepositionFlux(T street_dry_deposition_flux, int s)
+  {
+    street_dry_deposition_flux_(s) = street_dry_deposition_flux;
+  }
+
+  
+  //! 
+  /*!
+    \return (m3/s)
+  */
+  template<class T>
+  inline T Street<T>::GetWallDryDepositionVelocity(int s) const
+  {
+    return wall_dry_deposition_velocity_(s);
+  }
+
+    //! 
+  /*!
+    \param 
+  */
+  template<class T>
+  inline void Street<T>::SetWallDryDepositionVelocity(T wall_dry_deposition_velocity,
+                                                      int s)
+  {
+    wall_dry_deposition_velocity_(s) = wall_dry_deposition_velocity;
+  }
+
   //! Returns the transfer velocity at roof.
   /*!
     \return The transfer velocity at roof (m/s).
@@ -712,6 +843,827 @@ namespace Polyphemus
   {
     is_stationary_ = is_stationary;
   }
+
+  
+  //aerosol ----------------------------------------------
+  template<class T>
+  inline T Street<T>::GetRelativeHumidity() const
+  {
+    return relative_humidity_;
+  }
+
+  //! Sets the street coordinate.
+  template<class T>
+  inline void Street<T>::SetRelativeHumidity(T relative_humidity)
+  {
+    relative_humidity_ = relative_humidity;
+  }
+
+  //! Returns the aerosol concentration.
+  /*!
+    \return The concentration in the street (ug/m3).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetConcentration_aer(int s, int b) const
+  {
+    return 1;
+  }
+
+  //! Returns the number concentration.
+  /*!
+    \return The number concentration in the street (#/m3).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetNumberConcentration(int b) const
+  {
+    return 1;
+  }
+
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetConcentration_aer(T concentration, int s, int b)
+  {
+    throw string("\"StreetAerosol<T>::SetStreetConcentration_aer(T concentration, int s, int b)\"")
+      + " is not defined.";
+  }
+
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetRoadTraffic(T traffic_2R,
+						     T traffic_HDV,
+						     T traffic_PC,
+						     T traffic_LDV)
+  {
+    throw string("\"StreetAerosol<T>::SetStreetRoadTraffic(T traffic_2R, T traffic_HDV, T traffic_PC, T traffic_LDV)\"")
+      + " is not defined.";
+  }
+
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline T Street<T>::GetStreetRoadTraffic_2R() const
+  {
+    throw string("\"GetStreetRoadTraffic_2R()\"")
+      + " is not defined.";
+  }
+
+  template<class T>
+  inline T Street<T>::GetStreetRoadTraffic_HDV() const
+  {
+    throw string("\"GetStreetRoadTraffic_HDV()\"")
+      + " is not defined.";
+  }
+
+  template<class T>
+  inline T Street<T>::GetStreetRoadTraffic_PC() const
+  {
+    throw string("\"GetStreetRoadTraffic_PC()\"")
+      + " is not defined.";
+  }
+
+  template<class T>
+  inline T Street<T>::GetStreetRoadTraffic_LDV() const
+  {
+    throw string("\"GetStreetRoadTraffic_LDV()\"")
+      + " is not defined.";
+  }
+
+    //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetNumberResuspension(T number_resuspension, int b)
+  {
+    throw string("\"StreetAerosol<T>::SetStreetNumberResuspension(T number_resuspension, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetResuspensionFactor(T resuspension_factor)
+  {
+    throw string("\"StreetAerosol<T>::SetStreetResuspensionFactor(T resuspension_factor)\"")
+      + " is not defined.";
+  }
+
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline T Street<T>::GetStreetResuspensionFactor() const
+  {
+    return 1;
+  }
+
+  
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetWashoffFactor(T washoff_factor, int s)
+  {
+    throw string("\"StreetAerosol<T>::SetStreetWashoffFactor(T washoff_factor, int s)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline T Street<T>::GetStreetWashoffFactor(int s) const
+  {
+    return 1;
+  }
+
+  
+  //! Sets the aerosol concentration.
+  /*!
+    \param concentration_aer the aerosol concentration.
+  */
+  template<class T>
+  inline T Street<T>::GetStreetNumberResuspension(int b) const
+  {
+    return 1;
+  }
+
+  
+  //! Sets the aerosol wet diameter.
+  template<class T>
+  inline void Street<T>::SetStreetWetDiameter_aer(T wet_diameter_aer, int b)
+  {
+    throw string("\"StreetAerosol<T>::SetStreetWetDiameter_aer(T wet_diameter_aer, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Sets the number concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetNumberConcentration(T concentration, int b)
+  {
+    throw string("\"Street<T>::SetStreetNumberConcentration(T concentration, int s, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Sets the background concentration.
+  /*!
+    \param bg_concentration the background concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetBackgroundConcentration_aer(T bg_concentration, int s, int b)
+  {
+    throw string("\"Street<T>::SetBackgroundConcentration_aer(int, int)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Sets the aerosol emission rate.
+  /*!
+    \param emission_aer The aerosol emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetEmission_aer(Array<T, 2> emission_aer)
+  {
+    throw string("\"Street<T>::SetEmission_aer(Array<T, 2> emission_aer)\"")
+      + " is not defined.";
+  }
+  
+  //! Sets the aerosol emission rate.
+  /*!
+    \param emission_aer The aerosol emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetEmission_aer(T emission_aer, int s, int b)
+  {
+    throw string("\"Street<T>::SetEmission_aer(T emission_aer, int s, int b)\"")
+      + " is not defined.";
+  }
+
+  template<class T>
+  inline void Street<T>::SetLiquidWaterContent(T liquidwatercontent)
+  {
+    liquidwatercontent_ = liquidwatercontent;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetLiquidWaterContent() const
+  {
+    return liquidwatercontent_;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetTypo() const
+  {
+    return typo_;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetRichardson() const
+  {
+    return richardson_;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetSolarRadiation() const
+  {
+    return solar_radiation_;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetCanopyWetness() const
+  {
+    return canopy_wetness_;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetPARdiff() const
+  {
+    return pardiff_;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetPARdir() const
+  {
+    return pardir_;
+  }
+
+    //! 
+  /*!
+    \param 
+  */
+  template<class T>
+  inline void Street<T>::SetStreetDryDepositionVelocity_aer(T street_dry_deposition_velocity, int b)
+  {
+    throw string("\"Street<T>::SetStreetDryDepositionVelocity_aer(T street_dry_deposition_velocity, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! 
+  /*!
+    \param 
+  */
+  template<class T>
+  inline void Street<T>::SetWallDryDepositionVelocity_aer(T wall_dry_deposition_velocity, int b)
+  {
+    throw string("\"Street<T>::SetWallDryDepositionVelocity_aer(T wall_dry_deposition_velocity, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! 
+  /*!
+    \param 
+  */
+  template<class T>
+  inline void Street<T>::SetStreetSurfaceDepositedMass_aer(T street_surface_deposited_mass, int s, int b)
+  {
+    throw string("\"Street<T>::SetStreetSurfaceDepositedMass_aer(T street_surface_deposited_mass_aer, int s, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! 
+  /*!
+    \param 
+  */
+  template<class T>
+  inline void Street<T>::SetStreetSurfaceDepositedNumber(T street_surface_deposited_number, int b)
+  {
+    throw string("\"Street<T>::SetStreetSurfaceDepositedMass_aer(T street_surface_deposited_number, int b)\"")
+      + " is not defined.";
+  }
+
+  template<class T>
+  inline T Street<T>::GetStreetSurfaceDepositedNumber(int b) const
+  {
+    return 1;
+  }
+
+  template<class T>
+  inline T Street<T>::GetStreetSurfaceDepositedMass_aer(int s, int b) const
+  {
+    return 1;
+  }
+
+  
+  //! 
+  /*!
+    \param 1/s
+  */
+  template<class T>
+  inline void Street<T>::SetStreetScavengingCoefficient_aer(T street_scavenging_coefficient, int b)
+  {
+    throw string("\"Street<T>::SetStreetScavengingCoefficient_aer(T street_scavenging_coefficient, int b)\"")
+      + " is not defined.";
+  }
+
+  template<class T>
+  inline T Street<T>::GetStreetDryDepositionVelocity_aer(int b) const
+  {
+    return 1;
+  }
+
+  //! 
+  /*!
+    \return (m3/s)
+  */
+  template<class T>
+  inline T Street<T>::GetWallDryDepositionVelocity_aer(int b) const
+  {
+    return 1;
+  }
+
+  
+  //! 
+  /*!
+    \return (1/s)
+  */
+  template<class T>
+  inline T Street<T>::GetStreetScavengingCoefficient_aer(int b) const
+  {
+    return 1;
+  }
+
+  
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetDryDepositionFlux_aer(T street_dry_deposition_flux, int b)
+  {
+    throw string("\"Street<T>::SetStreetDryDepositionFlux_aer(T street_dry_deposition_flux, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetWallDryDepositionFlux_aer(T wall_dry_deposition_flux, int b)
+  {
+    throw string("\"Street<T>::SetWallDryDepositionFlux_aer(T wall_dry_deposition_flux, int b)\"")
+      + " is not defined.";
+  }
+
+  
+  //! Returns the street dry deposition flux.
+  /*!
+    \return The street dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetScavengingFluxOverCanopy_aer(int b) const
+  {
+    return 1;
+  }
+
+  
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetScavengingFlux_aer(T street_scavenging_flux, int b)
+  {
+    throw string("\"Street<T>::SetStreetScavengingFlux_aer(T street_scavenging_flux, int b)\"")
+      + " is not defined.";
+  }
+
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetNumberDryDepositionFlux(T street_number_dry_deposition_flux, int b)
+  {
+    throw string("\"Street<T>SetStreetNumberDryDepositionFlux(T street_number_dry_deposition_flux, int b)\"")
+      + " is not defined.";
+  }
+
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetWallNumberDryDepositionFlux(T wall_number_dry_deposition_flux, int b)
+  {
+    throw string("\"Street<T>SetWallNumberDryDepositionFlux(T wall_number_dry_deposition_flux, int b)\"")
+      + " is not defined.";
+  }
+
+  //! Returns the street dry deposition flux.
+  /*!
+    \return The street dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetNumberScavengingFluxOverCanopy(int b) const
+  {
+    throw string("\"Street<T>::GetStreetNumberScavengingFluxOverCanopy(int b)\"")
+      + " is not defined.";
+  }
+
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetNumberScavengingFlux(T street_number_scavenging_flux, int b)
+  {
+    throw string("\"Street<T>::SetStreetNumberScavengingFlux(T street_number_scavenging_flux, int b)\"")
+      + " is not defined.";
+  }
+
+  //! Returns the street dry deposition flux.
+  /*!
+    \return The street dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetDryDepositionFlux_aer(int b) const
+  {
+    return 1;
+  }
+
+  
+  //! Returns the street dry deposition flux.
+  /*!
+    \return The street dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T Street<T>::GetWallDryDepositionFlux_aer(int b) const
+  {
+    return 1;
+  }
+
+  //! Returns the street dry deposition flux.
+  /*!
+    \return The street dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T Street<T>::GetStreetScavengingFlux_aer(int b) const
+  {
+    return 1;
+  }
+
+  
+  //! Returns the background concentration.
+  /*!
+    \return The background concentration for the street (ug/m3).
+  */
+  template<class T>
+  inline T Street<T>::GetBackgroundConcentration_aer(int s, int b) const
+  {
+    return 1;
+  }
+
+  //! Sets the mass flux from the atmosphere.
+  /*!
+    \param massflux_from_bg the mass flux from the atmosphere (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetMassfluxFromBackground_aer(T massflux_from_bg, int s, int b)
+  {
+    throw string("\"Street<T>::SetMassfluxFromBackground_aer(T massflux_from_bg, int s, int b)\"")
+      + " is not defined.";
+  }  
+  
+  //! Sets the inflow rate.
+  /*!
+    \param inflow_rate the inflow rate (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetInflowRate_aer(T inflow_rate, int s, int b)
+  {
+    throw string("\"Street<T>::SetInflowRate_aer(T inflow_rate, int s, int b)\"")
+      + " is not defined.";
+  }  
+  
+  //! Returns the mass flux to the atmosphere.
+  /*!
+    \return The mass flux to the atmosphere (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetMassfluxToBackground_aer(int s, int b) const
+  {
+    return 1;
+  }  
+  
+  //! Sets th outflow rate to the atmosphere.
+  /*!
+    \param massflux_to_bg the outflow rate (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetMassfluxToBackground_aer(T massflux_to_bg, int s, int b)
+  {
+    throw string("\"Street<T>::SetMassfluxToBackground_aer(T massflux_to_bg, int s, int b)\"")
+      + " is not defined.";
+  }  
+  
+  // //Number
+  
+  //! Returns the mass flux from the atmosphere.
+  /*!
+    \return The mass flux from the atmosphere (#/s).
+  */
+  template<class T>
+  inline T Street<T>::GetNumberfluxFromBackground(int b) const
+  {
+    return 1;
+  } 
+  
+  
+  //! Returns the inflow rate.
+  /*!
+    \return The inflow rate to the street (#/s).
+  */
+  template<class T>
+  inline T Street<T>::GetNumberInflowRate(int b) const
+  {
+    return 1;
+  }
+
+  //! Sets the mass flux from the atmosphere.
+  /*!
+    \param massflux_from_bg the mass flux from the atmosphere (#/s).
+  */
+  template<class T>
+  inline void Street<T>::SetNumberfluxFromBackground(T numberflux_from_bg, int b)
+  {
+    throw string("\"Street<T>::SetNumberfluxFromBackground(T numberflux_from_bg, int b)\"")
+      + " is not defined.";
+  }  
+  
+  //! Sets the inflow rate.
+  /*!
+    \param inflow_rate the inflow rate (#/s).
+  */
+  template<class T>
+  inline void Street<T>::SetNumberInflowRate(T number_inflow_rate, int b)
+  {
+    throw string("\"Street<T>::SetNumberInflowRate(T number_inflow_rate, int b)\"")
+      + " is not defined.";
+  }  
+  
+  //! Returns the mass flux to the atmosphere.
+  /*!
+    \return The mass flux to the atmosphere (#/s).
+  */
+  template<class T>
+  inline T Street<T>::GetNumberfluxToBackground(int b) const
+  {
+    return 1;
+  }  
+  
+  //! Sets th outflow rate to the atmosphere.
+  /*!
+    \param massflux_to_bg the outflow rate (#/s).
+  */
+  template<class T>
+  inline void Street<T>::SetNumberfluxToBackground(T numberflux_to_bg, int b)
+  {
+    throw string("\"Street<T>::SetNumberInflowRate(T number_inflow_rate, int b)\"")
+      + " is not defined.";    
+  }
+
+  //Concentration - mass
+
+  //! Returns the initial concentration.
+  /*!
+    \return The initial concentration in the street (ug/m3).
+  */
+  template<class T>
+  inline T Street<T>::GetInitialStreetConcentration_aer(int s, int b) const
+  {
+    return 1;
+  }
+  
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetEmission_aer(int s, int b) const
+  {
+    return 1;
+  }  
+  
+  //! Sets  the mass flux to background through the roof.
+  /*!
+    \param massflux_roof_to_bg the mass flux to background through the roof (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetMassfluxRoofToBackground_aer(T massflux_roof_to_bg_aer, int s, int b)
+  {
+    throw string("\"Street<T>::SetMassfluxRoofToBackground_aer(T massflux_roof_to_bg_aer, int s, int b)\"")
+      + " is not defined.";    
+  }  
+  
+  //! Sets the mass quantity change.
+  /*!
+    \param concentration the mass quantity changeconcentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetQuantityDelta_aer(T street_quantity_delta, int s, int b)
+  {
+     throw string("\"Street<T>::SetStreetQuantityDelta_aer(T street_quantity_delta, int s, int b)\"")
+      + " is not defined.";  
+  }  
+  
+  //! Returns the initial concentration.
+  /*!
+    \return The initial concentration in the street (#/m3).
+  */
+  template<class T>
+  inline T Street<T>::GetInitialStreetNumberConcentration(int b) const
+  {
+    return 1;
+  }  
+  
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (#/s).
+  */
+  template<class T>
+  inline T Street<T>::GetNumberEmission(int b) const
+  {
+    return 1;
+  }  
+  
+  //! Returns the background concentration.
+  /*!
+    \return The background concentration for the street (ug/m3).
+  */
+  template<class T>
+  inline T Street<T>::GetBackgroundNumberConcentration(int b) const
+  {
+    return 1;
+  }  
+  
+  //! Sets  the mass flux to background through the roof.
+  /*!
+    \param massflux_roof_to_bg the mass flux to background through the roof (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetNumberfluxRoofToBackground(T massflux_roof_to_bg_aer, int b)
+  {
+    throw string("\"Street<T>::SetNumberfluxRoofToBackground(T massflux_roof_to_bg_aer, int b)\"")
+      + " is not defined.";    
+  }
+  //! Sets the mass quantity change.
+  /*!
+    \param concentration the mass quantity changeconcentration.
+  */
+  template<class T>
+  inline void Street<T>::SetStreetNumberQuantityDelta(T street_number_quantity_delta, int b)
+  {
+     throw string("\"Street<T>::SetStreetNumberQuantityDelta(T street_number_quantity_delta, int b)\"")
+      + " is not defined.";  
+  }  
+  
+  //! Sets the aerosol emission rate.
+  /*!
+    \param emission_aer The aerosol emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline void Street<T>::SetNumberEmission(Array<T, 1> number_emission)
+  {
+    throw string("\"Street<T>::SetNumberEmission(Array<T, 1> number_emission)\"")
+      + " is not defined.";
+  }  
+  
+  //! Sets the background concentration.
+  /*!
+    \param bg_concentration the background concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetBackgroundNumberConcentration(T bg_number_concentration, int b)
+  {
+    throw string("\"Street<T>::SetBackgroundNumberConcentration(T bg_number_concentration, int b)\"")
+      + " is not defined.";    
+  }  
+  
+  //! Sets the initial concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetInitialStreetConcentration_aer(T concentration_aer, int s, int b)
+  {
+    throw string("\"Street<T>::SetInitialStreetConcentration_aer(T concentration_aer, int s, int b)\"")
+      + " is not defined.";   
+  }  
+  
+  //! Sets the initial concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetInitialStreetNumberConcentration(T number_concentration, int b)
+  {
+    throw string("\"Street<T>::SetInitialStreetNumberConcentration(T number_concentration, int b)\"")
+      + " is not defined."; 
+  }
+
+  //! Sets the aerosol wet diameter.
+  template<class T>
+  inline T Street<T>::GetStreetWetDiameter_aer(int b) const
+  {
+    return 1;
+  }  
+
+  
+  //! Returns the mass flux from the atmosphere.
+  /*!
+//     \return The mass flux from the atmosphere (ug/s).
+//   */
+  template<class T>
+  inline T Street<T>::GetMassfluxFromBackground_aer(int s, int t) const
+  {
+    return 1;
+  }
+
+  
+  //! Returns the inflow rate.
+  /*!
+    \return The inflow rate to the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetInflowRate_aer(int s, int b) const
+  {
+    return 1;
+  }
+
+  //! Sets the meteo data to calculate dry deposition.
+  /*!
+    \param temperature is the ambient temperature.
+    \param pressure is the ambient pressure.
+  */
+  template<class T>
+  inline void Street<T>::SetpH(T ph)
+  {
+    pH_ = ph;
+  }
+
+  //! Returns the emission rate.
+  /*!
+    \return The emission rate in the street (ug/s).
+  */
+  template<class T>
+  inline T Street<T>::GetpH() const
+  {
+    return pH_;
+  }
+  //--------------------------------------------------------
 
 
   ////////////////////////
@@ -891,13 +1843,6 @@ namespace Polyphemus
   {
     return ust_;
   }
-
-  template<class T>
-  inline void Intersection<T>::SetIntersectionUST(T ustar)
-  {
-    ust_ = ustar;
-  }
-
 
   //! Returns the Monin-Obukhov length.
   /*!

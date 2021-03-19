@@ -37,9 +37,9 @@ namespace Polyphemus
   using namespace AtmoData;
 
 
-  /////////////////////
-  // SAVERUNITSTREET //
-  /////////////////////
+  ///////////////////////////////////
+  // SAVERUNITSTREETDRYDEPOSITION //
+  //////////////////////////////////
 
 
   /*! \brief This class is used to save concentrations over the whole domain
@@ -80,15 +80,9 @@ namespace Polyphemus
 
     //! List of output files.
     vector<string> output_file;
-    vector<string> output_file_wall;
-    vector<string> output_file_rate;
-    vector<string> output_file_rate_wall;
 
     //! Buffer used to compute averaged concentrations.
-    Data<T, 2> StreetDryDepositionFlux_;
-    Data<T, 2> WallDryDepositionFlux_;
-    Data<T, 2> StreetDryDepositionRate_; // ug/s
-    Data<T, 2> WallDryDepositionRate_; // ug/s
+    Data<T, 2> StreetDryDepositionRate_;
 
     bool text_file;
     

@@ -109,7 +109,7 @@ namespace Polyphemus
   */
   template<class T, class ClassModel>
   void BaseSaverUnit<T, ClassModel>::Init(ConfigStream& config,
-					  ClassModel& Model)
+                                          ClassModel& Model)
   {
     // Initial and final dates for saving.
     Date Date_min = Model.GetCurrentDate();
@@ -131,7 +131,7 @@ namespace Polyphemus
 
     if (date_beg > date_end || date_beg < Date_min || date_end > Date_max)
       throw string("Saving dates are not inside the simulation period.");
-      
+
     if (!is_multiple(T(date_beg.GetSecondsFrom(Date_min)),
                      Model.GetDelta_t()))
       throw string("\"Date_beg\" does not match a simulation timestep.");
@@ -139,52 +139,54 @@ namespace Polyphemus
     if (!is_multiple(T(Date_max.GetSecondsFrom(date_end)),
                      Model.GetDelta_t()))
       throw string("\"Date_end\" does not match a simulation timestep.");
-      
+
     // Interval length.
     config.PeekValue("Interval_length", element);
     if (is_num(element))
       interval_length = to_num<int>(element);
     else
       {
-	T Delta_t_save;
-	element = lower_case(element);
-	if (element == "hourly")
-	  Delta_t_save = 3600;
-	else if (element == "daily")
-	  Delta_t_save = 86400;
-	else
-	  throw string("Value of \"Interval_length\" not recognized.");
-	
-	T Delta_t_model = Model.GetDelta_t();
-	if (is_multiple(Delta_t_save, Delta_t_model))
-	  interval_length = int(Delta_t_save / Delta_t_model + .5);
-	else
-	  throw string("Value of \"Interval_length\" must be a")
-	    + string(" multiple of model timestep.");
+        T Delta_t_save;
+        element = lower_case(element);
+        if (element == "hourly")
+          Delta_t_save = 3600;
+        else if (element == "daily")
+          Delta_t_save = 86400;
+        else
+          throw string("Value of \"Interval_length\" not recognized.");
+
+        T Delta_t_model = Model.GetDelta_t();
+        if (is_multiple(Delta_t_save, Delta_t_model))
+          interval_length = int(Delta_t_save / Delta_t_model + .5);
+        else
+          throw string("Value of \"Interval_length\" must be a")
+            + string(" multiple of model timestep.");
       }
 
     if (GetType() != "nesting" && GetType() != "nesting_aer")
       {
-	config.PeekValue("Averaged", averaged);
-	config.PeekValue("Initial_concentration", initial_concentration);
+        config.PeekValue("Averaged", averaged);
+        config.PeekValue("Initial_concentration", initial_concentration);
       }
 
     config.Find("Species");
     species_list = split(config.GetLine());
+    
     if (GetType() != "domain_aer"  && GetType() != "dry_deposition_aer"
-	&& GetType() != "wet_deposition_aer" && GetType() != "nesting_aer"
-	&& GetType() != "subdomain_aer" && GetType() != "indices_list_aer"
-	&& GetType() != "coordinates_list_aer" && species_list[0] == "all")
+        && GetType() != "wet_deposition_aer" && GetType() != "nesting_aer"
+        && GetType() != "subdomain_aer" && GetType() != "indices_list_aer"
+        && GetType() != "coordinates_list_aer" 	&& species_list[0] == "all"
+	&& GetType() != "street_aer")
       {
-	species_list.clear();
-	if (GetType() == "dry_deposition")
-	  species_list = Model.GetSpeciesList("DepositionVelocity");
-	else if (GetType() == "wet_deposition")
-	  species_list = Model.GetSpeciesList("ScavengingCoefficient");
-	else
-	  species_list = Model.GetSpeciesList();
+        species_list.clear();
+        if (GetType() == "dry_deposition")
+          species_list = Model.GetSpeciesList("DepositionVelocity");
+        else if (GetType() == "wet_deposition")
+          species_list = Model.GetSpeciesList("ScavengingCoefficient");
+        else
+          species_list = Model.GetSpeciesList();
       }
-
+    
     // Dimensions of the underlying model.
     base_x_min = Model.GetX_min();
     base_Delta_x = Model.GetDelta_x();

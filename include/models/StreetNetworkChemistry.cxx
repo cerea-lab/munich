@@ -66,70 +66,13 @@ namespace Polyphemus
     this->config.PeekValue("With_chemistry",
 			   this->option_process["with_chemistry"]);
 
+#ifndef POLYPHEMUS_WITH_SSH_AEROSOL            
     this->config.PeekValue("Option_chemistry", option_chemistry);
 
     this->config.PeekValue("With_photolysis",
-			   this->option_process["with_photolysis"]);
-
-    CheckConfiguration();
-
-  }
-
-  //! Method called at each time step to initialize the model.
-  /*!
-    \note Empty method.
-  */
-  template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::Init()
-  {
-    //    StreetNetworkTransport<T>::Init();
-    this->SetCurrentDate(this->Date_min);
-    InitStreet();
-    this->InitIntersection();
-
-    Allocate();
-
-    this->ComputeStreetAngle();
-
-    if (this->option_process["with_chemistry"])
-      InitChemistry();
-   
-#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
-    // Initialize the number of sources to parallelize.
-    BaseModuleParallel::InitSource(this->GetNStreet());
-
-    //
-    BaseModuleParallel::BuildPartition_source();
+        		   this->option_process["with_photolysis"]);
 #endif
     
-  }
-
-  //! Streets initialization.
-  /*!
-   */
-  template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::InitStreet()
-  {
-    Array<T, 1> init_conc(this->Ns);
-    init_conc = 0.0;
-    for (int i = 0; i < this->total_nstreet; ++i)
-      {
-        Street<T>* street = 
-          new Street<T>(this->id_street(i), this->begin_inter(i), this->end_inter(i),
-                        this->length(i), this->width(i), this->height(i),
-                        this->Ns, Nr_photolysis);
-
-        this->StreetVector.push_back(street);
-      }
-    this->current_street = this->StreetVector.begin();
-  }
-
-  //! Checks the configuration.
-  /*! 
-  */
-  template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::CheckConfiguration()
-  {
     // The configuration-file path is the field "Data_description" in the main
     // configuration file.
     this->config.SetSection("[data]");
@@ -143,12 +86,12 @@ namespace Polyphemus
 						      "photolysis_rates");
     else
       this->input_files["photolysis_rates"].Empty();
+    
     for (map<string, string>::iterator i
 	   = this->input_files["photolysis_rates"].Begin();
 	 i != this->input_files["photolysis_rates"].End(); i++)
       photolysis_reaction_list.push_back(i->first);
     Nr_photolysis = int(photolysis_reaction_list.size());
-
     // Reads data description.
     if (this->option_process["with_photolysis"])
       {
@@ -173,6 +116,84 @@ namespace Polyphemus
 	data_description_stream.Find("Altitudes");
 	split(data_description_stream.GetLine(), altitudes_photolysis);
       }
+
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI    
+    MPI_Comm_rank(MPI_COMM_WORLD, &this->rank);
+#else
+    this->rank = 0;
+#endif
+    if (this->rank == 0)
+      DisplayConfiguration();
+  }
+  //! Display the configuration
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::DisplayConfiguration()
+  {
+    //StreetNetworkTransport<T>::DisplayConfiguration();
+    // if (this->option_process["with_chemistry"])
+    //   cout << "Chemical module " << option_chemistry << "activated." << endl;
+    //     cout << "Nr_photolysis: " << Nr_photolysis <<endl;
+  }
+
+  //! Method called at each time step to initialize the model.
+  /*!
+    \note Empty method.
+  */
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::Init()
+  {
+    this->SetCurrentDate(this->Date_min);
+    InitStreet();
+    this->InitIntersection();
+    Allocate();
+    this->ComputeStreetAngle();
+
+    if (this->option_process["with_chemistry"])
+      InitChemistry();
+   
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    // Initialize the number of sources to parallelize.
+    BaseModuleParallel::InitSource(this->GetNStreet());
+
+    //
+    BaseModuleParallel::BuildPartition_source();
+#endif    
+  }
+
+  //! Streets initialization.
+  /*!
+   */
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::InitStreet()
+  {
+    Array<T, 1> init_conc(this->Ns);
+    init_conc = 0.0;
+    for (int i = 0; i < this->total_nstreet; ++i)
+      {
+        Street<T>* street = 
+          new StreetChemistry<T>(this->id_street(i),
+				 this->begin_inter(i),
+				 this->end_inter(i),
+				 this->length(i),
+				 this->width(i),
+				 this->height(i),
+				 this->typo(i),
+				 this->Ns,
+				 Nr_photolysis);
+        this->StreetVector.push_back(street);
+      }
+    this->current_street = this->StreetVector.begin();
+  }
+
+  //! Checks the configuration.
+  /*! 
+  */
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::CheckConfiguration()
+  {
+    StreetNetworkTransport<T>::CheckConfiguration();
+    // if(this->option_process["with_chemistry"] && Nr_photolysis == 0)
+    //   cout << "Warning ! No photolysis is considered in chemical module." << endl;
   }
 
   /////////////////////
@@ -188,11 +209,28 @@ namespace Polyphemus
   {
     StreetNetworkTransport<T>::Allocate();
 
+    /*** Meteo ***/
+    if (this->option_process["with_local_data"])
+      {
+	Attenuation_i.Resize(this->GridST2D);
+	Attenuation_f.Resize(this->GridST2D);
+	FileAttenuation_i.Resize(this->GridST2D);
+	FileAttenuation_f.Resize(this->GridST2D);
+	
+	Attenuation_i.SetZero();
+	Attenuation_f.SetZero();
+	FileAttenuation_i.SetZero();
+	FileAttenuation_f.SetZero();
+      }
+    
     /*** Photolysis rates ***/
     
     if (this->option_process["with_photolysis"])
       {
 	GridR_photolysis = RegularGrid<T>(Nr_photolysis);
+	
+	PhotolysisRate_i.Resize(GridR_photolysis, this->GridST2D);
+        PhotolysisRate_f.Resize(GridR_photolysis, this->GridST2D);
     
 	Grid_time_angle_photolysis =
 	  RegularGrid<T>(photolysis_time_angle_min,
@@ -219,10 +257,8 @@ namespace Polyphemus
     \param Rates (output) the photolysis rates.
   */
   template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::InitPhotolysis(Date date)
+  void StreetNetworkChemistry<T, ClassChemistry>::InitPhotolysis(Date date, Data<T, 2>& Rates)
   {
-    Array<T, 1> photolysis_rate(Nr_photolysis);
-
     int i, j, k;
     T time_angle;
     int angle_in, j_in, k_in;
@@ -241,6 +277,7 @@ namespace Polyphemus
     Data<T, 3> FileRates(Grid_time_angle_photolysis,
 			 Grid_latitude_photolysis, GridZ_photolysis);
 
+    int st = 0;
     // Interpolation.
     for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
          iter != this->StreetVector.end(); iter++)
@@ -303,9 +340,9 @@ namespace Polyphemus
             one_alpha_z = 1. - alpha_z;
 
             if (angle_in >= Nphotolysis_time_angle - 1)
-              photolysis_rate(r) = 0.;
+              Rates(r, st) = 0.;
             else
-              photolysis_rate(r) =
+              Rates(r, st) =
                 one_alpha_z * one_alpha_y * one_alpha_angle
                 * FileRates(angle_in, j_in, k_in)
                 + alpha_z * one_alpha_y * one_alpha_angle
@@ -323,7 +360,7 @@ namespace Polyphemus
                 + alpha_z * alpha_y * alpha_angle
                 * FileRates(angle_in + 1, j_in + 1, k_in + 1);
           }
-        street->SetPhotolysisRate(photolysis_rate);
+	st ++;
       }
     
   }
@@ -334,28 +371,63 @@ namespace Polyphemus
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::Forward()
   {
-    this->Transport();
+    Transport();
+    if (this->option_process["with_stationary_hypothesis"])
+      if (this->option_process["with_chemistry"])
+	Chemistry();
     
-    if (this->option_process["with_chemistry"])
-      {
-	if (this->option_process["with_stationary_hypothesis"])
-	    Chemistry();
-	else
-	    ComputeStreetConcentrationNoStationary(); // without stationarity
-      }
-
     this->SetStreetConcentration();
 
     this->AddTime(this->Delta_t);
     this->step++;
-
   }
 
-  //LL Remove stationary regime
+  //! Performs one step forward.
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::Transport()
+  {
+    this->is_stationary = false;
+    //! Compute the wind speed in the street-canyon.
+    this->ComputeUstreet();
+    this->ComputeSigmaW();
+    this->ComputeTransferVelocity();
+    this->ComputeWindDirectionFluctuation();
+    if (this->option_process["with_deposition"])  
+      this->ComputeDryDepositionVelocities();
+    if (this->option_process["with_scavenging"])
+      this->ComputeScavengingCoefficient();
+    	
+    this->SetInitialStreetConcentration();
+    if (this->option_process["with_stationary_hypothesis"])
+      {
+	int niter = 0;
+	const int niter_max = 1000;
+	while (niter < niter_max and (!this->is_stationary))
+	  {
+	    this->InitInflowRate();    
+	    //cout << " ----> Iteration No " << niter << endl;
+	    this->ComputeInflowRateExtended();
+	    //! Compute the concentrations in the street-canyon.
+	    this->ComputeStreetConcentration();
+	    this->IsStationary(this->is_stationary);
+	    ++niter;
+	  }
+	if (!this->is_stationary)
+	  throw("Error: stationarity is not achieved. Please increase the number of iterations.");
+      }
+    else //no stationary
+      {
+	this->InitInflowRate();
+	this->ComputeInflowRateExtended();
+	ComputeStreetConcentrationNoStationary();  
+      }
+  }
+  
   //! Compute the concentrations in the street-canyon using the flux balance equation.
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::ComputeStreetConcentrationNoStationary()
   {
+    int zero = 0;
     // MPI implementation.
     // 'For' loop on the street segments is parallelized.
     int first_index_along_source, last_index_along_source;
@@ -408,7 +480,12 @@ namespace Polyphemus
 	Array<T, 1> new_concentration_array(this->Ns);
 	Array<T, 1> emission_rate_array(this->Ns);
 	Array<T, 1> inflow_rate_array(this->Ns);
-	Array<T, 1> deposition_flux_array(this->Ns);
+	Array<T, 1> deposition_rate_array(this->Ns);
+	Array<T, 1> street_deposition_rate_array(this->Ns);
+	Array<T, 1> scavenging_rate_array(this->Ns);
+	Array<T, 1> street_surface_deposited_mass_array(this->Ns);
+	Array<T, 1> new_street_surface_deposited_mass_array(this->Ns);
+	Array<T, 1> washoff_factor_array(this->Ns);
 
 	concentration_array = 0.0;
 	concentration_array_tmp = 0.0;
@@ -417,15 +494,25 @@ namespace Polyphemus
 	new_concentration_array = 0.0;
 	emission_rate_array = 0.0;
 	inflow_rate_array = 0.0;
-	deposition_flux_array = 0.0;
-
+	deposition_rate_array = 0.0;
+	street_deposition_rate_array = 0.0;
+	scavenging_rate_array = 0.0;
+	street_surface_deposited_mass_array = 0.0;
+	new_street_surface_deposited_mass_array = 0.0;
+	washoff_factor_array = 0.0;
+	
         T transfer_velocity = street->GetTransferVelocity(); // m/s
 	T temp = transfer_velocity * street->GetWidth() * street->GetLength(); // m3/s
-        T outgoing_flux = street->GetOutgoingFlux(); // m3/s
+	T outgoing_flux = street->GetOutgoingFlux(); // m3/s
         T inflow_flux = street->GetIncomingFlux();
         T street_volume = street->GetHeight() *
           street->GetWidth() * street->GetLength(); // m3
-            
+	
+	T street_area = street->GetWidth() * street->GetLength(); // m2
+	//! symmetric walls
+        T wall_area = 2.0 * street->GetHeight() * street->GetLength(); // m2
+
+
 	for (int s = 0; s < this->Ns; ++s)
           {
 	    concentration_array(s) = street->GetStreetConcentration(s);
@@ -433,7 +520,23 @@ namespace Polyphemus
 	    background_concentration_array(s) = street->GetBackgroundConcentration(s);
 	    emission_rate_array(s) = street->GetEmission(s);
 	    inflow_rate_array(s) = street->GetInflowRate(s);
-	    deposition_flux_array(s) = street->GetDepositionRate() * street_volume; // to update
+	    if(this->option_process["with_deposition"])
+	      {
+		street_deposition_rate_array(s) = street_area * 
+	    	  street->GetStreetDryDepositionVelocity(s); // m3/s
+	    	T wall_dry_deposition_rate = wall_area * 
+	    	  street->GetWallDryDepositionVelocity(s); // m3/s
+	    	deposition_rate_array(s) = street_deposition_rate_array(s) +
+	    	  wall_dry_deposition_rate; // m3/s
+	      }
+	    if(this->option_process["with_scavenging"])
+	      {
+		T rain = street->GetRain();
+		if (rain > 0.0)
+		  scavenging_rate_array(s) = street_volume * 
+		    street->GetStreetScavengingCoefficient(s); // m3/s
+	      }
+	    //deposition_flux_array(s) = street->GetDepositionRate() * street_volume;
 	  }
 
         T sub_delta_t_init, sub_delta_t;
@@ -451,8 +554,15 @@ namespace Polyphemus
 		   background_concentration_array,
 		   emission_rate_array,
 		   inflow_rate_array,
-		   deposition_flux_array);
-        
+		   deposition_rate_array,
+		   street_deposition_rate_array,
+		   scavenging_rate_array,
+		   zero,
+		   washoff_factor_array, //zero for gas phase
+		   street_surface_deposited_mass_array,
+		   this->Ns,
+		   zero);
+
 	Date next_date = this->current_date;
 	Date next_date_tmp = this->current_date;
 	next_date.AddSeconds(this->Delta_t);
@@ -467,20 +577,27 @@ namespace Polyphemus
 	    //! Use the ETR method to calculates new street concentrations.
 	    if (this->option_method == "ETR")
 	      {
-                StreetNetworkTransport<T>::
-                  ETRConcentration(transfer_velocity,
-                                   temp,
-                                   outgoing_flux,
-                                   street_volume,
-                                   concentration_array,
-                                   concentration_array_tmp,
-                                   background_concentration_array,
-                                   emission_rate_array,
-                                   inflow_rate_array,
-                                   deposition_flux_array,
-                                   new_concentration_array,
-                                   sub_delta_t_init,
-                                   street->GetStreetID());
+		StreetNetworkTransport<T>::
+		  ETRConcentration(transfer_velocity,
+				   temp,
+				   outgoing_flux,
+				   street_volume,
+				   concentration_array,
+				   concentration_array_tmp,
+				   background_concentration_array,
+				   emission_rate_array,
+				   inflow_rate_array,
+				   deposition_rate_array,
+				   street_deposition_rate_array,
+				   scavenging_rate_array,
+				   zero,
+				   washoff_factor_array, //zero for gas-phase
+				   street_surface_deposited_mass_array,
+				   new_concentration_array,
+				   sub_delta_t_init,
+				   this->Ns,
+				   zero,
+				   new_street_surface_deposited_mass_array);
 
 	      }
 	    else if (this->option_method == "Rosenbrock")
@@ -495,10 +612,18 @@ namespace Polyphemus
 					  background_concentration_array,
 					  emission_rate_array,
 					  inflow_rate_array,
-					  deposition_flux_array,
+					  deposition_rate_array,
 					  new_concentration_array,
 					  sub_delta_t_init,
-					  inflow_flux);
+					  inflow_flux,
+					  street_deposition_rate_array,
+					  scavenging_rate_array,
+					  zero, //resuspension_factor
+					  washoff_factor_array,
+					  street_surface_deposited_mass_array, //zero for gas species
+					  new_street_surface_deposited_mass_array,
+					  this->Ns,
+					  zero);
 	      }
 	    else 
 	      throw string("Error: numerical method not chosen.");
@@ -609,43 +734,22 @@ namespace Polyphemus
     \note Empty method.
   */
   template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::InitData()
+  void StreetNetworkChemistry<T, ClassChemistry>::InitAllData()
   {
-    StreetNetworkTransport<T>::InitData();
-
+    StreetNetworkTransport<T>::InitAllData();
     /*** Meteo for the chemistry on the streets ***/
     string filename;
     if (this->option_process["with_local_data"])
-      {
-        attenuation.resize(this->Nt_meteo, this->total_nstreet);
-        filename = this->input_files["meteo"]("Attenuation");
-        InitData(filename, attenuation);
-
-        specific_humidity.resize(this->Nt_meteo, this->total_nstreet);
-        filename = this->input_files["meteo"]("SpecificHumidity");
-        InitData(filename, specific_humidity);
-
-        pressure.resize(this->Nt_meteo, this->total_nstreet);
-        filename = this->input_files["meteo"]("SurfacePressure");
-        InitData(filename, pressure);
-
-        temperature.resize(this->Nt_meteo, this->total_nstreet);
-        filename = this->input_files["meteo"]("SurfaceTemperature");
-        InitData(filename, temperature);
-      }
-
+      this->InitData("meteo",
+		     "Attenuation",
+		     FileAttenuation_i,
+		     FileAttenuation_f,
+		     this->current_date,
+		     Attenuation_f,
+		     this->interpolated);
+      
   }
 
-  //! Method called at each time step to initialize the model.
-  /*!
-    \note Empty method.
-  */
-  template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::InitData(string input_file, 
-                                                           Array<T, 2>& input_data)
-  {
-    StreetNetworkTransport<T>::InitData(input_file, input_data);
-  }
 
   //! Method called at each time step to initialize the model.
   /*!
@@ -655,9 +759,17 @@ namespace Polyphemus
   void StreetNetworkChemistry<T, ClassChemistry>::InitStep()
   {
     StreetNetworkTransport<T>::InitStep();
-    
-    InitPhotolysis(this->current_date);
 
+    if (this->option_process["with_local_data"])
+      this->UpdateData("meteo",
+		       "Attenuation",
+		       FileAttenuation_i,
+		       FileAttenuation_f,
+		       Attenuation_i,
+		       Attenuation_f,
+		       this->interpolated);
+      
+    
     int st = 0;
     for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
          iter != this->StreetVector.end(); iter++)
@@ -665,16 +777,21 @@ namespace Polyphemus
         Street<T>* street = *iter;
 
         if (this->option_process["with_local_data"])
-          {
-            //! Set the meteo data
-            street->SetMeteoChemistry(attenuation(this->meteo_index, st),
-                                      specific_humidity(this->meteo_index, st),
-                                      pressure(this->meteo_index, st),
-                                      temperature(this->meteo_index, st));
-          }
-	st += 1;
+	  street->SetAttenuation(Attenuation_f(st));
+          
+	Array<T, 1> PhotolysisRateStreet(Nr_photolysis);
+	for (int r = 0; r < Nr_photolysis; r++)
+	  PhotolysisRateStreet(r) = PhotolysisRate_f(r, st);
+	  
+	street->SetPhotolysisRate(PhotolysisRateStreet);
+	st ++;
       }
 
+    PhotolysisRate_i.GetArray() = PhotolysisRate_f.GetArray();
+
+#ifndef POLYPHEMUS_WITH_SSH_AEROSOL                
+    InitPhotolysis(this->next_date, PhotolysisRate_f);
+#endif
   }
 
 
@@ -809,6 +926,7 @@ namespace Polyphemus
   {
     Array<T, 1> source(this->Ns);
     source = 0.0;
+#ifndef POLYPHEMUS_WITH_AEROSOL_MODULE   
     Chemistry_.Forward(T(current_date_tmp.GetNumberOfSeconds()),
 		       attenuation_, specific_humidity_,
 		       temperature_, pressure_, source,
@@ -818,6 +936,7 @@ namespace Polyphemus
 		       temperature_, pressure_, source,
 		       photolysis_rate, longitude_,
 		       latitude_, concentration_array);
+#endif    
   }
 
   /*! Initializes background concentrations and photolysis parameters.
@@ -828,9 +947,22 @@ namespace Polyphemus
   void StreetNetworkChemistry<T, ClassChemistry>
   ::InitChemistry()
   {
-    InitPhotolysis(this->current_date);
-    
+    int st = 0;
+    InitPhotolysis(this->current_date, PhotolysisRate_f);
+    for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
+         iter != this->StreetVector.end(); iter++)
+      {
+        Street<T>* street = *iter;
+	Array<T, 1> PhotolysisRateStreet(Nr_photolysis);
+	for (int r = 0; r < Nr_photolysis; r++)
+	  PhotolysisRateStreet(r) = PhotolysisRate_f(r, st);
+	street->SetPhotolysisRate(PhotolysisRateStreet);
+	st ++;
+      }
+
+#ifndef POLYPHEMUS_WITH_AEROSOL_MODULE    
     Chemistry_.Init(*this);
+#endif    
   }
 
 
