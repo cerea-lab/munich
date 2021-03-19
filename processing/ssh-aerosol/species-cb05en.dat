@@ -1,0 +1,185 @@
+[species]
+
+HC8     NH3     HCL     O1D     ETOH
+CH4     ETHA    TOL     XYL     SO2
+SULF    HUM     BiBmP   BiBlP   POAlP
+POAmP   POAhP   SOAlP   SOAmP   SOAhP
+RppO2   RpppO2  MEOH    TO2     N2O5
+BiMGA   BiNGA   BiPER   BiDER   BiNIT3
+PAN     RelvocO2        Dimer   Monomer BiA3D
+HNO4	BiMT		PANX	ROR	H2O2
+HONO	BiNIT		HCO3	MEPX	MGLY
+API	RpO2		RO2	LIM	BiA1D
+BiA2D	AnBlP		AnBmP	BiA0D	ETH
+FACD	MPAN		OLE	IOLE	BPI
+ROOH	PACD		CRES	OPEN	CRO
+ISON	ISOP		ISPD	NTR	PAR
+ALDX	AnClP		XYLP	HNO3	ISOR
+MACR	AACD		CO	TOLP	MEO2
+FORM	O		OH	NO3	XO2N
+CXO3	O3		ALD2	C2O3	NO2
+XO2	NO		HO2
+
+
+[aerosol_species]
+
+# Water must be the last species.
+PMD    PBC     PNA    PSO4    PNH4    PNO3
+PHCL   PBiA2D  PBiA1D PBiA0D  PAGLY   PAMGLY
+PBiMT  PBiPER  PBiDER PBiMGA  PAnBlP  PAnBmP  PBiBlP PBiBmP
+PBiNGA PBiNIT3 PBiNIT PAnClP
+PSOAlP PSOAmP  PSOAhP PPOAlP  PPOAmP  PPOAhP
+PMonomer       PDimer PBiA3D 
+PH2O
+
+
+[molecular_weight]
+
+# Unit: g / mol
+HC8     114.    NH3     17.     HCL     36.5    O1D     16.     ETOH    46.07   
+CH4     16.04   ETHA    30.07   TOL     92.14   XYL     106.16  SO2     64.06   
+SULF    98.08   HUM     204.36  BiBmP   236.    BiBlP   298.    POAlP   280.    
+POAmP   280.    POAhP   280.    SOAlP   392.    SOAmP   392.    SOAhP   392.    
+RppO2   231.    RpppO2  263.    MEOH    32.04   TO2     141.15  N2O5    108.01  
+BiMGA   120.    BiNGA   165.    BiPER   168.    BiDER   136.    BiNIT3  272.    
+PAN     121.05  RelvocO2        295.    Dimer   432.    Monomer 278.    BiA3D   204.    
+HNO4    79.01   BiMT    136.    PANX    120.04  ROR     16.     H2O2    34.01   
+HONO    47.01 BiNIT   215. HCO3    63.03 MEPX    48.04 MGLY    72.06
+API     136. RpO2    199. RO2     199. LIM     136. BiA1D   170.
+BiA2D   186. AnBlP   167. AnBmP   152. BiA0D   168. ETH     28.05
+FACD    46.03 MPAN    148. OLE     27.05 IOLE    56.11 BPI     136.
+ROOH    47.03 PACD    76.05 CRES    108.14 OPEN    48.04 CRO     108.14
+ISON    147. ISOP    68.18 ISPD    70.09 NTR     77.04 PAR     15.03
+ALDX    43.04 AnClP   167. XYLP    155. HNO3    63.01 ISOR    117.
+MACR    70. AACD    60.05 CO      28.01 TOLP    141. MEO2    47.03
+FORM    30.03 O       16. OH      17.01 NO3     62.01 XO2N    47.03
+CXO3    74.04 O3      48. ALD2    44.05 C2O3    75.04 NO2     46.
+XO2     47.03 NO      30. HO2     33.01   
+
+[molecular_weight_aer]
+
+# Unit: g / mol
+PMD     28.0   PBC      12.0   PNA     23.0   PSO4    98.0  PNH4  17.0
+PNO3    63.0   PHCL     36.5   PBiA2D  186.0  PBiA1D  170.0
+PBiA0D  168.0  PAGLY    58.0   PAMGLY  72.0   PBiMT   136.0
+PBiPER  168.0  PBiDER   136.0  PBiMGA  120.0
+PAnBlP  167.0  PAnBmP   152.0  PBiBlP  298.0  PBiBmP  236.0
+PBiNGA  165.0  PBiNIT3  272.0  PBiNIT  215.0
+PAnClP  167.0  PPOAlP   280.0  PPOAmP  280.0
+PPOAhP  280.0  PSOAlP   392.0  PSOAmP  392.0
+PSOAhP  392.0
+PMonomer 278.0  PDimer  432.0  PBiA3D  202.0 
+PH2O     18.0
+
+
+[gas_species_cloud_interact]
+
+# List of gas species interacting with cloud phase,
+# the order is imposed by VSRM.
+NH3 HNO3 HCL SO2 H2O2 FORM HONO O3 OH HO2 NO3 NO NO2 PAN SULF
+
+
+[diffusivity]
+
+# Gas-phase diffusivities: cm^2 / s.
+NH3       0.20    HCL       0.14      O3        0.14    NO        0.17
+NO2       0.14    H2O2      0.16      FORM      0.17    ALD2      0.14
+PAN       0.08    HONO      0.14      SO2       0.12    HNO3      0.12
+MEPX      0.14    PACD      0.11      FACD      0.14    CO        0.18
+N2O5      0.1	  POAlP	    0.0634    POAmP	0.0634	POAhP	  0.0634
+SOAlP	  0.0388  SOAmP	    0.0388    SOAhP     0.0388
+
+
+[henry]
+
+# Henry constant: mol / L / atm.
+# Must be effective Henry constant except HONO, HNO3, HCL, NH3 and SO2.
+NH3    62.0      HCL     1.1        O3      1.14e-2    NO      1.9e-3
+NO2    1.2e-2    H2O2    1.02e5     FORM    4.9e3      ALD2    15.0
+PAN    5.        HONO    49.0       SO2     1.23       HNO3    2.1e5
+MEPX   9.5e2     PACD    5.4e2      FACD    9.8e6      CO      1.e3
+N2O5   1.e14	 POAlP 	 4.0e5	    POAmP   1.6e5      POAhP   1.0e5
+SOAlP  1.3e7     SOAmP	 4.0e5	    SOAhP   1.45e5
+
+
+[dissolution_heat]
+
+# Heat of dissolution: kcal / mol at 298K.
+NH3      -8.17    HCL      -4.0       O3       -5.04    NO      -2.9
+NO2      -5.0     H2O2     -14.5      FORM     -12.8    ALD2     0.0
+PAN       0.0     HONO     -9.5       SO2      -6.25    HNO3    -17.27
+MEPX      0.0     PACD      0.0       FACD      0.0     CO       0.0
+N2O5      0.0
+
+
+[reactivity]
+
+# Chemical reactivity.
+O3       1.0     NO       0.0    NO2      0.1     H2O2     1.0
+FORM     0.0     ALD2     0.0    PAN      0.1     HONO     0.1
+SO2      0.0     HNO3     0.0    MEPX     0.1     PACD     0.1
+FACD     0.0     CO       0.0    POAlP	  0.1 	  POAmP    0.1
+POAhP	 0.1	 SOAlP	  0.1	 SOAmP	  0.1	  SOAhP    0.1
+
+
+[alpha]
+
+SO2	1.	SULF	1.	NO	0.	NO2	0.
+O3	0.	H2O2	1.	HNO3	10.	HONO	2.
+HNO4	5.	NH3	1.	PAN	0.	PANX	0.
+FORM	0.8	ALD2	0.	ISPD	0.	MGLY	0.01
+MEOH	0.6	ETOH	0.6	CRES	0.01	FACD	2.
+AACD	1.5	MEPX	0.1	NTR	0.	CO	0.01
+HCL	1.      POAlP	0.	POAmP	0.	POAhP   0.
+SOAlP	0.	SOAmP	0.	SOAhP   0.
+
+[beta]
+
+SO2	0.	SULF	1.	NO	0.	NO2	0.8
+O3	1.	H2O2	1.	HNO3	10.	HONO	2.
+HNO4	5.	NH3	0.	PAN	0.6	PANX	0.6
+FORM	0.2	ALD2	0.05	ISPD	0.05	MGLY	0.
+MEOH	0.1	ETOH	0.	CRES	0.	FACD	0.
+AACD	0.	MEPX	0.8	NTR	0.5	CO	0.
+HCL	0.	POAlP	0.05	POAmP	0.05	POAhP   0.05
+SOAlP	0.05	SOAmP	0.05	SOAhP   0.05
+
+[drainage_efficiency]
+
+PMD 1.e-3
+PBC 1.e-3
+PNA 1.0
+PSO4 1.0
+PNH4 1.0
+PNO3 1.0
+PHCL 1.0
+PBiA2D 1.0
+PBiA1D 1.0
+PBiA0D 1.0
+PAGLY 1.0
+PAMGLY 1.0
+PBiMT  1.0
+PBiPER 1.0
+PBiDER 1.0
+PBiMGA 1.0
+PAnBlP 1.e-3
+PAnBmP 1.e-3
+PBiBlP 1.e-3
+PBiBmP 1.e-3
+PBiNGA 1.e-3
+PBiNIT3  1.e-3
+PBiNIT 1.e-3
+PAnClP 1.e-3
+PPOAlP 1.e-3
+PPOAmP 1.e-3
+PPOAhP 1.e-3
+PSOAlP 1.e-3
+PSOAmP 1.e-3
+PSOAhP 1.e-3
+PMonomer 1.e-3
+PDimer 1.e-3
+PBiA3D 1.0
+
+[Rm]
+POAlP	0.	POAmP	0.	POAhP   0.
+SOAlP	0.	SOAmP	0.	SOAhP   0.

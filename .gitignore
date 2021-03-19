@@ -16,6 +16,7 @@ include/ssh-aerosol/
 *.mod
 *.nc
 preprocessing/output
+!processing/ssh-aerosol/libssh-aerosol.so
 
 ### Temporary files
 *.log
