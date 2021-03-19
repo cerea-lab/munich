@@ -47,26 +47,31 @@ matplotlib.rcParams["ytick.minor.size"] = 1
 # Read intersection location data.
 # ------------------
 
-input_node = open("node.txt")
+input_file = open("intersection.dat")
 node = {}
-for line in input_node.readlines():
-    line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+input_file.readline()
+for line in input_file.readlines():
+    line_info = [x for x in re.split(';', line) if x.strip() != '']
     # Converting from text to number.
     node[int(line_info[0])] = (float(line_info[1]), float(line_info[2]))
-input_node.close()
+input_file.close()
 
 # Input street location data
 # ------------------
 
-input_street = np.loadtxt("emission.txt")
-nstreet = np.size(input_street[:,0])
 node_begin = []
 node_end = []
-street_id = []
-for i in range(0,nstreet):
-    street_id.append(int(input_street[i,0]))
-    node_begin.append(int(input_street[i,1]))
-    node_end.append(int(input_street[i,2]))
+arc_id = []
+input_file = open("street.dat")
+input_file.readline()
+for line in input_file.readlines():
+    line_info = [x for x in re.split(';', line) if x.strip() != '']
+    node_begin.append(int(line_info[1]))
+    node_end.append(int(line_info[2]))
+    arc_id.append(int(line_info[0]))
+input_file.close()
+
+nstreet = len(arc_id)
 
 # Read binary data
 # ------------------

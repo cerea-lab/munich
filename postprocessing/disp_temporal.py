@@ -1,10 +1,9 @@
 # coding=utf-8
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # import matplotlib as mpl
 # mpl.use('agg')
 import matplotlib.pyplot as plt
-from atmopy.display import *
 
 # This script calculates the hot emissions of gasoline passenger car
 # for each arc during after-work rush hours
@@ -15,118 +14,94 @@ import re
 from atmopy import *
 from atmopy.display import *
 
-content = [("Species", "[input]", "StringList"),
-	   ("Directory", "[input]", "String")]
+content = [("Species", "[input]", "String"),
+	   ("Directory", "[input]", "String"),
+           ("Date_min", "[input]", "DateTime"),
+           ("Delta_t", "[input]", "Float")]
 
 config = talos.Config(sys.argv[1], content)
 
-shape = (config.Ny, config.Nx)
+config.Nx = 1
+config.Ny = 1
+config.Nt = 0
 
-input_node = open("node.txt")
-node = {}
+date_min = config.Date_min
+delta_t = config.Delta_t
 
-for line in input_node.readlines():
-    line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
-    # Converting from text to number.
-    node[int(line_info[0])] = (float(line_info[1]), float(line_info[2]))
-
-input_node.close()
+species = config.Species
+directory = config.Directory
 
 # Input data 
 # -----------
 
-plot_data = np.loadtxt("emission.txt")
-plot_arc_size = np.size(plot_data[:,0])
+input_file = open("intersection.dat")
+node = {}
+input_file.readline()
+for line in input_file.readlines():
+    line_info = [x for x in re.split(';', line) if x.strip() != '']
+    # Converting from text to number.
+    node[int(line_info[0])] = (float(line_info[1]), float(line_info[2]))
+input_file.close()
+
 node_begin = []
 node_end = []
 arc_id = []
+input_file = open("street.dat")
+input_file.readline()
+for line in input_file.readlines():
+    line_info = [x for x in re.split(';', line) if x.strip() != '']
+    node_begin.append(int(line_info[1]))
+    node_end.append(int(line_info[2]))
+    arc_id.append(int(line_info[0]))
+input_file.close()
+   
+nstreet = len(arc_id)
 
-for i in range(0,plot_arc_size):
-    node_begin.append(int(plot_data[i,1]))
-    node_end.append(int(plot_data[i,2]))
-    arc_id.append(int(plot_data[i,0]))
+data = getd(config, directory + species + ".bin")
 
-species = config.Species[0]
+if (nstreet != data.shape[1]):
+    raise Exception("Incompatible data. Please set Nz to ", nstreet)
 
-NOxratio = False
+# Dimension: nt * nstreet
+data_reshape = np.reshape(data, (data.shape[0], data.shape[1]))
+nt = data.shape[0]
 
-# Simulation 1
-directory = "/net/libre/coba/kimy/munich-testcase/dynamic/results/"
-if species == "NOx":
-    data = getd(config, directory + "NO.bin") * 46. / 30.
-    data2 = getd(config, directory + "NO2.bin")
-    
-else:
-    data = getd(config, directory + species + ".bin")
-    data2 = 0.0 
-if (NOxratio):
-    data_sum = data2 / (data + data2)
-else:
-    data_sum = data + data2
-data_reshape = np.reshape(data_sum, (data_sum.shape[0], data_sum.shape[1]))
-print data_reshape.shape
-
-# Simulation 2
-directory = "/net/libre/coba/kimy/munich-testcase/stationary/results/"
-if species == "NOx":
-    data = getd(config, directory + "NO.bin") * 46. / 30.
-    data2 = getd(config, directory + "NO2.bin")
-    
-else:
-    data = getd(config, directory + species + ".bin")
-    data2 = 0.0 
-if (NOxratio):
-    data_sum = data2 / (data + data2)
-else:
-    data_sum = data + data2
-data_reshape2 = np.reshape(data_sum, (data_sum.shape[0], data_sum.shape[1]))
-print data_reshape2.shape
-
+print("Nt: ", nt)
+print("Number of streets: ", data.shape[1])
+print("Begining date: ", date_min)
 
 ## ==========
 import datetime
-date_begin = datetime.datetime(2014,3,16,1)
 sim_date = []
 disp_conc = []
-disp_conc2 = []
 
-for t in range(data_sum.shape[0]):
-    current_date = date_begin + datetime.timedelta(hours = t)
+for t in range(nt):
+    current_date = date_min + datetime.timedelta(seconds = t * delta_t)
     sim_date.append(current_date)
-    street_data = []
-    street_data2 = [] 
-
-    # ID, O3, NO, NO2
-    for i in range(0,plot_arc_size):
-        street_data.append(data_reshape[t, i])
-        street_data2.append(data_reshape2[t, i])
-
+    street_data = data_reshape[t]
+        
 # Street fragments for Boulevard Alsace-Lorraine 
     AL_list = [631, 598, 685, 668, 687, 688, 689, 595, 692, 693, 826]
     v_AL = []
-    v_AL2 = []
     for li in AL_list:
-        for i in range(0,plot_arc_size):
+        for i in range(nstreet):
             if li == arc_id[i]:
                 v_AL.append(street_data[i])
-                v_AL2.append(street_data2[i])
 
     disp_conc.append(sum(v_AL) / float(len(v_AL)))
-    disp_conc2.append(sum(v_AL2) / float(len(v_AL)))
 
 fig, ax = plt.subplots(figsize = (16, 6))
 
-ax.plot(sim_date, disp_conc, 'k-', linewidth = 2, label = "Dynamic")
-ax.plot(sim_date, disp_conc2, 'r-', linewidth = 2, label = "Stationary")
+ax.plot(sim_date, disp_conc, 'k-', linewidth = 2, label = "MUNICH")
 ax.set_title(species)
-print "******* average : ", np.mean(disp_conc), np.mean(disp_conc2)
+print("******* average : ", np.mean(disp_conc))
 
 # Formats the date axis.
-locator = HourLocator(interval = 24)
+locator = HourLocator(interval = 6)
 ax.xaxis.set_major_locator(locator)
 
 import matplotlib.dates as mdates
-myFmt = mdates.DateFormatter('%d/%m')
+myFmt = mdates.DateFormatter('%d/%m %H')
 ax.xaxis.set_major_formatter(myFmt)
 
 ltick = ax.get_xticks()
