@@ -2,6 +2,7 @@
 
 ### Directories
 test
+include/SeldonData/
 
 ### Binaries
 *.o
