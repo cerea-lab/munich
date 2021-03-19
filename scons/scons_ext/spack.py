@@ -43,26 +43,26 @@ class Spack:
 
         if not species_file or not reactions_file:
             if spack_config:
-                raise Exception, "In \"" + path + "\":\n"\
-                                 "Spack needs a '.species' file "\
-                                 "and a '.reactions' file to operate"
+                raise Exception("In \"" + path + "\":\n"\
+                                "Spack needs a '.species' file "\
+                                "and a '.reactions' file to operate")
             return []
         if len(species_file) > 1:
             if spack_config:
-                raise Exception, "In \"" + path + "\":\n"\
-                                 "Several species file given to Spack, "\
-                                 "only one is expected"
+                raise Exception("In \"" + path + "\":\n"\
+                                "Several species file given to Spack, "\
+                                "only one is expected")
             return []
         if len(reactions_file) > 1:
             if spack_config:
-                raise Exception, "In \"" + path + "\":\n"\
-                                 "Several reactions file given to Spack, "\
-                                 "only one is expected"
+                raise Exception("In \"" + path + "\":\n"\
+                                "Several reactions file given to Spack, "\
+                                "only one is expected")
             return []
         if not spack_config:
-                raise Exception, "In \"" + path + "\":\n"\
-                        "There is a species file and reactions file, "\
-                        "but Spack needs a 'spack_config' file to operate"
+                raise Exception("In \"" + path + "\":\n"\
+                                "There is a species file and reactions file, "\
+                                "but Spack needs a 'spack_config' file to operate")
 
 
         # Creates a vanilla environment since Spack does not depends on
