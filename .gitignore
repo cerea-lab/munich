@@ -3,6 +3,7 @@
 ### Directories
 test
 include/SeldonData/
+include/AtmoData/
 
 ### Binaries
 *.o
