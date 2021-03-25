@@ -69,7 +69,7 @@ namespace Polyphemus
     char *error = NULL;
     dlerror();    /* Clear any existing error */
 
-    char lib_path[] = "libssh-aerosol.so";
+    char lib_path[] = "./libssh-aerosol.so";
     
     // Try to load the shared library
     _aerosol_so = dlopen(lib_path, RTLD_LAZY);
