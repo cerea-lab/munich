@@ -65,7 +65,7 @@ emis_dir = output_dir + "/grid_emission/"
 os.makedirs(emis_dir)
         
 emis_species_list = config.emission_species
-print emis_species_list
+print(emis_species_list)
 
 # Number of emitted species
 ns_emis = len(emis_species_list)
@@ -141,43 +141,43 @@ read_lut = False
 date_list = []
 for t in range(nt):
     current_date = begin_date + datetime.timedelta(hours = (delta_t * t))
-    print "\n====================================================="
-    print "Current date (UTC): ", current_date
+    print("\n=====================================================")
+    print("Current date (UTC): ", current_date)
     date_list.append(current_date)
 
     # Set time index for polair
-    print config.Date_min_polair
+    print(config.Date_min_polair)
     time_diff = current_date - config.Date_min_polair
     time_diff_seconds = time_diff.days * 24 * 60 * 60 + time_diff.seconds
     indt = int(time_diff_seconds / 3600)
-    print "Time index: ", indt 
+    print("Time index: ", indt) 
 
     if config.is_local_hour:
-            print('Conversion from {} to UTC'.format(config.time_zone))
+            print(('Conversion from {} to UTC'.format(config.time_zone)))
             current_date_local = utc_to_local(current_date, config.time_zone)
     else:
             current_date_local = current_date
 
-    print "Current date (local hour): ", current_date_local
+    print("Current date (local hour): ", current_date_local)
     str_date = current_date_local.strftime("%Y%m%d%H")
     date = str_date[0:8]
     hour = str_date[8:10]
     # Should take into account the French holidays during the period.
     if (current_date.weekday() >= 0) and (current_date.weekday() <= 4):
             if is_holiday(current_date, config.country_code):
-                    print "The current day is a holiday."
+                    print("The current day is a holiday.")
                     input_file = config.emission_dir_weekend + "/" + \
                     config.weekend_file_prefix + hour
             else:
-                    print "The current day is a weekday."
+                    print("The current day is a weekday.")
                     input_file = config.emission_dir_weekday + "/" + \
                     config.weekday_file_prefix + hour
     else:
-            print "The current day is a weekend."
+            print("The current day is a weekend.")
             input_file = config.emission_dir_weekend + "/" + \
             config.weekend_file_prefix + hour
 
-    print "Read the input data (segment coordinates and emission rates) from the file --- ",input_file
+    print("Read the input data (segment coordinates and emission rates) from the file --- ",input_file)
     
     street_list, node_list = read_traffic_data(input_file,
                                                emis_species_list, config.epsg_code)
@@ -190,7 +190,7 @@ for t in range(nt):
     # Merging streets if they have same (or very near) nodes.
     if (config.is_street_merged):
             n_street = len(street_list)
-            print " - Initial number of streets: ", n_street
+            print(" - Initial number of streets: ", n_street)
 
             # Automatic merging for the separated roads
             lut_file = "street-merging-lookup-table.txt"
@@ -199,12 +199,12 @@ for t in range(nt):
                     ntemp = lut_merging_street(lut_file, street_list)
             else:
                     ntemp = merging_street(lut_file, node_list, street_list)
-                    print " - Number of streets after merging the same streets: %d" % (n_street - ntemp)
+                    print(" - Number of streets after merging the same streets: %d" % (n_street - ntemp))
 
             # Manual merging for the separated roads.
             if (config.is_street_manually_merged):
                     ntemp2 = manual_merging_street(street_list)
-                    print " - Number of streets after manual merging of the streets: %d" % (n_street - ntemp - ntemp2)
+                    print(" - Number of streets after manual merging of the streets: %d" % (n_street - ntemp - ntemp2))
 
     # Make a new node list
     street_list_eff = []
@@ -226,17 +226,17 @@ for t in range(nt):
             node_list_temp.append(node)
 
     # Merging nodes if they have same coordinates or they are very near.
-    print " === Merging nodes === "
+    print(" === Merging nodes === ")
     n_node = len(node_list_temp)
-    print "Initial number of nodes: ", n_node
+    print("Initial number of nodes: ", n_node)
     n_node1 = merging_node(node_list_temp)
-    print "Number of nodes after removing the same nodes: ", (n_node - n_node1)
+    print("Number of nodes after removing the same nodes: ", (n_node - n_node1))
     if config.is_near_node_merged:
             n_node2 = merging_near_node(node_list_temp)
-            print "Number of nodes after removing the nearest nodes: ", (n_node - n_node1 - n_node2)
+            print("Number of nodes after removing the nearest nodes: ", (n_node - n_node1 - n_node2))
     if config.is_node_manually_merged:
             n_node3 = manual_merging_node(node_list_temp)
-            print "Number of nodes after manually removing the nearest nodes: ", (n_node - n_node1 - n_node2 - n_node3)
+            print("Number of nodes after manually removing the nearest nodes: ", (n_node - n_node1 - n_node2 - n_node3))
 
     node_list_eff = []
     for inode in range(len(node_list_temp)):
@@ -307,7 +307,7 @@ for t in range(nt):
             file_emission = output_dir + "/emission/" + species + ".bin"
             append_binary(emission_array[:,i], file_emission)
 
-    for spec in background.keys():
+    for spec in list(background.keys()):
             filename = output_dir + "/background/" + spec + ".bin"
             append_binary(background[spec], filename)            
         

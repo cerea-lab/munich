@@ -123,7 +123,7 @@ def merging_street(output_file, node_list, street_list):
 def manual_merging_street(street_list):
     input_file = "street-merging.txt"
     input_merging = open(input_file)
-    print "Manual merging using the street list in " + input_file
+    print("Manual merging using the street list in " + input_file)
     header = input_merging.readline()
     ntemp = 0
     for line in input_merging.readlines():
@@ -151,7 +151,7 @@ def manual_merging_street(street_list):
 def lut_merging_street(lut_file, street_list):
     n_street = len(street_list)
     ntemp = 0
-    print "Read the lookup-table: ", lut_file    
+    print("Read the lookup-table: ", lut_file)    
     input_merging = open(lut_file)
     header = input_merging.readline()
     for line in input_merging.readlines():
@@ -229,7 +229,7 @@ def merging_near_node(node_list):
 def manual_merging_node(node_list):
     n_node = 0
     input_file = "intersection-merging.txt"
-    print "Manual merging of the nodes using the node list in " + input_file
+    print("Manual merging of the nodes using the node list in " + input_file)
     input_merging = open(input_file)
     header = input_merging.readline()
     for line in input_merging.readlines():
@@ -261,7 +261,7 @@ def manual_merging_node(node_list):
 # ------------------------------------------------------------------
 def get_street_geog(input_file, street_list):
     # Read street width, length and builiding height.
-    print "Read the geographical informations: ", input_file
+    print("Read the geographical informations: ", input_file)
     input_street_geog = open(input_file)
     header = input_street_geog.readline()
     nstreet = 0
@@ -277,7 +277,7 @@ def get_street_geog(input_file, street_list):
                 nstreet = nstreet + 1
     input_street_geog.close()
     if nstreet != len(street_list):
-        print "Warning: Missing input data: data given for %d streets, but data are needed for %d streets." % (nstreet, len(street_list))
+        print("Warning: Missing input data: data given for %d streets, but data are needed for %d streets." % (nstreet, len(street_list)))
     return 0
 
 
@@ -323,22 +323,22 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
     aux = np.log(Piso / p00)
     Ziso = - r * A * aux*aux / (2.0*g) - r * Ts0 * aux / g
     nz = theta.shape[1]
-
-    print "WRF output data (nt, nz, ny, nx): ", theta.shape
+   
+    print("WRF output data (nt, nz, ny, nx): ", theta.shape)
     hasMeteo = False
     for t in range(len(times)):
-        str_times = ''.join(times[t])
+        str_times = b''.join(times[t])
         year = int(str_times[0:4])
         month = int(str_times[5:7])
         day = int(str_times[8:10])
         hour = int(str_times[11:13])
         meteo_date = datetime.datetime(year,month,day,hour)
         if current_date == meteo_date:
-            print "Meteo data are available for the date ", current_date
+            print("Meteo data are available for the date ", current_date)
             ind_t = t
             hasMeteo = True
     if (hasMeteo == False):
-        print "Error: meteo data are not available"
+        print("Error: meteo data are not available")
         sys.exit()
 
     nx = lons.shape[2]
@@ -490,7 +490,7 @@ def compute_attenuation(Nz, gridz_in, RelativeHumidity,
         if (gridz_in[k] < 1500.):
             dz = gridz_in[k + 1] - gridz_in[k]
             if (RelativeHumidity[k] > 0.7):
-		  B += (RelativeHumidity[k] - 0.7) * dz
+                  B += (RelativeHumidity[k] - 0.7) * dz
             norm = norm + (1. - 0.7) * dz;
 
     # // Normalization.
@@ -503,7 +503,7 @@ def compute_attenuation(Nz, gridz_in, RelativeHumidity,
 
 
 def compute_cloudiness(Nz, Pressure, CloudFraction, GridZ_interf):
-    #	    /*** Low clouds ***/
+    #            /*** Low clouds ***/
     cloud_max = 0;
     P_0 = 80000.
     P_1 = 45000.
@@ -522,13 +522,13 @@ def compute_cloudiness(Nz, Pressure, CloudFraction, GridZ_interf):
                                or CloudFraction[k] == 0 )
             above = (not below) and CloudFraction[k] < 0.5 * cloud_max
             if ((not below) and k_base == 0):
-		  k_base = k
+                  k_base = k
             if (above):
-		  k_top = k
+                  k_top = k
 
     if (above):
         while (k < Nz and Pressure[k] > P_0):
-		k = k + 1
+                k = k + 1
     k_max = k - 1
     # // Goes up to P_0.
     if (k_base > k_top):
@@ -556,7 +556,7 @@ def compute_cloudiness(Nz, Pressure, CloudFraction, GridZ_interf):
     for k in range(k_max + 1, Nz):
         if (Pressure[k] > P_1 and (not above)):
             below = below and ( CloudFraction[k] < 0.5 * cloud_max
-	        		   or CloudFraction[k] == 0 )
+                        	   or CloudFraction[k] == 0 )
             above = (not below) and CloudFraction[k] < 0.5 * cloud_max
             if ((not below) and k_base == 0):
                 k_base = k
@@ -591,7 +591,7 @@ def compute_cloudiness(Nz, Pressure, CloudFraction, GridZ_interf):
     for k in range(k_max + 1, Nz):
         if (not above):
             below = below and ( CloudFraction[k] < 0.5 * cloud_max
-	        		   or CloudFraction[k] == 0 )
+                        	   or CloudFraction[k] == 0 )
             above = (not below) and CloudFraction[k] < 0.5 * cloud_max
         if ((not below) and k_base == 0):
             k_base = k
@@ -655,7 +655,7 @@ def get_background_concentration(input_file, current_date, street_list):
 
         background_date = datetime.datetime(year,month,day,hour)
         if current_date == background_date:
-            print "Background concentration data are available for the date ", current_date
+            print("Background concentration data are available for the date ", current_date)
             o3 = float(line_info[1])
             no2 = float(line_info[2])
             no = float(line_info[3])
@@ -663,7 +663,7 @@ def get_background_concentration(input_file, current_date, street_list):
             break
 
     if (hasBackground == False):
-        print "Error: background concentration data are not available."
+        print("Error: background concentration data are not available.")
     else:   
         for s in range(len(street_list)):
             street = street_list[s]
@@ -681,7 +681,7 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
     str_date = current_date.strftime("%Y%m%d")
     input_file=chimout_dir+'/out.'+str_date+'00_'+chimout_lab+'.nc'
     if not os.path.isfile(input_file) :
-       print('CHIMERE background conditions are requested but the file is not found: '+str(input_file))
+       print(('CHIMERE background conditions are requested but the file is not found: '+str(input_file)))
        sys.exit()
 
     nc = netCDF4.Dataset(input_file, 'r')
@@ -691,10 +691,10 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
     new_spec_list=[] 
     # New melchior species list from what is actually present in the CHIMERE out file
     for spec in melchior_spec_list:
-        if spec in nc.variables.keys():
+        if spec in list(nc.variables.keys()):
            new_spec_list.append(spec)
         else:
-           print('Warning!! '+spec+' not found in CHIMERE output file')
+           print(('Warning!! '+spec+' not found in CHIMERE output file'))
 
     # Transform CHIMERE date-time to python datetime
 
@@ -722,15 +722,15 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
     for t in range(len(times)):
         background_date = times[t]
         if current_date == background_date:
-            print "Background data are available for the date ", current_date
+            print("Background data are available for the date ", current_date)
             ind_t = t
             hasBackground = True
 
     if (hasBackground == False):
-        print "Error: background data are not available"
+        print("Error: background data are not available")
         sys.exit()
 
-    print(lons.shape)
+    print((lons.shape))
     nx = lons.shape[1]
     ny = lons.shape[0]
 
@@ -748,7 +748,7 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
                    init_length = length
                    ind_i = i
                    ind_j = j
-       print(ind_i,ind_j)
+       print((ind_i,ind_j))
        tem2=nc.variables['tem2'][ind_t,ind_j,ind_i] #Kelvin
        psfc=nc.variables['pres'][ind_t,0,ind_j,ind_i] #Pascal
 
@@ -761,7 +761,7 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
            conc_ppb=nc.variables[spec][ind_t,0,ind_j,ind_i]
            molecular_mass=molar_mass_melchior2[spec]
            ppb2ug=molecular_mass / molecular_volume   #
-           if spec=='NO2' : print(s,ind_t,0,ind_j,ind_i,conc_ppb,conc_ppb * ppb2ug)
+           if spec=='NO2' : print((s,ind_t,0,ind_j,ind_i,conc_ppb,conc_ppb * ppb2ug))
            street.background[spec]=conc_ppb * ppb2ug
 
     return 0     #street.background in ug/m3
@@ -780,7 +780,7 @@ def read_traffic_data(input_file, emis_species_list, epsg_code):
     # WGS84
     proj_out = pyproj.Proj(init='epsg:4326') 
 
-    print "=================", input_file
+    print("=================", input_file)
     node_id = 0
     street_id = 0
     input_street = open(input_file)
@@ -792,7 +792,7 @@ def read_traffic_data(input_file, emis_species_list, epsg_code):
         species_check = False
         for inds, species_name in enumerate(header_info):
             if emis_species == species_name:
-                print emis_species + " found with the index:", inds 
+                print(emis_species + " found with the index:", inds) 
                 species_ind.append(inds)
                 species_check = True
         if (species_check == False):
@@ -843,10 +843,10 @@ def read_traffic_data(input_file, emis_species_list, epsg_code):
         street = Street(street_id, id_begin, id_end, length, width, height, lon_cen, lat_cen, emission)        
 
         street_list.append(street)
-    print " --------------------------"
-    print " --- Number of the nodes: ", len(node_list)
-    print " --- Number of the streets: ", len(street_list)
-    print " --------------------------"
+    print(" --------------------------")
+    print(" --- Number of the nodes: ", len(node_list))
+    print(" --- Number of the streets: ", len(street_list))
+    print(" --------------------------")
     input_street.close()
     return street_list, node_list    
 
@@ -926,7 +926,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     sh = np.zeros((len(street_list_eff)), 'float')
     background={}
     street0=street_list_eff[0]
-    for spec in street0.background.keys():
+    for spec in list(street0.background.keys()):
         background[spec]=np.zeros((len(street_list_eff)), 'float')
 
     for i in range(len(street_list_eff)):
@@ -944,7 +944,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         sh[i] = street.sh
         attenuation[i] = street.attenuation
 
-        for spec in background.keys():
+        for spec in list(background.keys()):
             background[spec][i]=street.background[spec]
 
     wind_dir_inter = np.zeros((len(node_list_eff)), 'float')
@@ -996,14 +996,14 @@ def is_holiday(date, country_code):
         isCountryFound = False
         for country in holidays.list_supported_countries():
             if country_code == country:
-                print ('Found country code "{}"'.format(country_code))
+                print(('Found country code "{}"'.format(country_code)))
                 country_holidays = holidays.CountryHoliday(country_code)
                 isCountryFound = True
                 break
         
         if (isCountryFound == False):
-            print ('Error: given country code "{}" is not found in supported country codes'.format(country_code))
-            print holidays.list_supported_countries()
+            print(('Error: given country code "{}" is not found in supported country codes'.format(country_code)))
+            print(holidays.list_supported_countries())
             return False
         
         return date.date() in country_holidays
