@@ -253,6 +253,14 @@ for t in range(nt):
             if street.end == node.id:
                 street.eff_end = node.eff_id
 
+    outfile = config.Output_dir + 'textfile/street_all.csv'
+    with open(outfile, 'w') as f:
+
+        for street in street_list:
+            f.write(str(street.id) + ',' + str(street.eff_id) + ',' + str(street.begin)\
+                    + ',' + str(street.eff_begin) + ',' + str(street.end) + ','\
+                    + str(street.eff_end) + '\n')
+                
     get_meteo_data(config.meteo_dir, current_date, \
                            street_list_eff, node_list_eff, config.wrfout_prefix)
 
