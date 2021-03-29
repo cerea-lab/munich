@@ -146,6 +146,7 @@ def manual_merging_street(street_list):
                 if (street_list[i].id == remained_street_id):
                     for j in range(len(street_list)):
                         if (street_list[j].id == removed_street_id):
+                            street_list[j].eff_id = street_list[i].id
                             street_list[j].eff_begin = street_list[i].begin
                             street_list[j].eff_end = street_list[i].end
                             street_list[i].eff_emission = street_list[i].eff_emission + street_list[j].eff_emission
