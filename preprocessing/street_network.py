@@ -63,17 +63,25 @@ def are_nodes_same(node1, node2):
         else:
             return False
 
-def are_streets_same(node_list, street1, street2):
-    for li in node_list:
-        if street1.begin == li.id:
-            node_begin1 = li
-        if street1.end == li.id:
-            node_end1 = li
-        if street2.begin == li.id:
-            node_begin2 = li
-        if street2.end == li.id:
-            node_end2 = li
+# def are_streets_same(node_list, street1, street2):
+    # for li in node_list:
+    #     if street1.begin == li.id:
+    #         node_begin1 = li
+    #     if street1.end == li.id:
+    #         node_end1 = li
+    #     if street2.begin == li.id:
+    #         node_begin2 = li
+    #     if street2.end == li.id:
+    #         node_end2 = li
 
+def are_streets_same(node_list, i, j):
+    
+    node_begin1 = node_list[2 * i]
+    node_end1 = node_list[2 * i + 1]
+    node_begin2 = node_list[2 * j]
+    node_end2 = node_list[2 * j +1]
+
+    
     # Node11 : the begin node of the street 1
     # Node12 : the end node of the street 1
     # Node21 : the begin node of the street 2
@@ -98,7 +106,8 @@ def merging_street(output_file, node_list, street_list):
         is_street_found = False
         j = i + 1
         while (is_street_found == False and j < n_street):
-            if are_streets_same(node_list, street_list[i], street_list[j]):
+            # if are_streets_same(node_list, street_list[i], street_list[j]):
+            if are_streets_same(node_list, i, j):                
                 street_list[j].eff_begin = street_list[i].begin
                 street_list[j].eff_end = street_list[i].end
                 street_list[j].eff_id = street_list[i].id
