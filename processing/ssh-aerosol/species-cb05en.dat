@@ -72,6 +72,20 @@ PMonomer 278.0  PDimer  432.0  PBiA3D  202.0
 PH2O     18.0
 
 
+[mass_density_aer]
+
+# Unit: g / cm^3
+PMD       2.33   PBC    2.25   PNA     0.97   PSO4    1.84  PNH4  0.91
+PNO3      1.5    PHCL   1.15   PBiA2D  1.3    PBiA1D  1.3
+PBiA0D    1.3    PAGLY  1.3    PAMGLY  1.3    PBiMT   1.3
+PBiPER    1.3    PBiDER 1.3    PBiMGA  1.3    PAnBlP  1.3
+PAnBmP    1.3    PBiBlP 1.3    PBiBmP  1.3    PBiNGA  1.3
+PBiNIT3   1.3    PBiNIT 1.3    PAnClP  1.3
+PPOAlP    1.3    PPOAmP 1.3    PPOAhP  1.3
+PSOAlP    1.3    PSOAmP 1.3    PSOAhP  1.3
+PMonomer  1.3    PDimer  1.3    PBiA3D  1.3  
+PH2O      1.0
+
 [gas_species_cloud_interact]
 
 # List of gas species interacting with cloud phase,
