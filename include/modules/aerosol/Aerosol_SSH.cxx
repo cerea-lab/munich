@@ -1174,9 +1174,26 @@ namespace Polyphemus
                               "api_sshaerosol_set_aero",
                               concentration_aer);
 
+
+    
     api.exchange_double_array(_aerosol_so,
                               "api_sshaerosol_set_aero_num",
                               number_concentration_aer);
+
+
+    if (option_process_aer["with_number_concentration"])
+      {
+        api.exchange_double_array(_aerosol_so,
+                                  "api_sshaerosol_set_aero_num",
+                                  number_concentration_aer);
+      }
+    else
+      {
+        // Estimate number concentration from mass
+        // Call compute_number
+        api.call(_aerosol_so, "api_sshaerosol_compute_number");
+        
+      }
     
     // Call gaseous chemistry
     if (with_gas_chemistry)
