@@ -83,6 +83,12 @@ namespace Polyphemus
                   "api_sshaerosol_set_standalone",
                   false);
 
+    // Declare SSH-aerosol logs informations.
+    api.send_bool(_aerosol_so,
+                  "api_sshaerosol_set_logger",
+                  true);
+    
+
     // Initialize SSH-aerosol with namelist.ssh
     char namelist_ssh[] = "namelist.ssh";
     api.exchange_char_array(_aerosol_so,
