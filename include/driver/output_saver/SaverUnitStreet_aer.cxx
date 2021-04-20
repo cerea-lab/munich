@@ -153,7 +153,7 @@ namespace Polyphemus
 	        for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		  for (int st = 0; st < Nstreet; st++)
 		    Concentration_[s][b](icomposition, st) = 0.5
-		      * Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition);
+		      * Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition, st);
 	      }
 	    else if (model_with_number)
 	      {
@@ -162,7 +162,7 @@ namespace Polyphemus
 		 for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition,st) = 0.5
-			  * Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition);
+			* Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition, st);
 	      }
 	  }
     //cout<<"saver 2"<<endl;
@@ -224,14 +224,14 @@ namespace Polyphemus
 		 for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition,st) += 0.5
-			* Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition);
+			* Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition, st);
 		}
 	      else if (model_with_number)		
 		{
 		  for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition, st) += 0.5
-			* Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition);
+			* Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition, st);
 		}
 
 	      Concentration_[s][b].GetArray() /= T(this->interval_length);
@@ -249,14 +249,14 @@ namespace Polyphemus
 		  for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition,st) = 0.5
-			* Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition);
+			* Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition, st);
 		}
 	      else if (model_with_number)
 		{
 		  for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition,st) = 0.5
-			* Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition);
+			* Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition, st);
 		}
 
 	      this->counter = 0;
@@ -272,14 +272,14 @@ namespace Polyphemus
 		  for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition,st) +=
-			Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition);
+			Model.GetStreetConcentration_aer()(base_s, base_b*Model.GetNcomposition_aer()+icomposition, st);
 		}
 	      else if (model_with_number)
 		{
 		  for(icomposition=0; icomposition< Model.GetNcomposition_aer();icomposition++)
 		    for (int st = 0; st < Nstreet; st++)
 		      Concentration_[s][b](icomposition,st) +=
-			Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition);
+			Model.GetStreetNumberConcentration()(base_b*Model.GetNcomposition_aer()+icomposition, st);
 		}
 	    }
 	
