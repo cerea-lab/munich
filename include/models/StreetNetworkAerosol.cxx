@@ -196,13 +196,25 @@ namespace Polyphemus
     this->config.PeekValue("With_number_concentration",
 			   this->option_process["with_number_concentration"]);
     if (this->option_process["with_number_concentration"])
-      this->config.PeekValue("Number_computation_option",
-			     "based_on_mass|based_on_transport",
-			     number_computation_option);
-			     
-    this->config.PeekValue("With_bg_number_concentration_data",
-			   this->option_process["with_bg_number_concentration_data"]);  
- 			   
+      {
+        this->config.PeekValue("Number_computation_option",
+                               "based_on_mass|based_on_transport",
+                               number_computation_option);
+
+        if (this->config.Check("With_bg_number_concentration_data"))        
+          this->config.PeekValue("With_bg_number_concentration_data",
+                                 this->option_process["with_bg_number_concentration_data"]);
+        else
+          this->option_process["with_bg_number_concentration_data"] = false;
+    
+        if (this->config.Check("With_emission_number_data"))
+          this->config.PeekValue("With_emission_number_data",
+                                 this->option_process["with_emission_number_data"]);
+        else
+          this->option_process["with_emission_number_data"] = false;
+
+      }
+    
     //! Density in kg / m^3.
     this->config.PeekValue("With_fixed_density",
 			   this->option_process["with_fixed_density"]);    
@@ -401,7 +413,10 @@ namespace Polyphemus
     this->input_files["emission_aer"].Read(data_description_file,
                                            "emission_aer");
     data_description_stream.SetSection("[emission_aer]");
-    data_description_stream.PeekValue("Format", aerosol_emission_format);
+    if (data_description_stream.Check("Format"))
+      data_description_stream.PeekValue("Format", aerosol_emission_format);
+    else
+      aerosol_emission_format = "Internal";
     data_description_stream.PeekValue("Nt", "> 0", Nt_emis_aer);
     this->input_files["emission_aer"]
       .ReadFiles(data_description_file, "emission_aer");
@@ -3250,7 +3265,7 @@ namespace Polyphemus
     WetDiameter_aer = 0.0;
     InitWetDiameter_aer(WetDiameter_aer);
 
-    /*** Particles density : unity g/cm3 ***/
+    /*** Particles density : unit g/cm3 ***/
 
     for (int s = 0; s < this->Ns_aer; s++)
       Rho_species_aer.push_back(ssh_mass_density_layers(s));
@@ -3316,14 +3331,27 @@ namespace Polyphemus
 	  }
       }
 
+    //! Read or Compute aerosol emission data in number
     if (this->option_process["with_number_concentration"])
       for( j = 0; j < Nb_emis_aer; j++)
 	{
-	  species_bin = "Number_"  + to_str(emis_bin_list_aer[j]);
-	  string filename = this->input_files["emission_aer"](species_bin);
+
+          //! Read aerosol emission data in number if available.
+          string filename = "";
+          //! This option is set to false by default.
+          //! If you have Number_X.bin files,
+          //! Please add the following line in your data configuration
+          //! With_emission_number_data: yes
+          if (this->option_process["with_emission_number_data"])
+            {
+              species_bin = "Number_"  + to_str(emis_bin_list_aer[j]);
+              filename = this->input_files["emission_aer"](species_bin);
+            }
+          
 	  if (exists(filename))
 	    {
-	      if(aerosol_emission_format=="Internal"&&Nfraction_aer > 1)
+	      if (aerosol_emission_format == "Internal" &&
+                  Nfraction_aer > 1)
 		{
 		  TinyVector<int, 1> new_shape;
 		  for (int i = 0; i < 1; i++)
@@ -3433,11 +3461,12 @@ namespace Polyphemus
 		  }
 	      }
 	  }
+        
 	if (this->option_process["with_number_concentration"])
 	  for( j = 0; j < Nb_bg_aer; j++)
 	    {
 	      species_bin = "Number_"  + to_str(bg_bin_list_aer[j]);
-	      string filename = this->input_files["bg_number_concentration"](species_bin);
+              string filename = this->input_files["bg_number_concentration"](species_bin);
 	      if (exists(filename))
 		{
 		  if(aerosol_bg_format=="Internal"&&Nfraction_aer > 1)
@@ -3740,14 +3769,28 @@ namespace Polyphemus
 	  }
       }  
 
+
+    //! Read or Compute aerosol emission data in number    
     if (this->option_process["with_number_concentration"])
       for( j = 0; j < Nb_emis_aer ; j++)
 	{
-	  species_bin = "Number_"  + to_str(emis_bin_list_aer[j]);
-	  string filename = this->input_files["emission_aer"](species_bin);
+
+          //! Read aerosol emission data in number if available.
+          string filename = "";
+          //! This option is set to false by default.
+          //! If you have Number_X.bin files,
+          //! Please add the following line in your data configuration
+          //! With_emission_number_data: yes
+          if (this->option_process["with_emission_number_data"])
+            {
+              species_bin = "Number_"  + to_str(emis_bin_list_aer[j]);
+              filename = this->input_files["emission_aer"](species_bin);
+            }
+          
 	  if (exists(filename))
 	    {
-	      if(aerosol_emission_format == "Internal" && Nfraction_aer > 1)
+	      if (aerosol_emission_format == "Internal" &&
+                  Nfraction_aer > 1)
 		{
 		  TinyVector<int, 1> new_shape;
 		  for (i = 0; i < 1; i++)
