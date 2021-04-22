@@ -68,7 +68,7 @@ if display_street_id:
         lat2 = nodes[streets[i][2]][1]
         lon_cen = (lon1 + lon2) * 0.5
         lat_cen = (lat1 + lat2) * 0.5
-        ax.text(lon_cen, lat_cen, str(i), size=size, color=color_street_id)
+        ax.text(lon_cen, lat_cen, str(streets[i][0]), size=size, color=color_street_id)
 
 # Display streets
 for i in range(len(streets)):
