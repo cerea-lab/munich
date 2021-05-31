@@ -1181,12 +1181,6 @@ namespace Polyphemus
                               concentration_aer);
 
 
-    
-    api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_aero_num",
-                              number_concentration_aer);
-
-
     if (option_process_aer["with_number_concentration"])
       {
         api.exchange_double_array(_aerosol_so,
