@@ -1293,12 +1293,12 @@ namespace Polyphemus
 	    
 	    T speed_2R, speed_HDV, speed_PC, speed_LDV;
 	    
-	    if(street->GetStreetTypo() == 14) //periph typo
+	    if(street->GetStreetTypo() == 1) //highway typo
 	      {
-		speed_2R = mean_speed_periph_2R;
-		speed_HDV = mean_speed_periph_HDV;
-		speed_PC = mean_speed_periph_PC;
-		speed_LDV = mean_speed_periph_LDV;
+		speed_2R = mean_speed_highway_2R;
+		speed_HDV = mean_speed_highway_HDV;
+		speed_PC = mean_speed_highway_PC;
+		speed_LDV = mean_speed_highway_LDV;
 	      }
 	    else
 	      {
