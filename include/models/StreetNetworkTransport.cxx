@@ -1212,10 +1212,13 @@ namespace Polyphemus
 		    if(Background_f(j, st) * 1 != Background_f(j, st))
 		      throw string("NaN in background concentration");
 		    street->SetBackgroundConcentration(Background_f(j,st), i);
-		    // //LL: Concentration at streets equal to Cbg in first time step
-		    // if(this->current_date == this->Date_min)
-		    //   street->SetStreetConcentration(Background_f(j,st), i);
-                    // YK To use initial conditions
+            if (!this->option_process["with_initial_condition"])
+              {
+                //LL: Concentration at streets equal to Cbg in first time step
+                if(this->current_date == this->Date_min)
+                  street->SetStreetConcentration(Background_f(j,st), i);
+              }
+
 		  }
           }
         ++st; 
