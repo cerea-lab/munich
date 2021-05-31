@@ -4044,21 +4044,26 @@ namespace Polyphemus
 	street->SetEmission_aer(emission_rate_aer);
 	street->SetNumberEmission(number_emission_rate);
 	
-        if (this->option_process["with_local_data"])
+    if (this->option_process["with_local_data"])
 	  {	  
-            for (i = 0; i < this->Ns_aer; ++i)
+        for (i = 0; i < this->Ns_aer; ++i)
 	      for (j = 0; j < Ns_bg_aer; ++j)
-                if (this->species_list_aer[i] == species_list_bg_aer[j].first)
-		  for (b = 0; b < Nb_bg_aer; ++b)
-		    {
-                      street->SetBackgroundConcentration_aer(Background_aer_f(j, b, st), i, b);		      
-		      // //Concentration at streets equal to Cbg in first time step
-		      // if(this->current_date == this->Date_min)
-		      //   street->SetStreetConcentration_aer(Background_aer_f(j, b, st), i, b); // YK to use initial conditions.
-		    }
-	    if (this->option_process["with_number_concentration"])
+            if (this->species_list_aer[i] == species_list_bg_aer[j].first)
               for (b = 0; b < Nb_bg_aer; ++b)
-		street->SetBackgroundNumberConcentration(NumberBackground_aer_f(b, st), b);
+                {
+                  street->SetBackgroundConcentration_aer
+                    (Background_aer_f(j, b, st), i, b);		      
+                  if (!this->option_process["with_initial_condition_aer"])
+                    {
+                      //Concentration at streets equal to Cbg in first time step
+                      if(this->current_date == this->Date_min)
+                        street->SetStreetConcentration_aer
+                          (Background_aer_f(j, b, st), i, b);
+                    }
+                }
+	    if (this->option_process["with_number_concentration"])
+          for (b = 0; b < Nb_bg_aer; ++b)
+            street->SetBackgroundNumberConcentration(NumberBackground_aer_f(b, st), b);
 
             //! Set the meteo data
 	    street->SetLiquidWaterContent(LiquidWaterContent_f(st));
