@@ -176,14 +176,14 @@ namespace Polyphemus
 			       mean_speed_PC);
 	this->config.PeekValue("mean_speed_LDV",
 			       mean_speed_LDV);
-	this->config.PeekValue("mean_speed_periph_2R",
-			       mean_speed_periph_2R);
-	this->config.PeekValue("mean_speed_periph_HDV",
-			       mean_speed_periph_HDV);
-	this->config.PeekValue("mean_speed_periph_PC",
-			       mean_speed_periph_PC);
-	this->config.PeekValue("mean_speed_periph_LDV",
-			       mean_speed_periph_LDV);
+	this->config.PeekValue("mean_speed_highway_2R",
+			       mean_speed_highway_2R);
+	this->config.PeekValue("mean_speed_highway_HDV",
+			       mean_speed_highway_HDV);
+	this->config.PeekValue("mean_speed_highway_PC",
+			       mean_speed_highway_PC);
+	this->config.PeekValue("mean_speed_highway_LDV",
+			       mean_speed_highway_LDV);
       }
     
     this->config.PeekValue("With_pH",
