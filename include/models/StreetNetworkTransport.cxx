@@ -2561,8 +2561,15 @@ namespace Polyphemus
         // Extracts species data for scavenged species only.
         for (int s = 0; s < Ns_dep; s++)
           {
-	    if(this->species_list[s] == "POAlP" or this->species_list[s] == "POAmP" or this->species_list[s] == "POAhP" or this->species_list[s] == "SOAlP" or this->species_list[s] == "SOAmP" or this->species_list[s] == "SOAhP")
-	      continue;
+	    // if(this->species_list[s] == "POAlP" or this->species_list[s] == "POAmP" or this->species_list[s] == "POAhP" or this->species_list[s] == "SOAlP" or this->species_list[s] == "SOAmP" or this->species_list[s] == "SOAhP")
+            if (DepositionVelocityName(s) == "POAlP" or
+                DepositionVelocityName(s) == "POAmP" or
+                DepositionVelocityName(s) == "POAhP" or
+                DepositionVelocityName(s) == "SOAlP" or
+                DepositionVelocityName(s) == "SOAmP" or
+                DepositionVelocityName(s) == "SOAhP")
+              continue;
+            
             /*** Rb ***/ 
             // Quasi-laminar sublayer resistance (diffusion resistance)
             gas_phase_diffusivity_(s) = gas_phase_diffusivity[DepositionVelocityName(s)];
