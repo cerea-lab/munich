@@ -1135,7 +1135,12 @@ namespace Polyphemus
     this->ComputeWindDirectionFluctuation();
     
     if (this->option_process["with_deposition"])  
-      this->ComputeDryDepositionVelocities();
+      {
+        this->ComputeDryDepositionVelocities();
+        if(this->option_dep_svoc == "yes")
+          this->ComputeSVOCDryDepositionVelocities();
+      }
+    
     if (this->option_process["with_scavenging"])
       this->ComputeScavengingCoefficient();
     if (this->option_process["with_deposition_aer"])
