@@ -980,7 +980,8 @@ namespace Polyphemus
   void StreetNetworkAerosol<T, ClassChemistry>::Forward()
   {
 
-    Transport();
+    if (this->option_process["with_transport"])
+      Transport();
 
     if (this->option_process["with_stationary_hypothesis"])
       if (this->option_process["with_chemistry"])
