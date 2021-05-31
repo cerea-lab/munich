@@ -152,10 +152,10 @@ namespace Polyphemus
     T mean_speed_HDV; //veh.h-1
     T mean_speed_PC; //veh.h-1
     T mean_speed_LDV; //veh.h-1
-    T mean_speed_periph_2R; //veh.h-1
-    T mean_speed_periph_HDV; //veh.h-1
-    T mean_speed_periph_PC; //veh.h-1
-    T mean_speed_periph_LDV; //veh.h-1
+    T mean_speed_highway_2R; //veh.h-1
+    T mean_speed_highway_HDV; //veh.h-1
+    T mean_speed_highway_PC; //veh.h-1
+    T mean_speed_highway_LDV; //veh.h-1
     
     // string file_traffic_flow;
     // string file_traffic_speed;
