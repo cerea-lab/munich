@@ -36,6 +36,12 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("is_node_manually_merged", "[option]", "Bool"), \
            ("is_voc_speciated", "[option]", "Bool"), \
            ("is_nox_speciated", "[option]", "Bool"), \
+           ("is_isvoc_speciated", "[option]", "Bool"), \
+           ("is_pm10_speciated", "[option]", "Bool"), \
+           ("Nsize_sections", "[option]", "Int"), \
+           ("Size_dist_ec_om_emis", "[option]", "FloatList"), \
+           ("Size_dist_dust_emis", "[option]", "FloatList"), \
+           ("om_redist", "[option]", "String"), \
            ("chimere_bg","[background]","Bool"), \
            ("chimout_dir", "[background]", "String"), \
            ("chimout_lab", "[background]", "String"), \
@@ -69,6 +75,68 @@ print(emis_species_list)
 
 # Number of emitted species
 ns_emis = len(emis_species_list)
+
+#LL-------
+#Check options speciation
+if config.is_voc_speciated:
+        isFound = False
+        for sp_emis in emis_species_list:
+                if sp_emis == "NMHC":
+                        isFound = True
+                        break
+        if isFound == False:
+                print("The option is_voc_speciated is activated. To perform the speciation of VOC species, please add NMHC in the emission_species.")
+                sys.exit()
+
+if config.is_nox_speciated:
+        isFound = False
+        for sp_emis in emis_species_list:
+                if sp_emis == "NOx":
+                        isFound = True
+                        break
+        if isFound == False:
+                print("The option is_nox_speciated is activated. To perform the speciation of NOx species, please add NOx in the emission_species.")
+                sys.exit()
+                
+if config.is_pm10_speciated:
+        #PM10
+        isFound = False
+        for sp_emis in emis_species_list:
+                if sp_emis == "PM10":
+                        isFound = True
+                        break
+        if isFound == False:
+                print("The option is_pm10_speciated is activated. To perform the speciation of PM10 species, please add PM10 in the emission_species.")
+                sys.exit()
+        #EC
+        isFound = False
+        for sp_emis in emis_species_list:
+                if sp_emis == "EC":
+                        isFound = True
+                        break
+        if isFound == False:
+                print("The option is_pm10_speciated is activated. To perform the speciation of PM10 species, please add EC in the emission_species.")
+                sys.exit()
+        #OM
+        isFound = False
+        for sp_emis in emis_species_list:
+                if sp_emis == "OM":
+                        isFound = True
+                        break
+        if isFound == False:
+                print("The option is_pm10_speciated is activated. To perform the speciation of PM10 species, please add OM in the emission_species.")
+                sys.exit()
+
+if config.is_isvoc_speciated:
+        isFound = False
+        for sp_emis in emis_species_list:
+                if sp_emis == "OM":
+                        isFound = True
+                        break
+        if isFound == False:
+                print("The option is_isvoc_speciated is activated. To perform the speciation of ISVOC species, please add OM in the emission_species.")
+                sys.exit()                
+#---------
 
 is_chimere=config.chimere_bg
 
@@ -260,10 +328,11 @@ for t in range(nt):
             f.write(str(street.id) + ',' + str(street.eff_id) + ',' + str(street.begin)\
                     + ',' + str(street.eff_begin) + ',' + str(street.end) + ','\
                     + str(street.eff_end) + '\n')
-                
-    get_meteo_data(config.meteo_dir, current_date, \
-                           street_list_eff, node_list_eff, config.wrfout_prefix)
-
+    # LL!!! test--------------
+    # get_meteo_data(config.meteo_dir, current_date, \
+    #                        street_list_eff, node_list_eff, config.wrfout_prefix)
+    #--------------------------
+    
     background_concentration_file = config.background_concentration
 
 
@@ -332,4 +401,15 @@ if (config.is_voc_speciated):
 if (config.is_nox_speciated):
         import speciation_aggregation
         speciation_aggregation.speciation_nox()
-        
+
+#LL----------
+# PM10 speciated
+if (config.is_pm10_speciated):
+        import speciation_aggregation
+        speciation_aggregation.speciation_pm10()
+
+# ISVOC speciated
+if (config.is_isvoc_speciated):
+        import speciation_aggregation
+        speciation_aggregation.speciation_isvoc()
+#------------        
