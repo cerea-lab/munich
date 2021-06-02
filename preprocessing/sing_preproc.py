@@ -328,10 +328,8 @@ for t in range(nt):
             f.write(str(street.id) + ',' + str(street.eff_id) + ',' + str(street.begin)\
                     + ',' + str(street.eff_begin) + ',' + str(street.end) + ','\
                     + str(street.eff_end) + '\n')
-    # LL!!! test--------------
-    # get_meteo_data(config.meteo_dir, current_date, \
-    #                        street_list_eff, node_list_eff, config.wrfout_prefix)
-    #--------------------------
+    get_meteo_data(config.meteo_dir, current_date, \
+                           street_list_eff, node_list_eff, config.wrfout_prefix)
     
     background_concentration_file = config.background_concentration
 
