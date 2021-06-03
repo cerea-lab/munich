@@ -14,6 +14,6 @@ cd $CWD
 
 git clone https://$USER@gitlab.enpc.fr/cerea/munich.git $DIR
 git clone https://$USER@gitlab.enpc.fr/cerea/ssh-aerosol.git $DIR/include/ssh-aerosol
-git clone https://$USER@gitlab.enpc.fr/polyphemus/atmodata.git $DIR/include/AtmoData
-git clone https://$USER@gitlab.enpc.fr/polyphemus/seldondata.git $DIR/include/SeldonData
-git clone https://$USER@gitlab.enpc.fr/polyphemus/talos.git $DIR/include/Talos
+git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
+git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
+git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/talos.git $DIR/include/Talos
