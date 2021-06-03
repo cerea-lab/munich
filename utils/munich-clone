@@ -4,9 +4,6 @@ DIR=munich-git
 CWD=`pwd`
 
 read -p "Please enter Gitlab user name [often, firstname.name] " USER
-echo -n Password:
-read -s PASSWD
-
 
 if [ -d $DIR ]; then
     echo Directory $DIR already exists. Please remove it or choose another directory.
@@ -15,8 +12,8 @@ fi
 
 cd $CWD
 
-git clone https://$USER:$PASSWD@gitlab.enpc.fr/cerea/munich.git $DIR
-git clone https://$USER:$PASSWD@gitlab.enpc.fr/cerea/ssh-aerosol.git $DIR/include/ssh-aerosol
-git clone https://$USER:$PASSWD@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
-git clone https://$USER:$PASSWD@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
-git clone https://$USER:$PASSWD@gitlab.enpc.fr/cerea/codes/polyphemus/talos.git $DIR/include/Talos
+git clone https://$USER@gitlab.enpc.fr/cerea/munich.git $DIR
+git clone https://$USER@gitlab.enpc.fr/cerea/ssh-aerosol.git $DIR/include/ssh-aerosol
+git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
+git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
+git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/talos.git $DIR/include/Talos
