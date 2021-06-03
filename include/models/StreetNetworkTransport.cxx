@@ -328,7 +328,6 @@ namespace Polyphemus
         option_dep_svoc == "yes")
       {
         Nluc = int(file_size(LUC_file) / sizeof(float) / (total_nstreet));
-        cout << "Number of LUC " << Nluc << endl;
       }
     
     CheckConfiguration();
