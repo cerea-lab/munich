@@ -1,6 +1,6 @@
 # -*-sh-*-
 
-### Directories
+### Directories for sub-modules
 test
 include/SeldonData/
 include/AtmoData/
@@ -24,6 +24,7 @@ preprocessing/output
 machine.pid
 core
 munich
+munich-ssh
 src/munich
 .build/*
 .nfs*
@@ -61,3 +62,11 @@ include/spack/src/spack_generator
 include/spack/src/spack_input
 include/spack/src/.scons.log
 include/spack/src/mechanism/*
+
+
+### Files in old version
+include/isorropia_aec/
+include/models_final/
+include/modules/aerosol/Aerosol_SCRAM_SOAP*
+include/modules_LL
+processing/aerosol
