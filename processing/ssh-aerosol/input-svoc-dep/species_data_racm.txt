@@ -1,0 +1,18 @@
+O3	NO      NO2	H2O2	HCHO	ALD	PAN	HONO	SO2	HNO3	OP1	PAA	ORA1	NH3	CO      HCL
+48	30      46	34	30	44	121	47	64	63	48	76	46	17	28      36
+1.14e-2	2.e-3   1.2e-2	1.02e5	4.9e3	15.	5.	2.6e5	2.65e5	3.23e13	9.5e2	5.4e2	9.8e6	1.1e4	1.e3    7.e10
+0.153	0.194   0.156	0.182	0.194	0.160	0.096	0.155	0.133	0.134	0.153	0.122	0.156	0.257	0.200   0.140
+1.	0.      0.1	1.	0.	0.	0.1	0.1	0.	0.	0.1	0.1	0.	0.	0.      0.
+0.	0.      0.	1.	0.8	0.	0.	2.	1.	10.	0.002	0.005	2.	1.	0.01    1.
+1.	0.      0.8	1.	0.2	0.05	0.6	2.	0.	10.	0.1	0.1	0.	0.	0.      0.
+0.	0.      0.	0.	0.	100	0.	0.	0.	0.	0.	0.	0.	0.	0.      0.
+
+# Legend:
+#
+# Species name, molecular weight, Henry constant (Effective), diffusivity,
+# reactivity, alpha, beta, Rm.
+#
+# With "zhang.cfg" as the LUC configuration file, diffusivity, alpha, beta and
+# Rm are used.
+# With "wesely.cfg" as the LUC configuration file, Henry constant and
+# reactivity are used.
