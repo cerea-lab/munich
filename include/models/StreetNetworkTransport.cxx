@@ -99,29 +99,29 @@ namespace Polyphemus
                            this->option_process["with_deposition"]);
     if (this->option_process["with_deposition"])
       {
-	this->config.PeekValue("Collect_dry_flux",
-			       this->option_process["collect_total_dry_flux"]);
-	this->config.PeekValue("Compute_dep_SVOC",
-			       "yes|no",
-			       option_dep_svoc);
-	if(option_dep_svoc == "yes")
-	  {
-	    this->config.PeekValue("Option_dep_SVOC_Ra",
-			       "heat_flux|momentum_flux|diagnostic",
-			       option_dep_svoc_ra);
-	    this->config.PeekValue("Option_dep_SVOC_Rb",
-			       "friction|diagnostic",
-			       option_dep_svoc_rb);
-	    this->config.PeekValue("Option_dep_SVOC_Rc",
-			       "zhang|wesely",
-			       option_dep_svoc_rc);
-	    // LUC.
-	    this->config.PeekValue("LUC_config_dep_SVOC",
-				   landuse_config_dep_svoc);
-	    this->config.PeekValue("option_roughness",
-				   "fixed|LUC|WRF",
-				   option_roughness);
-	  }
+        this->config.PeekValue("Collect_dry_flux",
+                               this->option_process["collect_total_dry_flux"]);
+        this->config.PeekValue("Compute_dep_SVOC",
+                               "yes|no",
+                               option_dep_svoc);
+        if(option_dep_svoc == "yes")
+          {
+            this->config.PeekValue("Option_dep_SVOC_Ra",
+                                   "heat_flux|momentum_flux|diagnostic",
+                                   option_dep_svoc_ra);
+            this->config.PeekValue("Option_dep_SVOC_Rb",
+                                   "friction|diagnostic",
+                                   option_dep_svoc_rb);
+            this->config.PeekValue("Option_dep_SVOC_Rc",
+                                   "zhang|wesely",
+                                   option_dep_svoc_rc);
+            // LUC.
+            this->config.PeekValue("LUC_config_dep_SVOC",
+                                   landuse_config_dep_svoc);
+            this->config.PeekValue("option_roughness",
+                                   "fixed|LUC|WRF",
+                                   option_roughness);
+          }
       }
     this->config.PeekValue("With_scavenging",
                            this->option_process["with_scavenging"]);
@@ -181,9 +181,9 @@ namespace Polyphemus
     //! Ground files.
     if (this->option_process["with_local_data"] and option_dep_svoc == "yes")
       {
-	data_description_stream.PeekValue("Roughness_file", Roughness_file);
-	data_description_stream.PeekValue("LUC_file", LUC_file);
-	data_description_stream.PeekValue("Urban_index_zhang", "> 0", LUC_urban_index);
+        data_description_stream.PeekValue("Roughness_file", Roughness_file);
+        data_description_stream.PeekValue("LUC_file", LUC_file);
+        data_description_stream.PeekValue("Urban_index_zhang", "> 0", LUC_urban_index);
       }
     
     //! Meteorological files.
@@ -247,15 +247,15 @@ namespace Polyphemus
     this->input_files["scavenging_coefficient"].Empty(); 
     if (this->option_process["with_scavenging"])
       {
-	if (this->scavenging_model != "none")
-	  this->input_files["scavenging_coefficient"]
-	    .ReadFields(data_description_file, "scavenging");
+        if (this->scavenging_model != "none")
+          this->input_files["scavenging_coefficient"]
+            .ReadFields(data_description_file, "scavenging");
     
-	for (map<string, string>::iterator i
-	       = this->input_files["scavenging_coefficient"].Begin();
-	     i != this->input_files["scavenging_coefficient"].End(); i++)
-	  species_list_scav.push_back(i->first);
-	Ns_scav = int(species_list_scav.size());
+        for (map<string, string>::iterator i
+               = this->input_files["scavenging_coefficient"].Begin();
+             i != this->input_files["scavenging_coefficient"].End(); i++)
+          species_list_scav.push_back(i->first);
+        Ns_scav = int(species_list_scav.size());
       }
     else
       Ns_scav = 0;
@@ -269,64 +269,67 @@ namespace Polyphemus
     species_data_stream.SetSection("[molecular_weight]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(molecular_weight[species]);
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(molecular_weight[species]);
       }
 
     //Reactivity []
     species_data_stream.SetSection("[reactivity]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(reactivity[species]);
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(reactivity[species]);
       }
 
     //Rm []
     species_data_stream.SetSection("[Rm]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(Rm[species]);
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(Rm[species]);
       }
     
     // Alpha scaling factor for deposition.
     species_data_stream.SetSection("[alpha]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(alpha[species]);
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(alpha[species]);
       }
 
     // Beta scaling factor for deposition.
     species_data_stream.SetSection("[beta]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(beta[species]);
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(beta[species]);
       }
 	
     // Henry constants in mol / L / atm.
     species_data_stream.SetSection("[henry]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(henry_constant[species]);
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(henry_constant[species]);
       }
       
     // Gas phase diffusivity constants in cm^2 / s.
     species_data_stream.SetSection("[diffusivity]");
     while (!species_data_stream.IsEmpty())
       {
-	species = species_data_stream.GetElement();
-	species_data_stream.GetNumber(gas_phase_diffusivity[species]);
-
+        species = species_data_stream.GetElement();
+        species_data_stream.GetNumber(gas_phase_diffusivity[species]);
       }
     
     ReadStreetData();
 
     Nluc = 1;
-    if (this->option_process["with_local_data"] and option_dep_svoc == "yes")
-      Nluc = int(file_size(LUC_file) / sizeof(float) / (total_nstreet));
+    if (this->option_process["with_local_data"] and
+        option_dep_svoc == "yes")
+      {
+        Nluc = int(file_size(LUC_file) / sizeof(float) / (total_nstreet));
+        cout << "Number of LUC " << Nluc << endl;
+      }
     
     CheckConfiguration();
     
@@ -834,7 +837,8 @@ namespace Polyphemus
             
           }
         
-        if (option_dep_svoc == "yes")
+        if (option_dep_svoc == "yes" and
+            (option_roughness != "fixed"))
           {
             //Ground  data
             FormatBinary<float>().Read(LUC_file, LandUse);
@@ -2035,402 +2039,395 @@ namespace Polyphemus
         T W = street->GetWidth();
         T temperature_ = street->GetTemperature() - 273.15; //in celcius
         T pressure_ = street->GetPressure();
-	T wind_speed = street->GetWindSpeed();
-	T friction_velocity_ = street->GetStreetUstar();
-	T relative_humidity_ = street->GetRelativeHumidity();
-	T specific_humidity_ = street->GetSpecificHumidity();
-	T rain_ = street->GetRain();
+        T wind_speed = street->GetWindSpeed();
+        T friction_velocity_ = street->GetStreetUstar();
+        T relative_humidity_ = street->GetRelativeHumidity();
+        T specific_humidity_ = street->GetSpecificHumidity();
+        T rain_ = street->GetRain();
 	
-	T richardson_ = street->GetRichardson(); //surface richardson
-	T solar_radiation_ = street->GetSolarRadiation(); //solar radiation
-	T canopy_wetness_ = street->GetCanopyWetness(); //soil water
-	// PAR to W.m^-2.
-	T pardiff_ = street->GetPARdiff() * (1./4.6); //PARdiff
-	T pardir_ = street->GetPARdir() * (1./4.6); //PARdb
+        T richardson_ = street->GetRichardson(); //surface richardson
+        T solar_radiation_ = street->GetSolarRadiation(); //solar radiation
+        T canopy_wetness_ = street->GetCanopyWetness(); //soil water
+        // PAR to W.m^-2.
+        T pardiff_ = street->GetPARdiff() * (1./4.6); //PARdiff
+        T pardir_ = street->GetPARdir() * (1./4.6); //PARdb
 
-	///////////////////////////
-	// DEPOSITION VELOCITIES //
-	///////////////////////////
+        ///////////////////////////
+        // DEPOSITION VELOCITIES //
+        ///////////////////////////
 
-	T Rsx, Rmx, Rlux, Rdc, Rclx, Rgx;
-	T r0, r1, wind(0.), friction_wind, tmp;
-	T Gs, f_T, f_D, f_psi, Wst(0.), bt, D, e_sat, e_amb, psi;
-	T lon, lat, ut, alpha_ang, theta;
-	T rst_sun, rst_shade, PAR_shade, PAR_sun, F_sun, F_shade, R_dir, R_diff;
-	T Rcut, Rg, Rst, Rns, Rac;
-	T stab, rich, Cd(0.), Ra, Rb, Rc(0.);
-	string surface_condition;
-	T Sc;
-	T zszo, zszot, zot, al_zszo, al_zszot, a2, alt, alu, c, drib;
-	T fm(0.), fh(0.);
-	T b1 = 5., c1 = 5., d1 = 5.;
-	T roughness_height;
+        T Rsx, Rmx, Rlux, Rdc, Rclx, Rgx;
+        T r0, r1, wind(0.), friction_wind, tmp;
+        T Gs, f_T, f_D, f_psi, Wst(0.), bt, D, e_sat, e_amb, psi;
+        T lon, lat, ut, alpha_ang, theta;
+        T rst_sun, rst_shade, PAR_shade, PAR_sun, F_sun, F_shade, R_dir, R_diff;
+        T Rcut, Rg, Rst, Rns, Rac;
+        T stab, rich, Cd(0.), Ra, Rb, Rc(0.);
+        string surface_condition;
+        T Sc;
+        T zszo, zszot, zot, al_zszo, al_zszot, a2, alt, alu, c, drib;
+        T fm(0.), fh(0.);
+        T b1 = 5., c1 = 5., d1 = 5.;
+        T roughness_height;
 
-	for (int s = 0; s < this->Ns; s++)
-	  if(this->species_list[s] == "POAlP" or this->species_list[s] == "POAmP" or this->species_list[s] == "POAhP" or this->species_list[s] == "SOAlP" or this->species_list[s] == "SOAmP" or this->species_list[s] == "SOAhP")
-	    {
-	      T alpha_ = alpha[this->species_list[s]];
+        for (int s = 0; s < this->Ns; s++)
+          if (this->species_list[s] == "POAlP" or
+              this->species_list[s] == "POAmP" or
+              this->species_list[s] == "POAhP" or
+              this->species_list[s] == "SOAlP" or
+              this->species_list[s] == "SOAmP" or
+              this->species_list[s] == "SOAhP")
+            {
+              T alpha_ = alpha[this->species_list[s]];
 	      
-	      T molecular_weight_ = molecular_weight[this->species_list[s]];
-	      T henry_constant_ = henry_constant[this->species_list[s]];
-	      T diffusivity_ = gas_phase_diffusivity[this->species_list[s]];
+              T molecular_weight_ = molecular_weight[this->species_list[s]];
+              T henry_constant_ = henry_constant[this->species_list[s]];
+              T diffusivity_ = gas_phase_diffusivity[this->species_list[s]];
               if (diffusivity_ == 0.0)
                 throw string("Error: diffusivity is required for ") +
                   this->species_list[s] + ".";
-	      Sc = nu/diffusivity_;
-	      T reactivity_ = reactivity[this->species_list[s]];
-	      T beta_ = beta[this->species_list[s]];
-	      T Rm_ = Rm[this->species_list[s]];
+              Sc = nu / diffusivity_;
+              T reactivity_ = reactivity[this->species_list[s]];
+              T beta_ = beta[this->species_list[s]];
+              T Rm_ = Rm[this->species_list[s]];
 	      
-	      // Surface condition.
-	      if (canopy_wetness_ <= 0.1 &&
-		  relative_humidity_ < 0.8)
-		surface_condition = "dry";
-	      else if (canopy_wetness_ <= 0.1 &&
-		       relative_humidity_ >= 0.9 )
-		surface_condition = "high humidity";
-	      else if (canopy_wetness_ > 0.8 )
-		surface_condition = "dew";
-	      else if (canopy_wetness_ > 0.8 && rain_ > 0.01 )
-		surface_condition = "rain";
-	      else
-		surface_condition = "dry";
+              // Surface condition.
+              if (canopy_wetness_ <= 0.1 &&
+                  relative_humidity_ < 0.8)
+                surface_condition = "dry";
+              else if (canopy_wetness_ <= 0.1 &&
+                       relative_humidity_ >= 0.9 )
+                surface_condition = "high humidity";
+              else if (canopy_wetness_ > 0.8 )
+                surface_condition = "dew";
+              else if (canopy_wetness_ > 0.8 && rain_ > 0.01 )
+                surface_condition = "rain";
+              else
+                surface_condition = "dry";
 
-	      roughness_height = 0.01; //z0_street
+              roughness_height = 0.01; //z0_street
 
-	      T deposition_velocity = 0.0;
-	      for (int l = 0; l < Nluc; l++)
-		{
-		  //		  cout<<"Rlu("<<l<<")= "<<Rlu(l)<<endl;
-		  if (l == LUC_urban_index)
-		    {
-		      if(option_roughness == "fixed")
-			roughness_height = 0.01; //z0_street
-		      else if(option_roughness == "LUC")
-			roughness_height = RoughnessHeight(l);
-		      else if(option_roughness == "WRF")
-			roughness_height = Roughness(st);
+              T deposition_velocity = 0.0;
+              for (int l = 0; l < Nluc; l++)
+                {
+                  if (l == LUC_urban_index)
+                    {
+                      if(option_roughness == "fixed")
+                        roughness_height = 0.01; //z0_street
+                      else if(option_roughness == "LUC")
+                        roughness_height = RoughnessHeight(l);
+                      else if(option_roughness == "WRF")
+                        roughness_height = Roughness(st);
 		  
-		      /////////////
-		      // Ra & Rb //
-		      /////////////
+                      /////////////
+                      // Ra & Rb //
+                      /////////////
 		  
-		      if (option_dep_svoc_ra == "diagnostic" || option_dep_svoc_rb == "diagnostic")
-			{
-			  // Stability function.
-			  r0 = log(25. / roughness_height);
-			  r0 = karman * karman / (r0 * r0);
-			  r1 = 9.4 * 7.4 * r0 * sqrt(25. / roughness_height);
-			  if (richardson_ < 0.0)
-			    stab = 1. - 9.4 * richardson_ / (1. + r1 * sqrt(-richardson_));
-			  else
-			    stab = 1. / (pow(1. + 4.7 * richardson_, 2.0));
-			  // Drag coefficient Cd.
-			  Cd = r0 * stab;
-			  // Wind module.
-			  wind = max(wind_speed, 0.1);
-			}
+                      if (option_dep_svoc_ra == "diagnostic" || option_dep_svoc_rb == "diagnostic")
+                        {
+                          // Stability function.
+                          r0 = log(25. / roughness_height);
+                          r0 = karman * karman / (r0 * r0);
+                          r1 = 9.4 * 7.4 * r0 * sqrt(25. / roughness_height);
+                          if (richardson_ < 0.0)
+                            stab = 1. - 9.4 * richardson_ / (1. + r1 * sqrt(-richardson_));
+                          else
+                            stab = 1. / (pow(1. + 4.7 * richardson_, 2.0));
+                          // Drag coefficient Cd.
+                          Cd = r0 * stab;
+                          // Wind module.
+                          wind = max(wind_speed, 0.1);
+                        }
 
-		      ////////
-		      // Ra //
-		      ////////
+                      ////////
+                      // Ra //
+                      ////////
 		  
-		      if (option_dep_svoc_ra != "diagnostic")
-			{
-			  //LL : In this study GridZ(0) = 15 ((0 + 30)/2)
-			  zszo = (15.0 + roughness_height) / roughness_height;
-			  // zszo = (GridZ(0) + roughness_height)
-			  //   / roughness_height;
-			  zot = roughness_height / 10;
-			  //zszot = (GridZ(0) + zot) / zot;
-			  zszot = (15.0 + zot) / zot;
-			  al_zszo = log(zszo);
-			  al_zszot = log(zszot);
-			  alu = karman / al_zszo;
-			  alt = karman / al_zszot;
+                      if (option_dep_svoc_ra != "diagnostic")
+                        {
+                          //LL : In this study GridZ(0) = 15 ((0 + 30)/2)
+                          zszo = (15.0 + roughness_height) / roughness_height;
+                          // zszo = (GridZ(0) + roughness_height)
+                          //   / roughness_height;
+                          zot = roughness_height / 10;
+                          //zszot = (GridZ(0) + zot) / zot;
+                          zszot = (15.0 + zot) / zot;
+                          al_zszo = log(zszo);
+                          al_zszot = log(zszot);
+                          alu = karman / al_zszo;
+                          alt = karman / al_zszot;
 		      
-			  if (richardson_ > 0)
-			    {
-			      drib = sqrt(1. + d1 * richardson_);
-			      if (option_dep_svoc_ra == "heat_flux")
-				fh = 1. / (1. + 3. * b1 * richardson_ * drib);
-			      else
-				fm = 1. / (1. + 2. * b1 * richardson_ / drib);
-			    }
-			  else
-			    {
-			      c = alu * alt * b1 * c1 * sqrt(1. - 1./zszot)
-				* pow(double(pow(double(zszot), double(1./3.))
-					     - 1.), double(3./2.));
-			      drib = 1. + 3. * c
-				* sqrt(-richardson_);
-			      if (option_dep_svoc_ra == "heat_flux")
-				fh = 1. - 3. * b1 * richardson_ / drib;
-			      else
-				fm = 1. - 2. * b1 * richardson_ / drib;
-			    }
-		      
-			  if (option_dep_svoc_ra == "heat_flux")
-			    Ra = 1. / (alu * alt * wind_speed * fh);
-			  else
-			    {
-			      a2 = (karman * karman) / (al_zszo * al_zszo);
-			      Ra = 1. / (a2 * wind * fm);
-			    }
-			}
-		      else // old parameterization.
-			// Aerodynamic resistance.
-			Ra = 1. / (wind_speed * Cd);
-		      //cout << "Ra"<< Ra << endl; 
+                          if (richardson_ > 0)
+                            {
+                              drib = sqrt(1. + d1 * richardson_);
+                              if (option_dep_svoc_ra == "heat_flux")
+                                fh = 1. / (1. + 3. * b1 * richardson_ * drib);
+                              else
+                                fm = 1. / (1. + 2. * b1 * richardson_ / drib);
+                            }
+                          else
+                            {
+                              c = alu * alt * b1 * c1 * sqrt(1. - 1./zszot)
+                                * pow(double(pow(double(zszot), double(1./3.))
+                                             - 1.), double(3./2.));
+                              drib = 1. + 3. * c
+                                * sqrt(-richardson_);
+                              if (option_dep_svoc_ra == "heat_flux")
+                                fh = 1. - 3. * b1 * richardson_ / drib;
+                              else
+                                fm = 1. - 2. * b1 * richardson_ / drib;
+                            }
+                          
+                          if (option_dep_svoc_ra == "heat_flux")
+                            Ra = 1. / (alu * alt * wind_speed * fh);
+                          else
+                            {
+                              a2 = (karman * karman) / (al_zszo * al_zszo);
+                              Ra = 1. / (a2 * wind * fm);
+                            }
+                        }
+                      else // old parameterization.
+                        // Aerodynamic resistance.
+                        Ra = 1. / (wind_speed * Cd);
+                      //cout << "Ra"<< Ra << endl; 
 		  
-		      ////////
-		      // Rb //
-		      ////////
+                      ////////
+                      // Rb //
+                      ////////
 		  
-		      if (option_dep_svoc_rb == "friction")
-			{
-			  if (WithVegetation(l) == 1)
-			    Rb = 2. / (karman * friction_velocity_)
-			      * pow(double(Sc/Pr), double(2./3.));
-			  else
-			    Rb = 1. / (karman * friction_velocity_)
-			      * pow(double(Sc/Pr), double(2./3.));
-			}
-		      else
-			{
-			  // Friction wind.
-			  friction_wind = wind_speed * sqrt(Cd);
-			  //
-			  tmp = sqrt(molecular_weight_/18.);
-			  tmp = 2. * float(pow(double((nu / (D_H2O * Pr)) * tmp),
-					       double(2./3.))) / karman;
-			  // Quasilaminary sublayer resistance.
-			  Rb = tmp / friction_wind;
-			}
+                      if (option_dep_svoc_rb == "friction")
+                        {
+                          if (WithVegetation(l) == 1)
+                            Rb = 2. / (karman * friction_velocity_)
+                              * pow(double(Sc/Pr), double(2./3.));
+                          else
+                            Rb = 1. / (karman * friction_velocity_)
+                              * pow(double(Sc/Pr), double(2./3.));
+                        }
+                      else
+                        {
+                          // Friction wind.
+                          friction_wind = wind_speed * sqrt(Cd);
+                          //
+                          tmp = sqrt(molecular_weight_/18.);
+                          tmp = 2. * float(pow(double((nu / (D_H2O * Pr)) * tmp),
+                                               double(2./3.))) / karman;
+                          // Quasilaminary sublayer resistance.
+                          Rb = tmp / friction_wind;
+                        }
 
-		      ////////
-		      // Rc //
-		      ////////
+                      ////////
+                      // Rc //
+                      ////////
 		  
-		      if (option_dep_svoc_rc == "zhang")
-			{
-			  /*** Fraction of stomatal blocking, Wst ***/
-			  if ( surface_condition == "dry" ||
-			       surface_condition == "high humidity" )
-			    Wst = 0;
-		    
-			  else if (solar_radiation_ <= 200 )
-			    Wst = 0.;
-			  else if (solar_radiation_ > 200 &&
-				   solar_radiation_ <= 600 )
-			    Wst = (solar_radiation_ - 200.) / 800.;
-			  else if (solar_radiation_ > 600 )
-			    Wst = 0.5;
+                      if (option_dep_svoc_rc == "zhang")
+                        {
+                          /*** Fraction of stomatal blocking, Wst ***/
+                          if ( surface_condition == "dry" ||
+                               surface_condition == "high humidity" )
+                            Wst = 0;
+                          
+                          else if (solar_radiation_ <= 200 )
+                            Wst = 0.;
+                          else if (solar_radiation_ > 200 &&
+                                   solar_radiation_ <= 600 )
+                            Wst = (solar_radiation_ - 200.) / 800.;
+                          else if (solar_radiation_ > 600 )
+                            Wst = 0.5;
+                          
+                          /*** Stomatal Resistance, Rst ***/
 		      
-			  /*** Stomatal Resistance, Rst ***/
-		      
-			  if (rst_min(l) == T(1e+30) || brs(l) == T(1e+30)
-			      || T_min(l) == T(1e+30) || T_max(l) == T(1e+30)
-			      || T_opt(l) == T(1e+30) || b_vpd(l) == T(1e+30)
-			      || psi_c1(l) == T(1e+30) || psi_c2(l) == T(1e+30)
-			      || LAI(l) == T(1e+30))
-			    Rst = 1e+30;
-			  else if (solar_radiation_ == 0)
-			    Rst = 1e+30;
-			  else if (temperature_ <= T_min(l)
-				   || temperature_ >= T_max(l))
-			    Rst = 1e+30;
-			  else
-			    {
-			      // Unstressed canopy stomatal conductance.
-			      lon = street->GetLongitude();
-			      lat = street->GetLatitude();
-			      ut = T(this->current_date.GetHour() +
-				     this->current_date.GetMinutes() / 60. +
-				     this->current_date.GetSeconds() / 3600.);
-			      theta = ZenithAngle(lon, lat,
-						  this->current_date.GetDate(), ut)
-				/ 180. * pi;
-			      alpha_ang = pi / 3.;
+                          if (rst_min(l) == T(1e+30) || brs(l) == T(1e+30)
+                              || T_min(l) == T(1e+30) || T_max(l) == T(1e+30)
+                              || T_opt(l) == T(1e+30) || b_vpd(l) == T(1e+30)
+                              || psi_c1(l) == T(1e+30) || psi_c2(l) == T(1e+30)
+                              || LAI(l) == T(1e+30))
+                            Rst = 1e+30;
+                          else if (solar_radiation_ == 0)
+                            Rst = 1e+30;
+                          else if (temperature_ <= T_min(l)
+                                   || temperature_ >= T_max(l))
+                            Rst = 1e+30;
+                          else
+                            {
+                              // Unstressed canopy stomatal conductance.
+                              lon = street->GetLongitude();
+                              lat = street->GetLatitude();
+                              ut = T(this->current_date.GetHour() +
+                                     this->current_date.GetMinutes() / 60. +
+                                     this->current_date.GetSeconds() / 3600.);
+                              theta = ZenithAngle(lon, lat,
+                                                  this->current_date.GetDate(), ut)
+                                / 180. * pi;
+                              alpha_ang = pi / 3.;
+                              
+                              if (theta > pi / 2.)
+                                {
+                                  F_sun = 0.;
+                                  F_shade = 0.;
+                                }
+                              else
+                                {
+                                  F_sun = 2. * cos(theta)
+                                    * (1. -  exp(-0.5 * LAI(l) / cos(theta)));
+                                  F_shade = LAI(l) - F_sun;
+                                }
+                              
+                              // R_dir and R_diff.
+                              R_diff = pardiff_;
+                              R_dir = pardir_;
 			  
-			      if (theta > pi / 2.)
-				{
-				  F_sun = 0.;
-				  F_shade = 0.;
-				}
-			      else
-				{
-				  F_sun = 2. * cos(theta)
-				    * (1. -  exp(-0.5 * LAI(l) / cos(theta)));
-				  F_shade = LAI(l) - F_sun;
-				}
-			  
-			      // R_dir and R_diff.
-			      R_diff = pardiff_;
-			      R_dir = pardir_;
-			  
-			      if (LAI(l) < 2.5 || solar_radiation_ < 200.)
-				{
-				  PAR_shade = R_diff
-				    * exp(-0.5 * pow(double(LAI(l)), 0.7))
-				    + 0.07 * R_dir * (1.1 - 0.1 * LAI(l))
-				    * exp(-cos(theta));
-				  PAR_sun = R_dir * cos(alpha_ang) / cos(theta)
-				    + PAR_shade;
-				}
-			      else
-				{
-				  PAR_shade = R_diff
-				    * exp(-0.5 * pow(double(LAI(l)), 0.8))
-				    + 0.07 * R_dir * (1.1 - 0.1 * LAI(l))
-				    * exp(-cos(theta));
-				  PAR_sun = pow(double(R_dir), 0.8) * cos(alpha_ang)
-				    / cos(theta) + PAR_shade;
-				}
-			      rst_sun = rst_min(l) * (1. + brs(l) / PAR_sun);
-			      rst_shade = rst_min(l) * (1. + brs(l) / PAR_shade);
-			  
-			      Gs = F_sun / rst_sun + F_shade / rst_shade;
-                           
-			      if (Gs == 0.)
-				Gs = numeric_limits<T>::epsilon();
+                              if (LAI(l) < 2.5 || solar_radiation_ < 200.)
+                                {
+                                  PAR_shade = R_diff
+                                    * exp(-0.5 * pow(double(LAI(l)), 0.7))
+                                    + 0.07 * R_dir * (1.1 - 0.1 * LAI(l))
+                                    * exp(-cos(theta));
+                                  PAR_sun = R_dir * cos(alpha_ang) / cos(theta)
+                                    + PAR_shade;
+                                }
+                              else
+                                {
+                                  PAR_shade = R_diff
+                                    * exp(-0.5 * pow(double(LAI(l)), 0.8))
+                                    + 0.07 * R_dir * (1.1 - 0.1 * LAI(l))
+                                    * exp(-cos(theta));
+                                  PAR_sun = pow(double(R_dir), 0.8) * cos(alpha_ang)
+                                    / cos(theta) + PAR_shade;
+                                }
+                              rst_sun = rst_min(l) * (1. + brs(l) / PAR_sun);
+                              rst_shade = rst_min(l) * (1. + brs(l) / PAR_shade);
+                              
+                              Gs = F_sun / rst_sun + F_shade / rst_shade;
+                              
+                              if (Gs == 0.)
+                                Gs = numeric_limits<T>::epsilon();
 
-			      // Conductance-reducing effects of air temperature.
-			      bt = (T_max(l) - T_opt(l)) / (T_opt(l) - T_min(l));
+                              // Conductance-reducing effects of air temperature.
+                              bt = (T_max(l) - T_opt(l)) / (T_opt(l) - T_min(l));
 
-			      f_T = (temperature_ - T_min(l)) /
-					   (T_opt(l) - T_min(l))
-					   * pow((T_max(l) - temperature_) /
-						 (T_max(l) - T_opt(l)), bt);
+                              f_T = (temperature_ - T_min(l)) /
+                                           (T_opt(l) - T_min(l))
+                                           * pow((T_max(l) - temperature_) /
+                                                 (T_max(l) - T_opt(l)), bt);
 			  
-			      // Conductance-reducing effects of water vapour deficit.
-			      e_amb = specific_humidity_ * pressure_
-					   / (0.622 * (1. - specific_humidity_)
-					      + specific_humidity_);
-			      e_sat = 610.78 * exp(17.2694 * temperature_ / (temperature_ + 237.29));
-			      D = (e_sat - e_amb) / 1000.;
-			      f_D = 1. - b_vpd(l) * D;
+                              // Conductance-reducing effects of water vapour deficit.
+                              e_amb = specific_humidity_ * pressure_
+                                           / (0.622 * (1. - specific_humidity_)
+                                              + specific_humidity_);
+                              e_sat = 610.78 * exp(17.2694 * temperature_ / (temperature_ + 237.29));
+                              D = (e_sat - e_amb) / 1000.;
+                              f_D = 1. - b_vpd(l) * D;
 			  
-			      // Conductance-reducing effects of water stress.
-			      if (TallVegetation(l) == 1)
-				psi = (-0.72 - 0.0013 * solar_radiation_) * 102.;
-			      else
-				psi = (-0.395 - 0.043 * temperature_) * 102.;
-			  
-			      if (psi > psi_c1(l))
-				f_psi = 1.;
-			      else
-				f_psi = (psi - psi_c2(l)) / (psi_c1(l) - psi_c2(l));
+                              // Conductance-reducing effects of water stress.
+                              if (TallVegetation(l) == 1)
+                                psi = (-0.72 - 0.0013 * solar_radiation_) * 102.;
+                              else
+                                psi = (-0.395 - 0.043 * temperature_) * 102.;
+                              
+                              if (psi > psi_c1(l))
+                                f_psi = 1.;
+                              else
+                                f_psi = (psi - psi_c2(l)) / (psi_c1(l) - psi_c2(l));
 			   
-			      Rst = 1. / (Gs * f_T * f_D * f_psi * diffusivity_/D_H2O);
-			    }
+                              Rst = 1. / (Gs * f_T * f_D * f_psi * diffusivity_/D_H2O);
+                            }
+                          
+                          Cut(Rst);
+		      
+                          /*** Ground resistance Rg ***/
+                          Rg = 1. / (alpha_ / Rg_SO2(l) + beta_ / Rg_O3(l));
 		  
-			  Cut(Rst);
+                          if (temperature_ < -1.)
+                            Rg = Rg * exp(0.2 * (-1. - temperature_));
+                          Cut(Rg);
 		      
-			  /*** Ground resistance Rg ***/
-			  Rg = 1. / (alpha_ / Rg_SO2(l) + beta_ / Rg_O3(l));
-		  
-			  if (temperature_ < -1.)
-			    Rg = Rg * exp(0.2 * (-1. - temperature_));
-			  Cut(Rg);
+                          /*** Local leaf cuticular resistance Rcut ***/
+                          Rcut = 1. / (alpha_ / Rc_srf_SO2(l) + beta_
+                                       / Rc_srf_O3(l));
+                          if (temperature_ < -1)
+                            Rcut = Rcut
+                              * exp(0.2 * (-1 - temperature_));
+                          Cut(Rcut);
 		      
-			  /*** Local leaf cuticular resistance Rcut ***/
-			  Rcut = 1. / (alpha_ / Rc_srf_SO2(l) + beta_
-				       / Rc_srf_O3(l));
-			  if (temperature_ < -1)
-			    Rcut = Rcut
-			      * exp(0.2 * (-1 - temperature_));
-			  Cut(Rcut);
+                          /*** In canopy aerodynamic resistance Rac ***/
 		      
-			  /*** In canopy aerodynamic resistance Rac ***/
+                          Rac = R_ac0(l) * pow(double(LAI(l)), 0.25)
+                            / pow(double(friction_velocity_), 2.);
+                          Cut(Rac);
 		      
-			  Rac = R_ac0(l) * pow(double(LAI(l)), 0.25)
-			    / pow(double(friction_velocity_), 2.);
-			  Cut(Rac);
-		      
-			  /*** Rc ***/
-			  Rns = 1. / (1./(Rac + Rg) + 1./Rcut);
-			  Rc = 1. / ((1. - Wst)/(Rst + Rm_) + 1./Rns);
-		      
-			}
-		      else if (option_dep_svoc_rc == "wesely")  
-			{  
-			  /*** Stomatal resistance ***/
+                          /*** Rc ***/
+                          Rns = 1. / (1./(Rac + Rg) + 1./Rcut);
+                          Rc = 1. / ((1. - Wst)/(Rst + Rm_) + 1./Rns);
+                          
+                        }
+                      else if (option_dep_svoc_rc == "wesely")  
+                        {  
+                          /*** Stomatal resistance ***/
                             
-			  if ( (temperature_ <= 0.01) ||
-			       (temperature_ >= 39.99))
+                          if ( (temperature_ <= 0.01) ||
+                               (temperature_ >= 39.99))
 
-			    {
-			      Rsx = 1e+30;
-			    }
+                            {
+                              Rsx = 1e+30;
+                            }
 		  
-			  else  if (Ri(l) >= 1e+30)
-			    {
-			      Rsx = 1e+30;
-			    }
-			  else
-			    {
-			      Rsx = Ri(l) * (1. + 40000./(pow((solar_radiation_ + 0.1), 2.0)))
-				* (400. / (temperature_ * (40. - temperature_)));
-			      Rsx = Rsx * D_H2O / diffusivity_;
-			    }
+                          else  if (Ri(l) >= 1e+30)
+                            {
+                              Rsx = 1e+30;
+                            }
+                          else
+                            {
+                              Rsx = Ri(l) * (1. + 40000./(pow((solar_radiation_ + 0.1), 2.0)))
+                                * (400. / (temperature_ * (40. - temperature_)));
+                              Rsx = Rsx * D_H2O / diffusivity_;
+                            }
 		  
-			  /*** Mesophyll resistance ***/
-			  Rmx = 1. / (henry_constant_/3000. + 100.* reactivity_);
+                          /*** Mesophyll resistance ***/
+                          Rmx = 1. / (henry_constant_/3000. + 100.* reactivity_);
 
-			  /*** Cuticle resistance ***/
-			  Rlux = Rlu(l) / (1.e-5 * henry_constant_ + reactivity_);
+                          /*** Cuticle resistance ***/
+                          Rlux = Rlu(l) / (1.e-5 * henry_constant_ + reactivity_);
 
-			  /*** Buoyant-convection resistance ***/
-			  Rdc = 100. * (1. + 1000./(solar_radiation_ + 10.));
+                          /*** Buoyant-convection resistance ***/
+                          Rdc = 100. * (1. + 1000./(solar_radiation_ + 10.));
 
-			  /*** Rclx ***/;
-			  Rclx = 1. / (alpha_ / Rc_srf_SO2(l)
-				       + beta_ / Rc_srf_O3(l));
+                          /*** Rclx ***/;
+                          Rclx = 1. / (alpha_ / Rc_srf_SO2(l)
+                                       + beta_ / Rc_srf_O3(l));
 
-			  /*** Rgx ***/
-			  Rgx = 1. / (alpha_ / Rg_SO2(l) + beta_ / Rg_O3(l));
+                          /*** Rgx ***/
+                          Rgx = 1. / (alpha_ / Rg_SO2(l) + beta_ / Rg_O3(l));
 
-			  /*** Rc ***/
-			  Cut(Rsx);
-			  Cut(Rmx);
-			  Cut(Rlux);
-			  Cut(Rdc);
-			  Cut(Rclx);
-			  Cut(Rgx);
-
-			  // if (st == 100)
-			  //   {
-			  //     cout<<"species: "<<this->species_list[s]<<" Rsx= "<<Rsx<<" Rmx= "<<Rmx<<" Rlux= "<<Rlux<<" Rdc= "<<Rdc<<" Rclx= "<<Rclx<<" Rgx= "<<Rgx<<" Rlu(l)= "<<Rlu(l) << " temperature_= "<<temperature_<<endl;
-			  //     //throw;
-			  //   }
+                          /*** Rc ***/
+                          Cut(Rsx);
+                          Cut(Rmx);
+                          Cut(Rlux);
+                          Cut(Rdc);
+                          Cut(Rclx);
+                          Cut(Rgx);
 		      
-			  Rc = 1. / (1./(Rsx + Rmx) + 1./Rlux
-				     + 1./(Rdc + Rclx) + 1./(R_ac0(l) + Rgx));
-			}
+                          Rc = 1. / (1./(Rsx + Rmx) + 1./Rlux
+                                     + 1./(Rdc + Rclx) + 1./(R_ac0(l) + Rgx));
+                        }
 		  
-		      if (Rc > 9999)
-			Rc = 9999.;
-		      else if (Rc < 10)
-			Rc = 10.;
+                      if (Rc > 9999)
+                        Rc = 9999.;
+                      else if (Rc < 10)
+                        Rc = 10.;
 		  
-		      /////////////////////////
-		      // DEPOSITION VELOCITY //
-		      /////////////////////////
+                      /////////////////////////
+                      // DEPOSITION VELOCITY //
+                      /////////////////////////
 	      
-		      deposition_velocity += LandUse(l, st) / (Rc + Rb + Ra);
-		      //cout<<"st= "<<st<<" LandUse("<<l<<") = "<<LandUse(l,st)<<endl;
-		    }
-		}
-	      // throw;
-	      //for in Nc
-	      street->SetStreetDryDepositionVelocity(deposition_velocity, s);
-	      // if (st == 100)
-	      // 	cout<<"DEP SVOC: species= "<<this->species_list[s]<<" dep_vel= "<<deposition_velocity<<endl;
-	    }//if sp = SVOC
-	st += 1;
+                      deposition_velocity += LandUse(l, st) / (Rc + Rb + Ra);
+
+                    }
+                }
+              street->SetStreetDryDepositionVelocity(deposition_velocity, s);
+            }//if sp = SVOC
+        st += 1;
       } //boucle sur toutes les rues
-    //throw;
   }
   
   //! Compute dry deposition of gas species for the whole street-network.
