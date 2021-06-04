@@ -959,7 +959,7 @@ namespace Polyphemus
     FileRoadTraffic_LCV_f.SetZero();
   }
 
-  //! Performs one step forward.
+  //! Update pH variable.
   template<class T, class ClassChemistry>
   void StreetNetworkAerosol<T, ClassChemistry>::SetpH()
   { 
@@ -974,7 +974,7 @@ namespace Polyphemus
             //! Set the meteo data
             street->SetpH(pH(st));  
           } 
-      st += 1;    
+        st += 1;    
       }
   }
 
