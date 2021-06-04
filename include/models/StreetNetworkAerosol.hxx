@@ -144,6 +144,8 @@ namespace Polyphemus
     vector<int> scav_bin_list_aer;
 
     /*** Resuspension and Non-exhaust emissions***/
+
+    string file_resuspension;
     T f0_hdv; //veh-1
     T f0_lcv; //veh-1
     T f0_2R; //veh-1

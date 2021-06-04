@@ -155,35 +155,38 @@ namespace Polyphemus
                            this->option_process["with_resuspension"]);
 
     //! Resuspension
-    if(this->option_process["with_resuspension"])
+    if (this->option_process["with_resuspension"])
       {
-	//Precipitation that indicates a complete drainage in streets
-	this->config.PeekValue("Max_rain", max_rain);
+
+        this->config.PeekValue("Resuspension", file_resuspension); 
+        ConfigStream config_resuspension(file_resuspension);
+        //Precipitation that indicates a complete drainage in streets
+        this->config.PeekValue("Max_rain", max_rain);
 	
-	this->config.PeekValue("f0_hdv", 
-			       f0_hdv);
-	this->config.PeekValue("f0_lcv",
-			       f0_lcv);
-	this->config.PeekValue("f0_pc",
-			       f0_pc);
-	this->config.PeekValue("f0_2R",
-			       f0_2R);
-	this->config.PeekValue("mean_speed_2R",
-			       mean_speed_2R);
-	this->config.PeekValue("mean_speed_HDV",
-			       mean_speed_HDV);
-	this->config.PeekValue("mean_speed_PC",
-			       mean_speed_PC);
-	this->config.PeekValue("mean_speed_LCV",
-			       mean_speed_LCV);
-	this->config.PeekValue("mean_speed_highway_2R",
-			       mean_speed_highway_2R);
-	this->config.PeekValue("mean_speed_highway_HDV",
-			       mean_speed_highway_HDV);
-	this->config.PeekValue("mean_speed_highway_PC",
-			       mean_speed_highway_PC);
-	this->config.PeekValue("mean_speed_highway_LCV",
-			       mean_speed_highway_LCV);
+        config_resuspension.PeekValue("f0_hdv", 
+                                      f0_hdv);
+        config_resuspension.PeekValue("f0_lcv",
+                                      f0_lcv);
+        config_resuspension.PeekValue("f0_pc",
+                                      f0_pc);
+        config_resuspension.PeekValue("f0_2R",
+                                      f0_2R);
+        config_resuspension.PeekValue("mean_speed_2R",
+                                      mean_speed_2R);
+        config_resuspension.PeekValue("mean_speed_HDV",
+                                      mean_speed_HDV);
+        config_resuspension.PeekValue("mean_speed_PC",
+                                      mean_speed_PC);
+        config_resuspension.PeekValue("mean_speed_LCV",
+                                      mean_speed_LCV);
+        config_resuspension.PeekValue("mean_speed_highway_2R",
+                                      mean_speed_highway_2R);
+        config_resuspension.PeekValue("mean_speed_highway_HDV",
+                                      mean_speed_highway_HDV);
+        config_resuspension.PeekValue("mean_speed_highway_PC",
+                                      mean_speed_highway_PC);
+        config_resuspension.PeekValue("mean_speed_highway_LCV",
+                                      mean_speed_highway_LCV);
       }
     
     this->config.PeekValue("With_pH",
