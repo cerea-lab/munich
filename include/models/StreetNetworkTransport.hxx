@@ -65,7 +65,8 @@ namespace Polyphemus
     //int id_tunnel;
     string option_transfer, option_ustreet, option_method;
     
-    string option_dep_svoc, option_dep_svoc_ra, option_dep_svoc_rb, option_dep_svoc_rc, landuse_config_dep_svoc, landuse_file_dep_svoc, option_roughness;
+    string option_dep_svoc, option_dep_svoc_ra, option_dep_svoc_rb, option_dep_svoc_rc;
+    string file_config_dep_svoc, option_roughness;
     
     T sub_delta_t_min;
     bool is_stationary;

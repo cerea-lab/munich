@@ -104,23 +104,27 @@ namespace Polyphemus
         this->config.PeekValue("Compute_dep_SVOC",
                                "yes|no",
                                option_dep_svoc);
-        if(option_dep_svoc == "yes")
+        if (option_dep_svoc == "yes")
           {
-            this->config.PeekValue("Option_dep_SVOC_Ra",
-                                   "heat_flux|momentum_flux|diagnostic",
-                                   option_dep_svoc_ra);
-            this->config.PeekValue("Option_dep_SVOC_Rb",
-                                   "friction|diagnostic",
-                                   option_dep_svoc_rb);
-            this->config.PeekValue("Option_dep_SVOC_Rc",
-                                   "zhang|wesely",
-                                   option_dep_svoc_rc);
-            // LUC.
-            this->config.PeekValue("LUC_config_dep_SVOC",
-                                   landuse_config_dep_svoc);
-            this->config.PeekValue("option_roughness",
-                                   "fixed|LUC|WRF",
-                                   option_roughness);
+
+            this->config.PeekValue("Config_dep_SVOC",
+                                   file_config_dep_svoc);
+
+            ConfigStream config_dep_svoc(file_config_dep_svoc);
+            
+            config_dep_svoc.PeekValue
+              ("Option_dep_SVOC_Ra",
+               "heat_flux|momentum_flux|diagnostic",
+               option_dep_svoc_ra);
+            config_dep_svoc.PeekValue("Option_dep_SVOC_Rb",
+                                      "friction|diagnostic",
+                                      option_dep_svoc_rb);
+            config_dep_svoc.PeekValue("Option_dep_SVOC_Rc",
+                                      "zhang|wesely",
+                                      option_dep_svoc_rc);
+            config_dep_svoc.PeekValue("Option_roughness",
+                                      "fixed|LUC|WRF",
+                                      option_roughness);
           }
       }
     
@@ -1952,7 +1956,7 @@ namespace Polyphemus
     // Land Data Files
     string midsummer, autumn, late_autumn, snow, spring;
     // Reads the configuration file associated with the landuse type.
-    ConfigStreams classification(landuse_config_dep_svoc);
+    ConfigStreams config_dep_svoc(file_config_dep_svoc);
 	    
     Data<T, 1> rst_min(GridNluc);
     Data<T, 1> brs(GridNluc);
@@ -1974,11 +1978,11 @@ namespace Polyphemus
     Data<T, 1> WithVegetation(GridNluc);
     Data<T, 1> TallVegetation(GridNluc);
     
-    classification.PeekValue("Midsummer", midsummer);
-    classification.PeekValue("Autumn", autumn);
-    classification.PeekValue("Late_autumn", late_autumn);
-    classification.PeekValue("Snow", snow);
-    classification.PeekValue("Spring", spring);
+    config_dep_svoc.PeekValue("Midsummer", midsummer);
+    config_dep_svoc.PeekValue("Autumn", autumn);
+    config_dep_svoc.PeekValue("Late_autumn", late_autumn);
+    config_dep_svoc.PeekValue("Snow", snow);
+    config_dep_svoc.PeekValue("Spring", spring);
 
     // Land use resistances and roughness heights.
     ifstream LandData;

@@ -10,3 +10,12 @@ Autumn		<Land_data_dir>/land_data_zhang_cat2.dat
 Late_autumn	<Land_data_dir>/land_data_zhang_cat3.dat
 Snow		<Land_data_dir>/land_data_zhang_cat4.dat
 Spring		<Land_data_dir>/land_data_zhang_cat5.dat
+
+
+# Options for resistance computation
+Option_dep_SVOC_Ra: heat_flux # heat_flux, momentum_flux, diagnostic
+Option_dep_SVOC_Rb: friction # friction, diagnostic
+Option_dep_SVOC_Rc: wesely # zhang, wesely
+
+# Option for roughness input data
+Option_roughness: fixed # fixed, WRF, LUC
