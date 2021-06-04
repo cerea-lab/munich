@@ -123,9 +123,14 @@ namespace Polyphemus
                                    option_roughness);
           }
       }
-    this->config.PeekValue("With_scavenging",
-                           this->option_process["with_scavenging"]);
-    this->config.PeekValue("Scavenging_model", this->scavenging_model);
+    
+    this->config.PeekValue
+      ("With_scavenging",
+       this->option_process["with_scavenging"]);
+    if (this->option_process["with_scavenging"])
+      this->scavenging_model = "microphysical";
+    else
+      this->scavenging_model = "none";
     this->scavenging_model = lower_case(this->scavenging_model);
 
     //LL -- add initial conditions
