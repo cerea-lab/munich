@@ -2454,14 +2454,13 @@ namespace Polyphemus
         // Dry deposition
         T Ra_street_recirculation, Ra_wall_recirculation;
 
-	//
-	T Ra_street_ventilation, Ra_wall_ventilation;
-	Ra_street_ventilation = 0.0;
-	Ra_wall_ventilation = 0.0;
+        //
+        T Ra_street_ventilation, Ra_wall_ventilation;
+        Ra_street_ventilation = 0.0;
+        Ra_wall_ventilation = 0.0;
 
         // Building density
-        // T lambda_p = street->GetBuildingDensity();
-	T lambda_p = this->building_density;
+        T lambda_p = this->building_density;
 
         // Displacement height
         T A = 4.0;
@@ -2498,29 +2497,27 @@ namespace Polyphemus
           ComputeRsurface_recirculation_exp_profile(lc, z_can_recirculation, 
                                                     z0_street, H, Utop*Dzeta, 
                                                     WindProfile_coeff, phi);
-	// cout<<"Ra_street_recirculation = "<<Ra_street_recirculation<<endl;
-	// throw;
         // Aerodynamic resistance of the wall (Ra)
         Ra_wall_recirculation = 
           ComputeRsurface_recirculation_exp_profile(lc, z_can_recirculation, 
                                                     z0_wall, H, Utop*Dzeta, 
                                                     WindProfile_coeff, phi);
 
-	if (W > 3*H) //for wide canyons
-	  {
-	    // Aerodynamic resistance of the street (Ra)
-	    Ra_street_ventilation = 
-	      ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
-						     z0_street, H, Utop*Dzeta, 
-						     WindProfile_coeff, phi);
+        if (W > 3*H) //for wide canyons
+          {
+            // Aerodynamic resistance of the street (Ra)
+            Ra_street_ventilation = 
+              ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
+                                                     z0_street, H, Utop*Dzeta, 
+                                                     WindProfile_coeff, phi);
 
-	    // Aerodynamic resistance of the wall (Ra)
-	    Ra_wall_ventilation = 
-	      ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
-						     z0_wall, H, Utop*Dzeta, 
-						     WindProfile_coeff, phi);
-
-	  }	
+            // Aerodynamic resistance of the wall (Ra)
+            Ra_wall_ventilation = 
+              ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
+                                                     z0_wall, H, Utop*Dzeta, 
+                                                     WindProfile_coeff, phi);
+            
+          }	
 	
         /*** Input data for Rb 
              (Quasi-laminar sublayer resistance or diffusion resistance) ***/ 
@@ -2566,7 +2563,6 @@ namespace Polyphemus
         // Extracts species data for scavenged species only.
         for (int s = 0; s < Ns_dep; s++)
           {
-	    // if(this->species_list[s] == "POAlP" or this->species_list[s] == "POAmP" or this->species_list[s] == "POAhP" or this->species_list[s] == "SOAlP" or this->species_list[s] == "SOAmP" or this->species_list[s] == "SOAhP")
             if (DepositionVelocityName(s) == "POAlP" or
                 DepositionVelocityName(s) == "POAmP" or
                 DepositionVelocityName(s) == "POAhP" or
@@ -2582,7 +2578,6 @@ namespace Polyphemus
                 throw string("Error: diffusivity is required for ") +
                   DepositionVelocityName(s) + ".";            
             Sc(s) = nu / gas_phase_diffusivity_(s);
-	    //cout<<"species = "<<species_list_dep[s]<<" Sc = "<<Sc(s)<<" nu = "<<nu<<" gas_phase_diffusivity_ = "<<gas_phase_diffusivity_(s)<<endl;
 	    
             Rb_street(s) = 1. / (karman * ustar_incanopy_street)
               * pow(T(Sc(s) / Pr), T(2. / 3.));
@@ -2596,7 +2591,6 @@ namespace Polyphemus
             T alpha_ = alpha[DepositionVelocityName(s)];
             T beta_ = beta[DepositionVelocityName(s)];
             
-            // cout << DepositionVelocityName(s) << " alpha: " << alpha_ << " beta: " << beta_ << endl;
             T Rg;
             if (DepositionVelocityName(s) == "O3")
               Rg = Rg_O3;
@@ -2629,10 +2623,8 @@ namespace Polyphemus
 
             street->SetWallDryDepositionVelocity(wall_dry_deposition_velocity,
                                                  DepositionVelocityGlobalIndex(s));
-	    //cout<<"species = "<<species_list_dep[s]<<" R_street = "<<R_street<<" R_wall = "<<R_wall<<endl;
 
           }
-	//throw("STP");
       }
   }
 
