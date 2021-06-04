@@ -60,22 +60,7 @@ namespace Polyphemus
     T traffic_2R_;
     T traffic_HDV_;
     T traffic_PC_;
-    T traffic_LDV_;
-    
-    //! Total of hours in a week
-    //int Nh_week_;
-    
-    //! Hourly traffic of HDV vehicles (#/h)
-    //Array<T, 1> nb_hdv_hour_;
-    
-    //! Hourly traffic of LDV vehicles (#/h)
-    //Array<T, 1> nb_ldv_hour_;
-    
-    //! Speed of HDV vehicles (km/h)
-    //Array<T, 1> u_hdv_;
-    
-    //! Speed of LDV vehicles (km/h)
-    //Array<T, 1> u_ldv_;
+    T traffic_LCV_;
 
     //! Particles resuspension (mug/s)
     T resuspension_factor_;
@@ -269,12 +254,12 @@ namespace Polyphemus
     void SetStreetRoadTraffic(T traffic_2R,
 			      T traffic_HDV,
 			      T traffic_PC,
-			      T traffic_LDV);
+			      T traffic_LCV);
     
     T GetStreetRoadTraffic_2R() const;
     T GetStreetRoadTraffic_HDV() const;
     T GetStreetRoadTraffic_PC() const;
-    T GetStreetRoadTraffic_LDV() const;
+    T GetStreetRoadTraffic_LCV() const;
     
   };
 

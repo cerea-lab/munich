@@ -115,19 +115,10 @@ namespace Polyphemus
     washoff_factor_.resize(ns_local_aer_);
     washoff_factor_ = 0.0;
 
-    //Nh_week_ = 168;
-    // nb_hdv_hour_.resize(Nh_week_);
-    // nb_hdv_hour_ = 0.0;         
-    // nb_ldv_hour_.resize(Nh_week_);
-    // nb_ldv_hour_ = 0.0;         
-    // u_hdv_.resize(Nh_week_);
-    // u_hdv_ = 0.0;         
-    // u_ldv_.resize(Nh_week_);
-    // u_ldv_ = 0.0;
     traffic_2R_ = 0.0;
     traffic_HDV_ = 0.0;
     traffic_PC_ = 0.0;
-    traffic_LDV_ = 0.0;
+    traffic_LCV_ = 0.0;
 
     resuspension_factor_ = 0.0;
     pm10_resuspension_ = 0.0;
@@ -245,12 +236,12 @@ namespace Polyphemus
   inline void StreetAerosol<T>::SetStreetRoadTraffic(T traffic_2R,
 						     T traffic_HDV,
 						     T traffic_PC,
-						     T traffic_LDV)
+						     T traffic_LCV)
   {
     traffic_2R_ = traffic_2R;
     traffic_HDV_ = traffic_HDV;
     traffic_PC_ = traffic_PC;
-    traffic_LDV_ = traffic_LDV;
+    traffic_LCV_ = traffic_LCV;
   }
 
   /*!
@@ -377,9 +368,9 @@ namespace Polyphemus
     \param wet_diameter_aer the aerosol wet diameter.
   */
   template<class T>
-  inline T StreetAerosol<T>::GetStreetRoadTraffic_LDV() const
+  inline T StreetAerosol<T>::GetStreetRoadTraffic_LCV() const
   {
-    return traffic_LDV_;
+    return traffic_LCV_;
   }
   
   /*!

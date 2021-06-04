@@ -898,9 +898,9 @@ namespace Polyphemus
   inline void Street<T>::SetStreetRoadTraffic(T traffic_2R,
 						     T traffic_HDV,
 						     T traffic_PC,
-						     T traffic_LDV)
+						     T traffic_LCV)
   {
-    throw string("\"StreetAerosol<T>::SetStreetRoadTraffic(T traffic_2R, T traffic_HDV, T traffic_PC, T traffic_LDV)\"")
+    throw string("\"StreetAerosol<T>::SetStreetRoadTraffic(T traffic_2R, T traffic_HDV, T traffic_PC, T traffic_LCV)\"")
       + " is not defined.";
   }
 
@@ -930,9 +930,9 @@ namespace Polyphemus
   }
 
   template<class T>
-  inline T Street<T>::GetStreetRoadTraffic_LDV() const
+  inline T Street<T>::GetStreetRoadTraffic_LCV() const
   {
-    throw string("\"GetStreetRoadTraffic_LDV()\"")
+    throw string("\"GetStreetRoadTraffic_LCV()\"")
       + " is not defined.";
   }
 

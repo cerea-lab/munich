@@ -162,8 +162,8 @@ namespace Polyphemus
 	
 	this->config.PeekValue("f0_hdv", 
 			       f0_hdv);
-	this->config.PeekValue("f0_ldv",
-			       f0_ldv);
+	this->config.PeekValue("f0_lcv",
+			       f0_lcv);
 	this->config.PeekValue("f0_pc",
 			       f0_pc);
 	this->config.PeekValue("f0_2R",
@@ -174,16 +174,16 @@ namespace Polyphemus
 			       mean_speed_HDV);
 	this->config.PeekValue("mean_speed_PC",
 			       mean_speed_PC);
-	this->config.PeekValue("mean_speed_LDV",
-			       mean_speed_LDV);
+	this->config.PeekValue("mean_speed_LCV",
+			       mean_speed_LCV);
 	this->config.PeekValue("mean_speed_highway_2R",
 			       mean_speed_highway_2R);
 	this->config.PeekValue("mean_speed_highway_HDV",
 			       mean_speed_highway_HDV);
 	this->config.PeekValue("mean_speed_highway_PC",
 			       mean_speed_highway_PC);
-	this->config.PeekValue("mean_speed_highway_LDV",
-			       mean_speed_highway_LDV);
+	this->config.PeekValue("mean_speed_highway_LCV",
+			       mean_speed_highway_LCV);
       }
     
     this->config.PeekValue("With_pH",
@@ -945,15 +945,15 @@ namespace Polyphemus
     FileRoadTraffic_PC_i.SetZero();
     FileRoadTraffic_PC_f.SetZero();
 
-    RoadTraffic_LDV_i.Resize(this->GridST2D);
-    RoadTraffic_LDV_f.Resize(this->GridST2D);
-    FileRoadTraffic_LDV_i.Resize(this->GridST2D);
-    FileRoadTraffic_LDV_f.Resize(this->GridST2D);
+    RoadTraffic_LCV_i.Resize(this->GridST2D);
+    RoadTraffic_LCV_f.Resize(this->GridST2D);
+    FileRoadTraffic_LCV_i.Resize(this->GridST2D);
+    FileRoadTraffic_LCV_f.Resize(this->GridST2D);
 	
-    RoadTraffic_LDV_i.SetZero();
-    RoadTraffic_LDV_f.SetZero();
-    FileRoadTraffic_LDV_i.SetZero();
-    FileRoadTraffic_LDV_f.SetZero();
+    RoadTraffic_LCV_i.SetZero();
+    RoadTraffic_LCV_f.SetZero();
+    FileRoadTraffic_LCV_i.SetZero();
+    FileRoadTraffic_LCV_f.SetZero();
   }
 
   //! Performs one step forward.
@@ -1289,23 +1289,23 @@ namespace Polyphemus
 	    T traffic_2R = street->GetStreetRoadTraffic_2R();
 	    T traffic_hdv = street->GetStreetRoadTraffic_HDV();
 	    T traffic_pc = street->GetStreetRoadTraffic_PC();
-	    T traffic_ldv = street->GetStreetRoadTraffic_LDV();
+	    T traffic_lcv = street->GetStreetRoadTraffic_LCV();
 	    
-	    T speed_2R, speed_HDV, speed_PC, speed_LDV;
+	    T speed_2R, speed_HDV, speed_PC, speed_LCV;
 	    
 	    if(street->GetStreetTypo() == 1) //highway typo
 	      {
 		speed_2R = mean_speed_highway_2R;
 		speed_HDV = mean_speed_highway_HDV;
 		speed_PC = mean_speed_highway_PC;
-		speed_LDV = mean_speed_highway_LDV;
+		speed_LCV = mean_speed_highway_LCV;
 	      }
 	    else
 	      {
 		speed_2R = mean_speed_2R;
 		speed_HDV = mean_speed_HDV;
 		speed_PC = mean_speed_PC;
-		speed_LDV = mean_speed_LDV;
+		speed_LCV = mean_speed_LCV;
 	      }
 	    
 	    T f_resusp_2R = traffic_2R/(street->GetLength()/1000.) *
@@ -1314,10 +1314,10 @@ namespace Polyphemus
               (speed_HDV/u_ref_susp) * f0_hdv; //s-1
 	    T f_resusp_pc = traffic_pc/(street->GetLength()/1000.) *
               (speed_PC/u_ref_susp) * f0_pc; //s-1
-	    T f_resusp_ldv = traffic_ldv/(street->GetLength()/1000.) *
-              (speed_LDV/u_ref_susp) * f0_ldv; //s-1
+	    T f_resusp_lcv = traffic_lcv/(street->GetLength()/1000.) *
+              (speed_LCV/u_ref_susp) * f0_lcv; //s-1
 
-	    f_resusp = f_resusp_2R + f_resusp_hdv + f_resusp_pc + f_resusp_ldv; //s-1
+	    f_resusp = f_resusp_2R + f_resusp_hdv + f_resusp_pc + f_resusp_lcv; //s-1
 	    
 	    if (f_resusp * 1.0 != f_resusp)
 	      throw string("Error! f_resusp = NaN");
@@ -3551,11 +3551,11 @@ namespace Polyphemus
 		       this->current_date,
 		       RoadTraffic_PC_f);
 	this->InitData("traffic",
-		       "RoadTraffic_LDV",
-		       FileRoadTraffic_LDV_i,
-		       FileRoadTraffic_LDV_f,
+		       "RoadTraffic_LCV",
+		       FileRoadTraffic_LCV_i,
+		       FileRoadTraffic_LCV_f,
 		       this->current_date,
-		       RoadTraffic_LDV_f);
+		       RoadTraffic_LCV_f);
       }
 
     if (this->option_process["with_initial_condition_aer"])
@@ -4002,16 +4002,16 @@ namespace Polyphemus
 			 RoadTraffic_PC_i,
 			 RoadTraffic_PC_f);
 	this->UpdateData("traffic",
-			 "RoadTraffic_LDV",
-			 FileRoadTraffic_LDV_i,
-			 FileRoadTraffic_LDV_f,
-			 RoadTraffic_LDV_i,
-			 RoadTraffic_LDV_f);
+			 "RoadTraffic_LCV",
+			 FileRoadTraffic_LCV_i,
+			 FileRoadTraffic_LCV_f,
+			 RoadTraffic_LCV_i,
+			 RoadTraffic_LCV_f);
 	
 	SetStreetRoadTraffic(RoadTraffic_2R_f,
 			     RoadTraffic_HDV_f,
 			     RoadTraffic_PC_f,
-			     RoadTraffic_LDV_f);
+			     RoadTraffic_LCV_f);
       }
 
     Array<T, 2> emission_rate_aer(this->Ns_aer, this->Nbin_aer);
@@ -4414,7 +4414,7 @@ namespace Polyphemus
   void StreetNetworkAerosol<T, ClassChemistry>::SetStreetRoadTraffic(Data<T, 1> RoadTraffic_2R_f,
 								     Data<T, 1> RoadTraffic_HDV_f,
 								     Data<T, 1> RoadTraffic_PC_f,
-								     Data<T, 1> RoadTraffic_LDV_f)
+								     Data<T, 1> RoadTraffic_LCV_f)
   {
     int ist = 0;
     for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
@@ -4424,7 +4424,7 @@ namespace Polyphemus
 	street->SetStreetRoadTraffic(RoadTraffic_2R_f(ist),
 				     RoadTraffic_HDV_f(ist),
 				     RoadTraffic_PC_f(ist),
-				     RoadTraffic_LDV_f(ist));
+				     RoadTraffic_LCV_f(ist));
         ++ist;
       }
   }

@@ -145,25 +145,17 @@ namespace Polyphemus
 
     /*** Resuspension and Non-exhaust emissions***/
     T f0_hdv; //veh-1
-    T f0_ldv; //veh-1
+    T f0_lcv; //veh-1
     T f0_2R; //veh-1
     T f0_pc; //veh-1
     T mean_speed_2R; //veh.h-1
     T mean_speed_HDV; //veh.h-1
     T mean_speed_PC; //veh.h-1
-    T mean_speed_LDV; //veh.h-1
+    T mean_speed_LCV; //veh.h-1
     T mean_speed_highway_2R; //veh.h-1
     T mean_speed_highway_HDV; //veh.h-1
     T mean_speed_highway_PC; //veh.h-1
-    T mean_speed_highway_LDV; //veh.h-1
-    
-    // string file_traffic_flow;
-    // string file_traffic_speed;
-    // Array<T, 1> nb_hdv_hour;
-    // Array<T, 1> nb_ldv_hour;
-    // Array<T, 1> u_hdv;
-    // Array<T, 1> u_ldv;
-    // int Nh_week;
+    T mean_speed_highway_LCV; //veh.h-1
 
     string wet_diameter_option;
     
@@ -303,14 +295,14 @@ namespace Polyphemus
     //! PC road traffic buffer.
     Data<T, 1> FileRoadTraffic_PC_f;
 
-    //! LDV road traffic at current date.
-    Data<T, 1> RoadTraffic_LDV_i;    
-    //! LDV road traffic at next date.
-    Data<T, 1> RoadTraffic_LDV_f;
-    //! LDV road traffic buffer.
-    Data<T, 1> FileRoadTraffic_LDV_i;
-    //! LDV road traffic buffer.
-    Data<T, 1> FileRoadTraffic_LDV_f;
+    //! LCV road traffic at current date.
+    Data<T, 1> RoadTraffic_LCV_i;    
+    //! LCV road traffic at next date.
+    Data<T, 1> RoadTraffic_LCV_f;
+    //! LCV road traffic buffer.
+    Data<T, 1> FileRoadTraffic_LCV_i;
+    //! LCV road traffic buffer.
+    Data<T, 1> FileRoadTraffic_LCV_f;
     
     //OLD 
     // Array<T, 2> rain;
@@ -487,7 +479,7 @@ namespace Polyphemus
     void SetStreetRoadTraffic(Data<T, 1> RoadTraffic_2R_f,
 			      Data<T, 1> RoadTraffic_HDV_f,
 			      Data<T, 1> RoadTraffic_PC_f,
-			      Data<T, 1> RoadTraffic_LDV_f);
+			      Data<T, 1> RoadTraffic_LCV_f);
     void AppendBinList_aer(int b, vector<int>& bin_list_aer); // YK
     void InitStreetConc();
   };

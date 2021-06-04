@@ -337,11 +337,11 @@ namespace Polyphemus
     virtual void SetStreetRoadTraffic(T traffic_2R,
 				      T traffic_HDV,
 				      T traffic_PC,
-				      T traffic_LDV);
+				      T traffic_LCV);
     virtual T GetStreetRoadTraffic_2R() const;
     virtual T GetStreetRoadTraffic_HDV() const;
     virtual T GetStreetRoadTraffic_PC() const;
-    virtual T GetStreetRoadTraffic_LDV() const;
+    virtual T GetStreetRoadTraffic_LCV() const;
     T GetStreetTypo() const;
     //-------------------------------------------------
   };
