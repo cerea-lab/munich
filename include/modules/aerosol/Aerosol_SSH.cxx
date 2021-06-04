@@ -281,8 +281,13 @@ namespace Polyphemus
     ConfigStream config(Model.GetConfigurationFile());
     config.SetSection("[options]");
 
-    config.PeekValue("With_in_cloud_scavenging",
-		     option_process_aer["with_in_cloud_scavenging"]);
+    if (config.Check("With_in_cloud_scavenging"))
+      config.PeekValue
+        ("With_in_cloud_scavenging",
+         option_process_aer["with_in_cloud_scavenging"]);
+    else
+      // Default option is false
+      option_process_aer["with_in_cloud_scavenging"] = false;  
     config.PeekValue("Collect_wet_flux_aerosol",
 		     option_process_aer["collect_wet_flux_aer"]);
     config.PeekValue("Collect_wet_flux",
