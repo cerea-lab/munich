@@ -126,26 +126,24 @@ namespace Polyphemus
 	    config_stream.PeekValue("Type", type);
 	    if (type == "street")
 	      Units.push_back(new SaverUnitStreet<T, ClassModel>());
-            else if (type == "street_aer")
-	      Units.push_back(new SaverUnitStreet_aer<T, ClassModel>());
 	    else if (type == "street_deposition")
-	          Units.push_back(new SaverUnitStreetDryDeposition<T, ClassModel>());
+          Units.push_back(new SaverUnitStreetDryDeposition<T, ClassModel>());
 	    else if (type == "street_dry_deposition_vel")
-	          Units.push_back(new SaverUnitStreetDryDepositionVelocity<T, ClassModel>());
+          Units.push_back(new SaverUnitStreetDryDepositionVelocity<T, ClassModel>());
 	    else if (type == "street_dep_mass")
-	          Units.push_back(new SaverUnitStreetSurfaceDepositedMass<T, ClassModel>());
-	    else if (type == "street_dep_mass_aer")
-	          Units.push_back(new SaverUnitStreetSurfaceDepositedMass_aer<T, ClassModel>());
+          Units.push_back(new SaverUnitStreetSurfaceDepositedMass<T, ClassModel>());
+#ifdef POLYPHEMUS_WITH_AEROSOL_MODULE         
+        else if (type == "street_aer")
+	      Units.push_back(new SaverUnitStreet_aer<T, ClassModel>());
+        else if (type == "street_dep_mass_aer")
+          Units.push_back(new SaverUnitStreetSurfaceDepositedMass_aer<T, ClassModel>());
 	    else if (type == "street_resusp_aer")
-	          Units.push_back(new SaverUnitStreetResuspensionRate_aer<T, ClassModel>());
+          Units.push_back(new SaverUnitStreetResuspensionRate_aer<T, ClassModel>());
 	    else if (type == "street_washoff_aer")
-	          Units.push_back(new SaverUnitStreetWashoffRate_aer<T, ClassModel>());
+          Units.push_back(new SaverUnitStreetWashoffRate_aer<T, ClassModel>());
 	    else if (type == "street_surf_dry_dep_aer")
-	          Units.push_back(new SaverUnitStreetSurfaceDryDepositionRate_aer<T, ClassModel>());
-	    // else if (type == "street_dry_deposition")
-	    //   Units.push_back(new SaverUnitStreetDryDeposition<T, ClassModel>());
-	    // else if (type == "street_wet_deposition")
-	    //   Units.push_back(new SaverUnitStreetWetDeposition<T, ClassModel>());
+          Units.push_back(new SaverUnitStreetSurfaceDryDepositionRate_aer<T, ClassModel>());
+#endif
 	    else
 	      throw string("Unknown saver unit: ") + type + ".";
 	    Units[i]->Init(config_stream, Model);
