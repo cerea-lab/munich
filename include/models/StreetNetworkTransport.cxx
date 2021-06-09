@@ -93,17 +93,29 @@ namespace Polyphemus
     /*** Options ***/
     
     this->config.SetSection("[options]");
-    this->config.PeekValue("With_transport",
-                           this->option_process["with_transport"]);
-    this->config.PeekValue("With_deposition",
-                           this->option_process["with_deposition"]);
+    if (this->config.Check("With_transport"))
+      this->config.PeekValue("With_transport",
+                             this->option_process["with_transport"]);
+    else
+      this->option_process["with_transport"] = true;
+    if (this->config.Check("With_deposition"))
+      this->config.PeekValue("With_deposition",
+                             this->option_process["with_deposition"]);
+    else
+      this->option_process["with_deposition"] = true;
     if (this->option_process["with_deposition"])
       {
-        this->config.PeekValue("Collect_dry_flux",
-                               this->option_process["collect_total_dry_flux"]);
-        this->config.PeekValue("Compute_dep_SVOC",
-                               "yes|no",
-                               option_dep_svoc);
+        if (this->config.Check("Collect_dry_flux"))
+          this->config.PeekValue("Collect_dry_flux",
+                                 this->option_process["collect_total_dry_flux"]);
+        else
+          this->option_process["collect_total_dry_flux"] = false;
+        if (this->config.Check("Compute_dep_SVOC"))        
+          this->config.PeekValue("Compute_dep_SVOC",
+                                 "yes|no",
+                                 option_dep_svoc);
+        else
+          option_dep_svoc = "no";
         if (option_dep_svoc == "yes")
           {
 
@@ -127,20 +139,23 @@ namespace Polyphemus
                                       option_roughness);
           }
       }
-    
-    this->config.PeekValue
-      ("With_scavenging",
-       this->option_process["with_scavenging"]);
+
+    if (this->config.Check("With_scavenging"))
+      this->config.PeekValue("With_scavenging",
+                             this->option_process["with_scavenging"]);
+    else
+      this->option_process["with_scavenging"] = true;
     if (this->option_process["with_scavenging"])
       this->scavenging_model = "microphysical";
     else
       this->scavenging_model = "none";
     this->scavenging_model = lower_case(this->scavenging_model);
 
-    //LL -- add initial conditions
-    this->config.PeekValue("With_initial_condition",
-			   this->option_process["with_initial_condition"]);
-    //---
+    if (this->config.Check("With_initial_condition"))
+      this->config.PeekValue("With_initial_condition",
+                             this->option_process["with_initial_condition"]);
+    else
+      this->option_process["with_initial_condition"] = false;
 
     this->config.SetSection("[street]");
     if (this->option_process["with_deposition"])
