@@ -103,6 +103,8 @@ namespace Polyphemus
                              this->option_process["with_deposition"]);
     else
       this->option_process["with_deposition"] = true;
+
+    option_dep_svoc = "no"; //! default setting
     if (this->option_process["with_deposition"])
       {
         if (this->config.Check("Collect_dry_flux"))
@@ -175,19 +177,27 @@ namespace Polyphemus
 
     if(this->option_process["with_local_data"])
       if (this->option_process["with_deposition"])
-	this->config.PeekValue("Building_density",
-			       this->building_density);
-    
+        {
+          if (this->config.Check("Building_density")) 
+            this->config.PeekValue("Building_density",
+                                   this->building_density);
+          else
+            this->building_density = 0.4;
+                
+        }
     this->config.PeekValue("With_stationary_hypothesis",
 			   this->option_process["with_stationary_hypothesis"]);
 
     if(!this->option_process["with_stationary_hypothesis"])
       {
 	
-	this->config.PeekValue("Numerical_method_parameterization",
-			       "ETR | Rosenbrock", option_method);
-	this->config.PeekValue("sub_delta_t_min", ">= 0.1",
-			       sub_delta_t_min);
+        this->config.PeekValue("Numerical_method_parameterization",
+                               "ETR | Rosenbrock", option_method);
+        if (this->config.Check("sub_delta_t_min"))
+          this->config.PeekValue("sub_delta_t_min", ">= 0.1",
+                                 sub_delta_t_min);
+        else
+          sub_delta_t_min = 1.0;
       }
     
     // if(this->option_process["with_tunnels"])
@@ -305,12 +315,16 @@ namespace Polyphemus
         species_data_stream.GetNumber(reactivity[species]);
       }
 
-    //Rm []
-    species_data_stream.SetSection("[Rm]");
-    while (!species_data_stream.IsEmpty())
+
+    if (option_dep_svoc == "yes")
       {
-        species = species_data_stream.GetElement();
-        species_data_stream.GetNumber(Rm[species]);
+        //Rm []
+        species_data_stream.SetSection("[Rm]");
+        while (!species_data_stream.IsEmpty())
+          {
+            species = species_data_stream.GetElement();
+            species_data_stream.GetNumber(Rm[species]);
+          }
       }
     
     // Alpha scaling factor for deposition.
@@ -672,7 +686,7 @@ namespace Polyphemus
   */
   template<class T>
   void StreetNetworkTransport<T>::Init()
-  {    
+  {
     this->SetCurrentDate(this->Date_min);
     InitStreet();
     InitIntersection();
@@ -774,48 +788,51 @@ namespace Polyphemus
                        Rain_f);
 
         //new meteo for SVOC deposition----------
-        this->InitData("meteo",
-                       "SpecificHumidity",
-                       FileSpecificHumidity_i,
-                       FileSpecificHumidity_f,
-                       this->current_date,
-                       SpecificHumidity_f);
+        if (option_dep_svoc == "yes")        
+          {
+            this->InitData("meteo",
+                           "SpecificHumidity",
+                           FileSpecificHumidity_i,
+                           FileSpecificHumidity_f,
+                           this->current_date,
+                           SpecificHumidity_f);
 
-        this->InitData("meteo",
-                       "SurfaceRichardson",
-                       FileRichardson_i,
-                       FileRichardson_f,
-                       this->current_date,
-                       Richardson_f);
+            this->InitData("meteo",
+                           "SurfaceRichardson",
+                           FileRichardson_i,
+                           FileRichardson_f,
+                           this->current_date,
+                           Richardson_f);
 
-        this->InitData("meteo",
-                       "SolarRadiation",
-                       FileSolarRadiation_i,
-                       FileSolarRadiation_f,
-                       this->current_date,
-                       SolarRadiation_f);
+            this->InitData("meteo",
+                           "SolarRadiation",
+                           FileSolarRadiation_i,
+                           FileSolarRadiation_f,
+                           this->current_date,
+                           SolarRadiation_f);
 
-        this->InitData("meteo",
-                       "SoilWater",
-                       FileCanopyWetness_i,
-                       FileCanopyWetness_f,
-                       this->current_date,
-                       CanopyWetness_f);
+            this->InitData("meteo",
+                           "SoilWater",
+                           FileCanopyWetness_i,
+                           FileCanopyWetness_f,
+                           this->current_date,
+                           CanopyWetness_f);
 
-        this->InitData("meteo",
-                       "PARdiff",
-                       FilePARdiff_i,
-                       FilePARdiff_f,
-                       this->current_date,
-                       PARdiff_f);
+            this->InitData("meteo",
+                           "PARdiff",
+                           FilePARdiff_i,
+                           FilePARdiff_f,
+                           this->current_date,
+                           PARdiff_f);
 
-        this->InitData("meteo",
-                       "PARdb",
-                       FilePARdir_i,
-                       FilePARdir_f,
-                       this->current_date,
-                       PARdir_f);
-
+            this->InitData("meteo",
+                           "PARdb",
+                           FilePARdir_i,
+                           FilePARdir_f,
+                           this->current_date,
+                           PARdir_f);
+          }
+        
         //---------------------------------------
 
         //  *** Meteo for the intersections ***/
@@ -911,9 +928,6 @@ namespace Polyphemus
               FormatBinary<float>().Read(filename, Concentration_tmp);
           }
       }
-
-
-    
   }
 
 
@@ -1105,45 +1119,48 @@ namespace Polyphemus
 			 FileRain_i,
 			 FileRain_f,
 			 Rain_f);
-	
 
+    
 	//new meteo for SVOC deposition---------------
+	if(option_dep_svoc == "yes")
+      {
+        this->UpdateData("meteo",
+                         "SpecificHumidity",
+                         FileSpecificHumidity_i,
+                         FileSpecificHumidity_f,
+                         SpecificHumidity_f);
 	
-	this->UpdateData("meteo",
-			 "SpecificHumidity",
-			 FileSpecificHumidity_i,
-			 FileSpecificHumidity_f,
-			 SpecificHumidity_f);
+        this->UpdateData("meteo",
+                         "SurfaceRichardson",
+                         FileRichardson_i,
+                         FileRichardson_f,
+                         Richardson_f);
 	
-	this->UpdateData("meteo",
-			 "SurfaceRichardson",
-			 FileRichardson_i,
-			 FileRichardson_f,
-			 Richardson_f);
-	
-	this->UpdateData("meteo",
-			 "SolarRadiation",
-			 FileSolarRadiation_i,
-			 FileSolarRadiation_f,
-			 SolarRadiation_f);
+        this->UpdateData("meteo",
+                         "SolarRadiation",
+                         FileSolarRadiation_i,
+                         FileSolarRadiation_f,
+                         SolarRadiation_f);
 
-	this->UpdateData("meteo",
-			 "SoilWater",
-			 FileCanopyWetness_i,
-			 FileCanopyWetness_f,
-			 CanopyWetness_f);
+        this->UpdateData("meteo",
+                         "SoilWater",
+                         FileCanopyWetness_i,
+                         FileCanopyWetness_f,
+                         CanopyWetness_f);
 
-	this->UpdateData("meteo",
-			 "PARdiff",
-			 FilePARdiff_i,
-			 FilePARdiff_f,
-			 PARdiff_f);
+        this->UpdateData("meteo",
+                         "PARdiff",
+                         FilePARdiff_i,
+                         FilePARdiff_f,
+                         PARdiff_f);
 
-	this->UpdateData("meteo",
-			 "PARdb",
-			 FilePARdir_i,
-			 FilePARdir_f,
-			 PARdir_f);
+        this->UpdateData("meteo",
+                         "PARdb",
+                         FilePARdir_i,
+                         FilePARdir_f,
+                         PARdir_f);
+      }
+
 	//--------------------------------------------
 
         //!  Meteo for intersections.
@@ -1585,71 +1602,74 @@ namespace Polyphemus
   {
     if(sub_delta_t_min > this->Delta_t)
       throw string("Error! sub_delta_t_min can not be higher than simulation time step.");
+    
     /*** Meteo ***/
     if (this->option_process["with_local_data"])
       {
 
       	if(this->option_process["with_transport"])
           {
-        //! Check the meteo data for the streets.
-        if (this->input_files["meteo"]("WindDirection").empty())
-          throw "WindDirection is needed but no input data file was provided.";
-        
-        
-        if (this->input_files["meteo"]("WindSpeed").empty())
-          throw "WindSpeed is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("PBLH").empty())
-          throw "PBLH is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("UST").empty())
-          throw "UST is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("LMO").empty())
-          throw "LMO is needed but no input data file was provided.";
+            //! Check the meteo data for the streets.
+            if (this->input_files["meteo"]("WindDirection").empty())
+              throw "WindDirection is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("WindSpeed").empty())
+              throw "WindSpeed is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("PBLH").empty())
+              throw "PBLH is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("UST").empty())
+              throw "UST is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("LMO").empty())
+              throw "LMO is needed but no input data file was provided.";
 
-        //! Check the meteo data for the intersections.
-        if (this->input_files["meteo"]("WindDirectionInter").empty())
-          throw "WindDirectionInter is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("WindSpeedInter").empty())
-          throw "WindSpeedInter is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("PBLHInter").empty())
-          throw "PBLHInter is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("USTInter").empty())
-          throw "USTInter is needed but no input data file was provided.";
-        if (this->input_files["meteo"]("LMOInter").empty())
-          throw "LMOInter is needed but no input data file was provided.";
-  }
+            //! Check the meteo data for the intersections.
+            if (this->input_files["meteo"]("WindDirectionInter").empty())
+              throw "WindDirectionInter is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("WindSpeedInter").empty())
+              throw "WindSpeedInter is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("PBLHInter").empty())
+              throw "PBLHInter is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("USTInter").empty())
+              throw "USTInter is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("LMOInter").empty())
+              throw "LMOInter is needed but no input data file was provided.";
+          }
 
-        
-	if(this->option_process["with_deposition"])
-	  {
-	    if (this->input_files["meteo"]("SurfaceTemperature").empty())
-	      throw "Temperature is needed but no input data file was provided.";
-	    if (this->input_files["meteo"]("SurfacePressure").empty())
-	      throw "Pressure is needed but no input data file was provided.";
-	  }
-	if(this->option_process["with_scavenging"] and this->scavenging_model != "none")
-	  {
-	    if (this->input_files["meteo"]("SurfaceTemperature").empty())
-	      throw "Temperature is needed but no input data file was provided.";
-	    if (this->input_files["meteo"]("SurfacePressure").empty())
-	      throw "Pressure is needed but no input data file was provided.";
-	    if (this->input_files["meteo"]("Rain").empty())
-	      throw "Rain is needed but no input data file was provided.";
-	  }
+        //! Data for deposition 
+        if(this->option_process["with_deposition"])
+          {
+            if (this->input_files["meteo"]("SurfaceTemperature").empty())
+              throw "Temperature is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("SurfacePressure").empty())
+              throw "Pressure is needed but no input data file was provided.";
+          }
+    
+        if(this->option_process["with_scavenging"] and
+           this->scavenging_model != "none")
+          {
+            if (this->input_files["meteo"]("SurfaceTemperature").empty())
+              throw "Temperature is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("SurfacePressure").empty())
+              throw "Pressure is needed but no input data file was provided.";
+            if (this->input_files["meteo"]("Rain").empty())
+              throw "Rain is needed but no input data file was provided.";
+          }
       }
-    if(this->option_process["with_scavenging"] and this->scavenging_model == "none")
+    
+    if (this->option_process["with_scavenging"] and
+        this->scavenging_model == "none")
       throw "Warning!! Option With_scavenging = yes and scavenging_model = none";   
     if (!this->option_process["with_deposition"]
-	&& this->option_process["collect_dry_flux"])
+        && this->option_process["collect_dry_flux"])
       throw string("Dry deposition fluxes cannot be collected") +
-	" without deposition.";
+        " without deposition.";
 
     if (this->option_process["collect_wet_flux"]
-	&& (!this->option_process["with_scavenging"]))
+        && (!this->option_process["with_scavenging"]))
       throw string("Wet deposition fluxes cannot be collected") +
-	" without scavenging.";
+        " without scavenging.";
     
   }
-
+  
 
   //! Performs one step forward.
   template<class T>
@@ -1674,12 +1694,16 @@ namespace Polyphemus
     ComputeSigmaW();
     ComputeTransferVelocity();
     ComputeWindDirectionFluctuation();
+
+    //! Compute deposition velocity
     if(this->option_process["with_deposition"])
       {
-	ComputeDryDepositionVelocities();
-	if(option_dep_svoc == "yes")
-	  ComputeSVOCDryDepositionVelocities();
+        ComputeDryDepositionVelocities();
+        if(option_dep_svoc == "yes")
+          ComputeSVOCDryDepositionVelocities();
       }
+
+    //! Compute scavenging coefficient
     if(this->option_process["with_scavenging"])
       ComputeScavengingCoefficient();
     
@@ -2652,11 +2676,21 @@ namespace Polyphemus
     // Gas phase diffusivities of scavenged species.
     Array<T, 1> gas_phase_diffusivity_(Ns_scav);
 
+    henry_constant_ = 0.0;
+    gas_phase_diffusivity_ = 0.0;
+    
     // Extracts species data for scavenged species only.
     for (int s = 0; s < Ns_scav; s++)
       {
-	henry_constant_(s) = henry_constant[ScavengingName(s)];
-	gas_phase_diffusivity_(s) = gas_phase_diffusivity[ScavengingName(s)];
+        henry_constant_(s) = henry_constant[ScavengingName(s)];
+        gas_phase_diffusivity_(s) = gas_phase_diffusivity[ScavengingName(s)];
+        if (gas_phase_diffusivity_(s) == 0.0)
+          throw string("Diffusivity is not given for ") +
+            ScavengingName(s);
+
+        if (henry_constant_(s) == 0.0)
+          throw string("Henry constant is not given for ") +
+            ScavengingName(s);
       }
 
     Array<T, 1> scavenging_coefficient(Ns_scav);
@@ -2674,27 +2708,26 @@ namespace Polyphemus
         T pressure_ = street->GetPressure();
         T rain_ = street->GetRain();
         T cloudheight_ = street->GetHeight();
-	T level_ = street->GetHeight();
-	int one = 1;
+        T level_ = street->GetHeight();
+        int one = 1;
 
-	//if (this->scavenging_model == "microphysical")
-	_compute_scavenging_coefficient(&one, &one, &one, &Ns_scav,
-					&one, &one, &one,
-					level.data(),
-					gas_phase_diffusivity_.data(),
-					henry_constant_.data(),
-					&temperature_,
-					&pressure_,
-					&rain_,
-					&cloudheight_,
-					scavenging_coefficient.data());
+        _compute_scavenging_coefficient(&one, &one, &one, &Ns_scav,
+                                        &one, &one, &one,
+                                        level.data(),
+                                        gas_phase_diffusivity_.data(),
+                                        henry_constant_.data(),
+                                        &temperature_,
+                                        &pressure_,
+                                        &rain_,
+                                        &cloudheight_,
+                                        scavenging_coefficient.data());
 
-	for (int s = 0; s < Ns_scav; s++)
-	  {
-	    street->SetStreetScavengingCoefficient(scavenging_coefficient(s),
-					       ScavengingGlobalIndex(s));
-	  }
-
+        for (int s = 0; s < Ns_scav; s++)
+          {
+            street->
+              SetStreetScavengingCoefficient(scavenging_coefficient(s),
+                                             ScavengingGlobalIndex(s));
+          }
 
       }
 

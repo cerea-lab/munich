@@ -33,6 +33,48 @@ CO2      44. CH3O2    47. HCHO     30.
 HO2      33. CH3COO   59. NO2      46.
 NO3      62. oPAN      1. NO       30.
 
+[reactivity]
+
+# Chemical reactivity.
+O3       1.0     NO       0.0    NO2      0.1     H2O2     1.0
+PAN      0.1     HONO     0.1
+SO2      0.0     HNO3     0.0    
+CO       0.0
+
+[alpha]
+
+SO2	1.	SULF	1.	NO	0.	NO2	0.
+O3	0.	H2O2	1.	HNO3	10.	HONO	2.
+HNO4	5.	PAN	0.  CO	0.01
+
+
+[beta]
+
+SO2	0.	SULF	1.	NO	0.	NO2	0.8
+O3	1.	H2O2	1.	HNO3	10.	HONO	2.
+HNO4	5.	PAN	0.6 CO	0.
+
+
+[henry]
+
+# Henry constant: mol / L / atm.
+# Must be effective Henry constant except HONO, HNO3, HCL, NH3 and SO2.
+NH3    62.0      O3      1.14e-2    NO      1.9e-3
+NO2    1.2e-2    H2O2    1.02e5
+PAN    5.        HONO    49.0       SO2     1.23       HNO3    2.1e5
+CO      1.e3
+N2O5   1.e14
+
+
+[diffusivity]
+
+# Gas-phase diffusivities: cm^2 / s.
+O3        0.14    NO        0.17
+NO2       0.14    H2O2      0.16
+PAN       0.08    HONO      0.14      SO2       0.12    HNO3      0.12
+CO        0.18    N2O5      0.1
+
+
 [photolysis_reaction_index]
 
 O3O1D    90  NO2     91  NO3NO   92  NO3NO2   93
