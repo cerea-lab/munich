@@ -1,19 +1,38 @@
 #!/usr/bin/env bash
 
+read -p "Please choose cloning method (1. SSH or 2. HTTPS) " method
+echo "Cloning via $method"
+
 DIR=munich-git
 CWD=`pwd`
-
-read -p "Please enter Gitlab user name [often, firstname.name] " USER
 
 if [ -d $DIR ]; then
     echo Directory $DIR already exists. Please remove it or choose another directory.
     exit 1
 fi
 
-cd $CWD
 
-git clone https://$USER@gitlab.enpc.fr/cerea/munich.git $DIR
-git clone https://$USER@gitlab.enpc.fr/cerea/ssh-aerosol.git $DIR/include/ssh-aerosol
-git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
-git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
-git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/talos.git $DIR/include/Talos
+if [ $method = "1" ]
+then
+
+    git clone git@gitlab.enpc.fr:cerea/munich.git $DIR
+    git clone git@gitlab.enpc.fr:cerea/ssh-aerosol.git $DIR/include/ssh-aerosol    
+    git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
+    git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
+    git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/talos.git $DIR/include/Talos
+    
+elif [ $method = "2" ]
+then
+
+    read -p "Please enter Gitlab user name [often, firstname.name] " USER
+
+    git clone https://$USER@gitlab.enpc.fr/cerea/munich.git $DIR
+    git clone https://$USER@gitlab.enpc.fr/cerea/ssh-aerosol.git $DIR/include/ssh-aerosol
+    git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
+    git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
+    git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/talos.git $DIR/include/Talos
+
+else
+    echo Please enter 1 or 2
+    exit 1
+fi
