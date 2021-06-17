@@ -20,7 +20,7 @@ content = [("Output_dir", "[output]", "String"), \
 ]
 config = talos.Config("sing_preproc.cfg", content)
 meca = config.meca
-home_dir = config.Output_dir # "/profils_cerea/kimy/work/StreetInGrid/munich/preprocessing/output/"
+home_dir = config.Output_dir
 
 speciation_file = config.speciation_dir + "/COVNM_"+meca+".dat"
 speciation = open(speciation_file)
@@ -33,7 +33,7 @@ for n, line in enumerate(line_info):
         if line[0] == "7":
                 index = n
                 break
-print "traffic snap index: ", index
+print("traffic snap index: ", index)
 
 sp_real_name = []
 speciation_coeff = []
@@ -48,9 +48,9 @@ for line in speciation.readlines():
         mw_real.append(float(line_info[1]))
 speciation.close()
 
-print "total coeff.: ", total, "%"
+print("total coeff.: ", total, "%")
 ns_real = len(sp_real_name)
-print "Number of the real species: ", ns_real
+print("Number of the real species: ", ns_real)
 
 # Get VOC aggregation to model species.
 if meca == "cb05":
@@ -121,20 +121,20 @@ total = 0.0
 # Get array shape of input file and load to an array.
 inputfile_size = io.get_filesize(input_file)
 array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
-print array_shape
+print(array_shape)
 input_array = io.load_binary(input_file, array_shape)
 
 # Compute and write to binary files;
 for s_model in range(ns_model):
         total += species_factor[s_model]
-        print "species factor: ",model_species[s_model], species_factor[s_model]
+        print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
         
         output_array = input_array * species_factor[s_model]
         output_filename = input_dir + model_species[s_model] + ".bin"
 
         io.save_binary(output_array, output_filename)
-print "total species factor:", total
+print("total species factor:", total)
 
 
 ### Compute speciated VOC emissions for grided data.
@@ -145,13 +145,13 @@ input_file = input_dir + "NMHC.bin"
 
 inputfile_size = io.get_filesize(input_file)
 array_shape = (config.Nt_polair, config.Ny, config.Nx)
-print array_shape
+print(array_shape)
 input_array = io.load_binary(input_file, array_shape)
 
 # Compute and write to binary files;
 for s_model in range(ns_model):
         total += species_factor[s_model]
-        print "species factor: ",model_species[s_model], species_factor[s_model]
+        print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
         # print command
         # os.system(command)
@@ -194,7 +194,7 @@ def speciation_nox():
         input_file = input_dir + "NOx.bin"
 
         inputfile_size = io.get_filesize(input_file)
-        print (config.Nt_polair, config.Ny, config.Nx)
+        print((config.Nt_polair, config.Ny, config.Nx))
         array_shape = (config.Nt_polair, config.Ny, config.Nx)
         nox = io.load_binary(input_file, array_shape)
 
