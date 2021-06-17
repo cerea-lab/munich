@@ -4489,7 +4489,7 @@ namespace Polyphemus
     for (s = 0; s < Ns; s++)
       subrho += Conc_aer_tmp(s) / Rho_species[s];
 
-    if (TotalMass == 0. or subrho == 0.)
+    if (TotalMass < 1.e-10 or subrho == 0.)
       rho = 1.e-6;
     else
       rho = 1.e-6 * TotalMass/subrho;
