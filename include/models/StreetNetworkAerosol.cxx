@@ -4477,8 +4477,9 @@ namespace Polyphemus
     \ return density (ug.um-3)
   */
   template<class T, class ClassChemistry>
-  T StreetNetworkAerosol<T, ClassChemistry>::ComputeDensity(Data <T, 1> Conc_aer_tmp,
-		   vector<T> Rho_species, T TotalMass, int Ns)
+  T StreetNetworkAerosol<T, ClassChemistry>
+  ::ComputeDensity(Data <T, 1> Conc_aer_tmp,
+                   vector<T> Rho_species, T TotalMass, int Ns)
   {
     int s;
     T rho, subrho;
@@ -4543,42 +4544,44 @@ namespace Polyphemus
 	
     for (int s = 0; s < Ns_emis_aer; s++)
       {
-	rho_stream_aer.PeekValue(species_list_emis_aer[s].first, Rho_tmp);
-	Rho_species.push_back(Rho_tmp);
+        rho_stream_aer.PeekValue(species_list_emis_aer[s].first, Rho_tmp);
+        Rho_species.push_back(Rho_tmp);
       }
 
     for (st = 0; st < this->total_nstreet; st++)
       {
-	for (int ic=0; ic<Nc;ic++) //ZS
-	{
-	  TotalMass = 0.0;
-	  Rho_aer = 0.0;
-	  for (int s = 0; s < Ns_emis_aer; s++)
-	    {
-	      it_begin = species_list_emis_aer[s].second.begin();
-	      it_end = species_list_emis_aer[s].second.end();
-	      pos = find(it_begin,it_end,b);
-	      dist = distance(it_begin, pos);
+        for (int ic = 0; ic < Nc; ic++) //ZS
+          {
+            TotalMass = 0.0;
+            Rho_aer = 0.0;
+            for (int s = 0; s < Ns_emis_aer; s++)
+              {
+                it_begin = species_list_emis_aer[s].second.begin();
+                it_end = species_list_emis_aer[s].second.end();
+                pos = find(it_begin,it_end,b);
+                dist = distance(it_begin, pos);
 
-	      if (dist < int(species_list_emis_aer[s].second.size()))
-		{
-		  TotalMass = TotalMass + this->Emission_aer_f(s,dist*Nc+ic,st);
-		  Conc_aer_tmp(s) = this->Emission_aer_f(s,dist*Nc+ic,st);
-		}
+                if (dist < int(species_list_emis_aer[s].second.size()))
+                  {
+                    TotalMass = TotalMass +
+                      this->Emission_aer_f(s,dist*Nc+ic,st);
+                    Conc_aer_tmp(s) = this->Emission_aer_f(s,dist*Nc+ic,st);
+                  }
 
-	    }
-	  
-	  Rho_aer = ComputeDensity(Conc_aer_tmp, Rho_species, TotalMass, Ns_emis_aer);
+              }
             
-	  this->NumberEmission_aer_f(index_b*Nc+ic,st)=
-	    TotalMass/Rho_aer/pi*6.
-	    /(MeanDiameter*MeanDiameter*MeanDiameter); 
-	  double tmp_n=this->NumberEmission_aer_f(index_b*Nc+ic,st);
-	  if(TotalMass*tmp_n==0&&TotalMass!=tmp_n)
-	    cout<<st<<" , "<<" m:"<<TotalMass<<" n:"<<tmp_n
-	    <<" Rho:"<<Rho_aer<<" MeanDiameter:"<<MeanDiameter<<endl;
+            Rho_aer = ComputeDensity(Conc_aer_tmp,
+                                     Rho_species, TotalMass, Ns_emis_aer);
+            
+            this->NumberEmission_aer_f(index_b*Nc+ic,st)=
+              TotalMass/Rho_aer/pi*6.
+              /(MeanDiameter*MeanDiameter*MeanDiameter); 
+            double tmp_n=this->NumberEmission_aer_f(index_b*Nc+ic,st);
+            if(TotalMass*tmp_n==0&&TotalMass!=tmp_n)
+              cout<<st<<" , "<<" m:"<<TotalMass<<" n:"<<tmp_n
+                  <<" Rho:"<<Rho_aer<<" MeanDiameter:"<<MeanDiameter<<endl;
 	    
-	}
+          }
       }
   }
   
