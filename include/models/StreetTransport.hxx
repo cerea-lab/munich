@@ -412,6 +412,7 @@ namespace Polyphemus
                   T pblh, T ust, T lmo);    
     T GetPBLH() const;
     T GetUST() const;
+    void SetIntersectionUST(T ustar);
     T GetLMO() const;
     T GetWindSpeed() const;
     T GetWindDirection() const;

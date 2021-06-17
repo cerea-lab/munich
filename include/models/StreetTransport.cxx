@@ -1844,6 +1844,13 @@ namespace Polyphemus
     return ust_;
   }
 
+  template<class T>
+  inline void Intersection<T>::SetIntersectionUST(T ustar)
+  {
+    ust_ = ustar;
+  }
+
+
   //! Returns the Monin-Obukhov length.
   /*!
     \return The Monin-Obukhov length (m).

@@ -387,6 +387,11 @@ namespace Polyphemus
   void StreetNetworkChemistry<T, ClassChemistry>::Transport()
   {
     this->is_stationary = false;
+
+    //! Compute the wind speed above the street-canyon.    
+    if (this->option_uH == "Macdonald")
+   	this->Compute_Macdonald_Profile();
+    
     //! Compute the wind speed in the street-canyon.
     this->ComputeUstreet();
     this->ComputeSigmaW();

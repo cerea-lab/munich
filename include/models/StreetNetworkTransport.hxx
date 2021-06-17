@@ -64,6 +64,7 @@ namespace Polyphemus
 
     //int id_tunnel;
     string option_transfer, option_ustreet, option_method;
+    string option_uH;
     
     string option_dep_svoc, option_dep_svoc_ra, option_dep_svoc_rb, option_dep_svoc_rc;
     string file_config_dep_svoc, option_roughness;
@@ -75,6 +76,9 @@ namespace Polyphemus
     string output_dir;
     bool text_file, interpolated;
 
+    T zref;
+    T d_city, z0_city;
+    
     /*** Domain ***/
 
     //! 1D grid for streets.
@@ -151,6 +155,10 @@ namespace Polyphemus
     int total_nstreet;
     Array<int, 1> id_street, begin_inter, end_inter;
     Array<T, 1> length, width, height;
+    T Mean_length;
+    T Mean_width;
+    T Mean_height;
+    
     Array<int, 1> typo;
     //! Pointer to the current street.
     typename vector<Street<T>* >::iterator current_street;
@@ -503,7 +511,9 @@ namespace Polyphemus
     T ComputeGaussian(double theta, double sigma_theta, 
                       double theta0);
     void ComputeSigmaW();
+    void Compute_Macdonald_Profile();   
     void ComputeUstreet();
+    void ComputeUstarMacdonald();
     void ComputeWindDirectionFluctuation();
     T ComputeUstreetSIRANE();
     T ComputeUstreetLemonsu();
