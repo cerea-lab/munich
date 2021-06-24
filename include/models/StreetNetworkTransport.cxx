@@ -992,6 +992,9 @@ namespace Polyphemus
     height.resize(total_nstreet);
     typo.resize(total_nstreet);
     typo = 0;
+    Mean_length = 0.0;
+    Mean_width = 0.0;
+    Mean_height = 0.0;
     for (int i = 0; i < total_nstreet; ++i)
       {
         StreetStream.GetLine(line);
@@ -1027,11 +1030,6 @@ namespace Polyphemus
     T stdDeviation_L, stdDeviation_W, stdDeviation_H;
     for (int i = 0; i < total_nstreet; ++i)
       {
-        StreetStream.GetLine(line);
-        v = split(line, ";");
-        length(i) = to_num<T>(v[3]);
-        width(i) = to_num<T>(v[4]);
-        height(i) = to_num<T>(v[5]);
         variance_L += pow(length(i) - Mean_length,2);
         variance_W += pow(width(i) - Mean_width,2);
         variance_H += pow(height(i) - Mean_height,2);
