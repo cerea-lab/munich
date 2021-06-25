@@ -1,0 +1,19 @@
+#!/bin/bash
+
+current_dir=$PWD
+
+# Compile SSH-Aerosol modele
+cd ../../include/ssh-aerosol
+./clean
+
+echo "=================================="
+echo "Completed: cleaning of SSH-Aerosol"
+echo "=================================="
+
+cd $current_dir
+
+scons -c
+
+echo "============================="
+echo "Completed: cleaning of MUNICH"
+echo "============================="

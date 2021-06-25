@@ -1,0 +1,21 @@
+#!/bin/bash
+
+current_dir=$PWD
+
+chemistry=cb05
+
+# Compile SSH-Aerosol modele
+cd ../../include/ssh-aerosol
+./compile -s=yes -c=$chemistry
+
+echo "==================================="
+echo "Completed: compiling of SSH-Aerosol"
+echo "==================================="
+
+cd $current_dir
+
+scons -j6 mpi=yes
+
+echo "=============================="
+echo "Completed: compiling of MUNICH"
+echo "=============================="
