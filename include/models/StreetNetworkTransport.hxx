@@ -513,7 +513,6 @@ namespace Polyphemus
     void ComputeSigmaW();
     void Compute_Macdonald_Profile();   
     void ComputeUstreet();
-    void ComputeUstarMacdonald();
     void ComputeWindDirectionFluctuation();
     T ComputeUstreetSIRANE();
     T ComputeUstreetLemonsu();

@@ -5,7 +5,7 @@
 
 #include "StreetNetworkTransport.hxx"
 #include "libRa.cxx"
-#include "libRs.cxx" // YK to be used for Munich-only simualtions.
+#include "libRs.cxx"
 
 // INCLUDES //
 //////////////
@@ -206,9 +206,6 @@ namespace Polyphemus
           sub_delta_t_min = 1.0;
       }
     
-    // if(this->option_process["with_tunnels"])
-    //   this->config.PeekValue("column_tunnel",
-    // 			     id_tunnel);
     /*** Input files ***/
 
     //! The configuration-file path is the field "Data_description" in the main
@@ -223,7 +220,8 @@ namespace Polyphemus
       {
         data_description_stream.PeekValue("Roughness_file", Roughness_file);
         data_description_stream.PeekValue("LUC_file", LUC_file);
-        data_description_stream.PeekValue("Urban_index_zhang", "> 0", LUC_urban_index);
+        data_description_stream.PeekValue("Urban_index_zhang", "> 0",
+                                          LUC_urban_index);
       }
     
     //! Meteorological files.
@@ -406,9 +404,6 @@ namespace Polyphemus
       cout<<"With dry deposition of gas-phase pollutants in streets."<<endl;
     if(this->option_process["with_scavenging"])
       cout<<"With wet deposition of gas-phase pollutants in streets."<<endl;
-    // cout<<"Ns = "<<this->Ns<<endl;
-    // cout<<"Ns_dep = "<<Ns_dep<<endl;
-    // cout<<"Ns_scav = "<<Ns_scav<<endl;
   }
   
   //! Allocates memory.
@@ -635,10 +630,6 @@ namespace Polyphemus
 	FileBackground_i.SetZero();
 	FileBackground_f.SetZero();
 
-	// /*** Initial conditions ***/
-	// InitialConditions.Resize(GridS2D, GridST2D);
-	// InitialConditions.SetZero();
-
       }
 
     /*** Emissions rates ***/
@@ -651,7 +642,7 @@ namespace Polyphemus
     Emission_f.SetZero();
     FileEmission_i.SetZero();
     FileEmission_f.SetZero();
-    //--------------------------------------------------------------------------    
+    //-----------------------------------------
 
     /*** Street concentration ***/
     StreetConcentration.Resize(GridS2D, GridST2D);
@@ -683,7 +674,7 @@ namespace Polyphemus
     // ScavengingCoefficient.SetZero();
     // StreetScavengingFlux.SetZero();
     // StreetScavengingRate.SetZero();
-    //cout<<"allocate beleza"<<endl;
+
   }
 
   //! Model initialization.
@@ -2774,11 +2765,10 @@ namespace Polyphemus
 
   }
 
-    //! Sets the scavening global index for a determined specie
+  //! Sets the scavening global index for a determined specie
   template<class T>
   int StreetNetworkTransport<T>::ScavengingGlobalIndex(int s) const
   {
-    // cout <<" === in ScavengingGlobalIndex: " << s << " " << ScavengingName(s) << endl;
     return this->GetSpeciesIndex(ScavengingName(s));
   }
 
@@ -3675,61 +3665,6 @@ namespace Polyphemus
   }
 
 
-  // //! Compute the friction velocity using the method of Macdonald et al (1998)
-  // /*!
-  //   \param street_height Building height (m) 
-  //   \param u_zref wind speed at the reference altitude (m/s)
-  // */
-  // template<class T>
-  // void StreetNetworkTransport<T>::ComputeUstarMacdonald()
-  // {
-  //   //! reference altitude (m)
-  //   T zref;
-  //   zref = h + 17;
-
-  //   for (typename vector<Street<T>* >::iterator iter = StreetVector.begin();
-  //        iter != StreetVector.end(); iter++)
-  //     {
-  //       Street<T>* street = *iter;
-  //       T ustar_macd;
-  //       T h = street->GetHeight();
-  //       //! wind speed at the reference altitude (m/s)        
-  //       T u_zref = street->GetWindSpeed();
-  //       zref = h + 17;
-
-  //       if (z0_city <= 1.e-10)
-  //         throw string ("ValueError: z0_city ") + to_str(z0_city);
-  //       //! d_city and z0_city are global variables.
-  //       ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
-  //       street->SetStreetUstar(ustar_macd);
-  //     }
-
-  //   // for (typename vector<Intersection<T>* >:: iterator iter = IntersectionVector.begin();
-  //   //      iter != IntersectionVector.end(); iter++)
-  //   // {
-  //   // 	Intersection<T>* intersection = *iter;
-  //   //     //! wind speed at the reference altitude (m/s)                
-  //   //     T u_zref = intersection->GetWindSpeed();
-  //   //     ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);        
-  //   //     intersection->SetIntersectionUST(ustar_macd);
-  //   // }
-
-    
-  // }
-
-
-  // //! Compute uH with the method of Macdonald et al (1998)
-  // template<class T>
-  // T StreetNetworkTransport<T>::ComputeUHMacdonald(T ustar_macd, T h)
-  // {
-  //   T uH_macd;
-  //   uH_macd = ustar_macd / karman * log((h - d_city)/z0_city);
-
-  //   return uH_macd;
-  // } 
-
-
-
   //! Compute ustar and uH with the method of Macdonald et al (1998)
   template<class T>
   void StreetNetworkTransport<T>::Compute_Macdonald_Profile()
@@ -3743,31 +3678,16 @@ namespace Polyphemus
     T betta = 0.55; // Correction coefficient betta = 1.0 for staggered arrays and betta = 0.55 for square array (Macdonald et al, 1998)
 
     T ustar_macd;
-    
-    // T A = 3.59; // Empiric coefficient A = 4.43 for staggered arrays and A = 3.59 for the square arrays (Macdonald et al, 1998)   
 
     T Af = 2 / pi * Mean_length * 2 * Mean_height; // frontal area of obstacles
-    //    T Ap = Mean_length * 2 * building_width; // plan area of obstacles
     T At = Mean_length * (Mean_width + 2 * building_width); // lot area of obstacles
-    //cout << "Af : " << Af << endl;
-    //cout << "Ap : " << Ap << endl;
-    //cout << "At : " << At << endl;
 
     T Lambdaf = Af / At; // frontal area density of obstacles
-    //    T Lambdap = Ap / At; // plan area density of obstacles
-    //cout << "Lambdaf : " << Lambdaf << endl;
-    //cout << "Lambdap : " << Lambdap << endl;
-
-    // d_city = Mean_height * (1.0 + pow(A,-Lambdap) * (Lambdap - 1.0)); // displacement height of city
-
     
     d_city = ComputeD(4.0, this->building_density, Mean_height);
 
-    
     T temp_dH = 1.0 - (d_city / Mean_height);
     z0_city = Mean_height * (temp_dH * exp(-pow(0.5 * betta * Cd_building / pow(karman, 2.0) * temp_dH * Lambdaf,-0.5))); //roughness length of city
-    //cout << "Hauteur de deplacement d_city : " << d_city << "m" << endl;
-    //cout << "Hauteur de rugosite z0_city : " << z0_city << "m" << endl;
 
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
      {
@@ -3776,23 +3696,11 @@ namespace Polyphemus
        T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)
        ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
        street->SetStreetUstar(ustar_macd);
-       //cout << "ustar MacD : " << ustar_macd << endl;
 
        // Compute Macdonald uH for each street of the street network
        T H = street->GetHeight();
        if (zref < H)
          throw string("Error: reference altitude is inferior to the building height in the street ") + to_str(street->GetStreetID())+ ".";
-       //cout << "zref : " << zref << endl;
-       // if (H < (d_city + z0_city))
-       // {
-       //   uH_macd = 0.0;
-       // }
-       // else
-       // {
-       //   uH_macd = ustar_macd / karman * log((H - d_city)/z0_city);
-       //   //cout << "H : " << H << endl;
-       //   //cout << "uH MacD : " << uH_macd << endl;
-       // } // YK
     }
     
     // Friction velocity using Macdonald method for intersections in the street network
@@ -3821,8 +3729,6 @@ namespace Polyphemus
     T beta;
     Array<T, 1> z, ustreet_z;
     T ustreet, u_h;
-    //    int nz = 10;
-
 
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
       {
@@ -3841,9 +3747,7 @@ namespace Polyphemus
         phi = abs(wind_direction - ang);
         
         T solutionC = ComputeBesselC(z0_build, delta_i);
-        //        T u_h = ComputeUH(solutionC, ustar);
 
-	// if (option_ustreet == "Fixed_profile")
 	if (option_ustreet == "Exponential")          
 	  {
             if (( h == 0.0) or (w == 0.0))
@@ -3854,17 +3758,16 @@ namespace Polyphemus
             if (option_uH == "Sirane")
               {
                 u_h = ComputeUH(solutionC, ustar);
-                // cout << "uH Sirane : " << u_h << endl;
               }
             else if (option_uH == "Macdonald")
               {
+                if (z0_city == 0.0)
+                  throw string("Math error: zero division, z0_city\n");
+                
                 if  (h < (d_city + z0_city))
                   u_h = 0.0;
                 else
-                  u_h = ustar / karman * log((h - d_city)/z0_city); // YK
-
-
-//                u_h = uH_macd;
+                  u_h = ustar / karman * log((h - d_city)/z0_city);
               }
             else
               throw("Wrong option given. Choose Macdonald or Sirane");
@@ -3877,40 +3780,8 @@ namespace Polyphemus
               }
             ustreet /= nz;
           }
-        // else if (option_ustreet == "Lemonsu")
-        //   {
-        //     if (( h == 0.0) or (w == 0.0))
-        //       throw string("Street height or width is zero. ") + to_str(h) + " " + to_str(w);
-        //     beta = h / (2.0 * w);
-        //     ustreet = 0.0;      
-        //     for (int k = 0; k < nz; ++k)
-        //       {
-        //         z(k) = h / (nz - 1) * k;
-        //         if ((h / w) > (2.0 / 3.0)) // for narrow canyons
-        //           {
-        //             ustreet_z(k) = 2.0 / pi * u_h * abs(cos(phi)) *
-        //               exp(beta * (z(k) / h - 1.0));
-        //           }
-        //         else if ((h / w) >= (1.0 / 3.0) and (h / w) <= (2.0 / 3.0))// for moderate canyons
-        //           {
-        //             T temp = 1.0 + 3.0 * (2.0 / pi - 1.0) * (h / w - 1.0 / 3.0);
-        //             ustreet_z(k) = temp * u_h * abs(cos(phi)) *
-        //               exp(beta * (z(k) / h - 1.0));
-        //           }
-        //         else if ((h / w) < (1.0 / 3.0)) // for wide configuration
-        //           {
-        //             ustreet_z(k) = u_h * abs(cos(phi)) *
-        //               exp(beta * (z(k) / h - 1.0));
-        //           }
-        //         else
-        //           throw("Error: ComputeUstreet");
-        //         ustreet += ustreet_z(k); 
-        //       }
-        //     ustreet /= nz;
-        //   }
         else if (option_ustreet == "Sirane")
           {
-            //            T u_h_sirane = ComputeUH(solutionC, ustar); // YK
             T u_h = ComputeUH(solutionC, ustar);                        
             T alpha = log(delta_i / z0_build);
             T beta = exp(solutionC / sqrt(2.0) * (1.0 - h / delta_i));
@@ -4657,10 +4528,10 @@ namespace Polyphemus
     n2err = sqrt(n2err);
 
     //******compute new time step
-                                // ! first we constrain norm2 error
-                                // ! in order to prevent division by zero
-                                // ! and to keep new time step between
-                                // ! sub_delta_t_min and Delta_t defined 
+    // ! first we constrain norm2 error
+    // ! in order to prevent division by zero
+    // ! and to keep new time step between
+    // ! sub_delta_t_min and Delta_t defined 
 
     R = (1.0e2/1.0e-5);
     tmp = R*R;
@@ -4686,9 +4557,7 @@ namespace Polyphemus
 	  for (int j = 0; j < Ns_dep; ++j)
 	    if (this->species_list[s] == species_list_dep[j])
 	      {
-		// StreetDryDepositionFlux(s, ist) = street->GetStreetDryDepositionFlux(s);
 		StreetDryDepositionFlux(s, ist) = street->GetStreetDryDepositionFlux(s);
-		// cout << " =_=_=_=_=_=_ dry deposition " << this->species_list[s] << " " << ist << " " << StreetDryDepositionFlux(s, ist) << endl;
 	      }
         ++ist;
       }
@@ -4708,7 +4577,6 @@ namespace Polyphemus
 	    if (this->species_list[s] == species_list_dep[j])
 	      {
 		WallDryDepositionFlux(s, ist) = street->GetWallDryDepositionFlux(s);
-		// cout << " =_=_=_=_=_=_ dry deposition " << s << " " << ist << " " << StreetDryDepositionFlux(s, ist) << endl;
 	      }
         ++ist;
       }
@@ -4728,7 +4596,6 @@ namespace Polyphemus
 	    if (this->species_list[s] == species_list_dep[j])
 	      {
 		StreetDryDepositionRate(s, ist) = street->GetStreetDryDepositionFlux(s) * street->GetLength() * street->GetWidth();
-		// cout << " =_=_=_=_=_=_ dry deposition " << s << " " << ist << " " << StreetDryDepositionFlux(s, ist) << endl;
 	      }
         ++ist;
       }
@@ -4749,7 +4616,6 @@ namespace Polyphemus
 	      {
 		WallDryDepositionRate(s, ist) = street->GetWallDryDepositionFlux(s) *
 		  street->GetHeight() * street->GetLength() * 2.0;
-		// cout << " =_=_=_=_=_=_ dry deposition " << s << " " << ist << " " << StreetDryDepositionFlux(s, ist) << endl;
 	      }
         ++ist;
       }
@@ -4769,7 +4635,6 @@ namespace Polyphemus
 	    if (this->species_list[s] == species_list_scav[j])
 	      {
 		StreetScavengingFlux(s, ist) = street->GetStreetScavengingFlux(s);
-		// cout << " =_=_=_=_=_=_ scavenging " << s << " " << ist << " " << StreetScavengingFlux(s, ist) << endl;
 	      }
         ++ist;
       }
@@ -4790,7 +4655,6 @@ namespace Polyphemus
 	      {
 		StreetScavengingRate(s, ist) = street->GetStreetScavengingFlux(s) *
 		  street->GetWidth() * street->GetLength();
-		// cout << " =_=_=_=_=_=_ dry deposition " << s << " " << ist << " " << StreetDryDepositionFlux(s, ist) << endl;
 	      }
         ++ist;
       }
