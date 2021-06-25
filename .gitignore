@@ -6,6 +6,7 @@ include/SeldonData/
 include/AtmoData/
 include/Talos/
 include/ssh-aerosol/
+include/atmopy/
 
 ### Binaries
 *.o

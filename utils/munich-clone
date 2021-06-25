@@ -20,6 +20,7 @@ then
     git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
     git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
     git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/talos.git $DIR/include/Talos
+    git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/atmopy.git $DIR/include/atmopy    
     
 elif [ $method = "2" ]
 then
@@ -31,6 +32,7 @@ then
     git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
     git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
     git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/talos.git $DIR/include/Talos
+    git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmopy.git $DIR/include/atmopy    
 
 else
     echo Please enter 1 or 2
