@@ -402,12 +402,13 @@ if (config.is_nox_speciated):
 
 #LL----------
 # PM10 speciated
-if (config.is_pm10_speciated):
-        import speciation_aggregation
-        speciation_aggregation.speciation_pm10()
-
-# ISVOC speciated
-if (config.is_isvoc_speciated):
-        import speciation_aggregation
-        speciation_aggregation.speciation_isvoc()
+# if (config.is_pm10_speciated):
+#         import speciation_aggregation
+#         speciation_aggregation.speciation_pm10_emis()
+#         speciation_aggregation.speciation_pm10_bg()
+        
+# # ISVOC speciated
+# if (config.is_isvoc_speciated):
+#         import speciation_aggregation
+#         speciation_aggregation.speciation_isvoc()
 #------------        
