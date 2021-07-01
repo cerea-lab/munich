@@ -129,7 +129,7 @@ namespace Polyphemus
     /*** Computational Methods ***/
     
     void Forward();
-    void Transport();
+    void ComputeMassBalance();    
     void ComputeStreetConcentrationNoStationary();
     void Chemistry(Date current_date_tmp,
 		   Array<T, 1>& concentration_array,

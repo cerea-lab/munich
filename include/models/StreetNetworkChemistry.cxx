@@ -371,7 +371,11 @@ namespace Polyphemus
   template<class T, class ClassChemistry>
   void StreetNetworkChemistry<T, ClassChemistry>::Forward()
   {
-    Transport();
+
+    this->InitMeteo();
+    
+    ComputeMassBalance();
+    
     if (this->option_process["with_stationary_hypothesis"])
       if (this->option_process["with_chemistry"])
 	Chemistry();
@@ -382,27 +386,12 @@ namespace Polyphemus
     this->step++;
   }
 
-  //! Performs one step forward.
-  template<class T, class ClassChemistry>
-  void StreetNetworkChemistry<T, ClassChemistry>::Transport()
-  {
-    this->is_stationary = false;
 
-    //! Compute the wind speed above the street-canyon.    
-    if (this->option_uH == "Macdonald")
-   	this->Compute_Macdonald_Profile();
-    
-    //! Compute the wind speed in the street-canyon.
-    this->ComputeUstreet();
-    this->ComputeSigmaW();
-    this->ComputeTransferVelocity();
-    this->ComputeWindDirectionFluctuation();
-    if (this->option_process["with_deposition"])  
-      this->ComputeDryDepositionVelocities();
-    if (this->option_process["with_scavenging"])
-      this->ComputeScavengingCoefficient();
-    	
-    this->SetInitialStreetConcentration();
+  //! Compute mass balance.
+  template<class T, class ClassChemistry>
+  void StreetNetworkChemistry<T, ClassChemistry>::ComputeMassBalance()    
+  {
+
     if (this->option_process["with_stationary_hypothesis"])
       {
 	int niter = 0;
@@ -427,6 +416,9 @@ namespace Polyphemus
 	ComputeStreetConcentrationNoStationary();  
       }
   }
+
+
+
   
   //! Compute the concentrations in the street-canyon using the flux balance equation.
   template<class T, class ClassChemistry>

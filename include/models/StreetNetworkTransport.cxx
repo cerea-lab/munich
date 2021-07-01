@@ -1703,7 +1703,9 @@ namespace Polyphemus
   void StreetNetworkTransport<T>::Forward()
   {
 
-    Transport();
+    InitMeteo();
+
+    ComputeMassBalance();
     
     SetStreetConcentration();
     SetStreetDryDepositionVelocity();
@@ -1713,7 +1715,7 @@ namespace Polyphemus
 
   //! Calls the functions for the transport.
   template<class T>
-  void StreetNetworkTransport<T>::Transport()
+  void StreetNetworkTransport<T>::InitMeteo()    
   {
     is_stationary = false;
 
@@ -1740,6 +1742,15 @@ namespace Polyphemus
       ComputeScavengingCoefficient();
     
     SetInitialStreetConcentration();
+
+  }
+
+
+  //! Compute mass balance.
+  template<class T>
+  void StreetNetworkTransport<T>::ComputeMassBalance()    
+  {
+    
     if (this->option_process["with_stationary_hypothesis"])
       {
 	int niter = 0;
@@ -1764,7 +1775,7 @@ namespace Polyphemus
 	ComputeStreetConcentrationNoStationary();
       }
   }
-
+  
   
   // //Set new street concentration and deposition
   // template<class T>

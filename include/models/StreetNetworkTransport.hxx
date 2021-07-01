@@ -496,7 +496,8 @@ namespace Polyphemus
     /*** Computational Methods ***/
     
     void Forward();
-    void Transport();
+    void InitMeteo();
+    void ComputeMassBalance();
 
     void ComputeIntersection(T wind_dir_inter, Intersection<T>* intersection);
     void ComputeIntersectionFlux(Array<T, 2>& extended_matrix,

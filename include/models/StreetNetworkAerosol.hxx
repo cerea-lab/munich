@@ -402,7 +402,8 @@ namespace Polyphemus
     /*** Computational Methods ***/
     
     void Forward();
-    void Transport();
+    void InitMeteo();
+    void ComputeMassBalance();
     void ComputeInflowRateExtended();
     void ComputeStreetConcentration();
     void ComputeStreetConcentrationNoStationary();

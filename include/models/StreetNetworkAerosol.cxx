@@ -983,9 +983,10 @@ namespace Polyphemus
   void StreetNetworkAerosol<T, ClassChemistry>::Forward()
   {
 
-    if (this->option_process["with_transport"])
-      Transport();
+    InitMeteo();
 
+    ComputeMassBalance();
+    
     if (this->option_process["with_stationary_hypothesis"])
       if (this->option_process["with_chemistry"])
 	Chemistry();
@@ -1127,30 +1128,10 @@ namespace Polyphemus
   
   //! Calls the functions for the transport.
   template<class T, class ClassChemistry>
-  void StreetNetworkAerosol<T, ClassChemistry>::Transport()
+  void StreetNetworkAerosol<T, ClassChemistry>::InitMeteo()    
   {
-
-    this->is_stationary = false;
-
-    //! Compute the wind speed above the street-canyon.    
-    if (this->option_uH == "Macdonald")
-   	this->Compute_Macdonald_Profile();
+    StreetNetworkTransport<T>::InitMeteo();
     
-    //! Compute the wind speed in the street-canyon.
-    this->ComputeUstreet();
-    this->ComputeSigmaW();
-    this->ComputeTransferVelocity();
-    this->ComputeWindDirectionFluctuation();
-    
-    if (this->option_process["with_deposition"])  
-      {
-        this->ComputeDryDepositionVelocities();
-        if(this->option_dep_svoc == "yes")
-          this->ComputeSVOCDryDepositionVelocities();
-      }
-    
-    if (this->option_process["with_scavenging"])
-      this->ComputeScavengingCoefficient();
     if (this->option_process["with_deposition_aer"])
       ComputeDryDepositionVelocities_aer();
     if (this->option_process["with_drainage_aer"])
@@ -1160,7 +1141,12 @@ namespace Polyphemus
     if(this->option_process["with_resuspension"])
       CalculAerosolResuspensionFactor();
     	
-    SetInitialStreetConcentration();
+  }
+
+  //! Compute mass balance.
+  template<class T, class ClassChemistry>
+  void StreetNetworkAerosol<T, ClassChemistry>::ComputeMassBalance()    
+  {
    
     if (this->option_process["with_stationary_hypothesis"])
       {
@@ -1196,6 +1182,8 @@ namespace Polyphemus
       }
   }
 
+
+  
   //! Set new street concentration and deposition
   template<class T, class ClassChemistry>
   void StreetNetworkAerosol<T, ClassChemistry>::CalculNumberResuspension()
