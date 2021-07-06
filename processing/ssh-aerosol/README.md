@@ -1,16 +1,12 @@
 
 
-# Compile munich-ssh in two steps
+# Compile munich-ssh
 
-## Step 1. Compile SSH-Aerosol
+compile
 
-cd munich/include/ssh-aerosol
-compile -s=yes
+# Clean munich-ssh
 
-## Step 2. Compile MUNICH
-
-cd ../../processing/ssh-aerosol
-scons -j6 mpi=yes
+clean
 
 # Edit the path to the downloaded input data. 
 
@@ -22,4 +18,3 @@ Modify the first line to put the path to the input data.
 munich-ssh munich.cfg  (single processor)
 or
 mpirun -n 8 munich-ssh munich.cfg (multi processors)
-
