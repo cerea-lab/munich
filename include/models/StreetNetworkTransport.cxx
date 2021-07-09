@@ -161,7 +161,7 @@ namespace Polyphemus
 
     this->config.SetSection("[street]");
     if (this->option_process["with_deposition"])
-      this->config.PeekValue("Wind_profile",
+      this->config.PeekValue("Deposition_wind_profile",
 			     "masson | macdonald ",
 			     option_wind_profile);
     
