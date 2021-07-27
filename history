@@ -2,6 +2,45 @@ o----------------o
 | MUNICH HISTORY |
 o----------------o
 
+
+# MUNICH version 2.0 release (2021-08-XX)
+
+## Model
+
+- Added a new parametrization for the aerosol resuspension.
+- Implemented SSH-Aerosol as a sub module for the modeling of secondary
+  aerosols using API of SSH-Aerosol. 
+- Added a new option for SVOC deposition
+- Added a new option for the computation of friction velocity and wind speed.
+- Added a new gas-phase kinetic mechanism CHIMERE/MELCHIOR2.
+
+## Preprocessing
+
+- Added option for the speciation of particle and ISVOC emissions.
+- Improved in CPU time by rewriting the function arc_streets_same.
+- Map projection type can be selected.
+
+## Bug fixes
+
+- 
+-
+
+## Environment
+
+- Talos/AtmoData/SeldonData changed as a sub module.
+- atmopy added as a sub module.
+- Conversion to Python3 format.
+
+
+
+# Version 1.1.beta is implemented on AmpliSIM platform (2021-05-15).
+
+AmpliSIM platform provides users a GUI environment to run MUNICH simulations.
+www.amplisim.com
+
+
+
+
 Version 1.1 (2020-02-14)
 -------------
 
