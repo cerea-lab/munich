@@ -189,8 +189,9 @@ namespace Polyphemus
                                       mean_speed_highway_LCV);
       }
     
-    this->config.PeekValue("With_pH",
-			   this->option_process["with_pH"]);
+    // this->config.PeekValue("With_pH",
+    //     		   this->option_process["with_pH"]);
+    
     //! Liquid water content threshold above which there are clouds (in g/m3).
     this->config.PeekValue("Lwc_cloud_threshold", "positive",
 			   lwc_cloud_threshold);
@@ -969,11 +970,11 @@ namespace Polyphemus
       {
         Street<T>* street = *iter;
 
-        if (this->option_process["with_pH"])
-          {
+        // if (this->option_process["with_pH"])
+        //   {
             //! Set the meteo data
             street->SetpH(pH(st));  
-          } 
+          // } 
         st += 1;    
       }
   }
