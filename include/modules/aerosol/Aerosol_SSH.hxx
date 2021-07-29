@@ -207,6 +207,8 @@ namespace Polyphemus
     Array<T, 3> discretization_composition_conv;
     
     Array<int, 1> aerosol_type;
+
+    Array<T, 1> ssh_diam_input;
     
   public:
 

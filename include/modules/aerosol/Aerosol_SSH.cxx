@@ -125,7 +125,12 @@ namespace Polyphemus
     // Get the number of aerosol size-sections
     Nsize_section_aer = api.recv_int(_aerosol_so,
                                      "api_sshaerosol_get_nsizebin");
-   
+    ssh_diam_input.resize(Nsize_section_aer);
+    api.exchange_double_array(_aerosol_so,
+                              "api_sshaerosol_get_diam_input",
+                              ssh_diam_input);
+    ssh_diam_input *= 1.e-6; // conversion from microm to m.
+    
     // Get the number of photolysis
     Nr_photolysis = api.recv_int(_aerosol_so,
                                  "api_sshaerosol_get_nphotolysis");
@@ -226,6 +231,7 @@ namespace Polyphemus
     if (Model.GetNsize_section_aer() != Nsize_section_aer)
       throw string("Incompatibility: model manages ") + to_str(Model.GetNsize_section_aer())
 	+ string(" size sections while chemistry has ") + to_str(Nsize_section_aer) + " size sections.";
+     
   
   }
 
@@ -327,6 +333,15 @@ namespace Polyphemus
     for (int i = 0; i < Model.GetNsize_section_aer() + 1; i++)
       BinBound_aer(i) = 1.e-6 * convert<T>(bin_list[i]);
 
+
+    for (int i = 0; i < Nsize_section_aer; i++)
+      {
+        if (ssh_diam_input(i) != BinBound_aer(i))
+          throw string("Initial aerosol size is not same between the model ") + to_str(BinBound_aer(i))
+            + string(" and SSH-aerosol ") + to_str(ssh_diam_input(i));
+      }
+ 
+    
 
     if (redistribution_method == "moving-diameter")
       iredist = 10;
