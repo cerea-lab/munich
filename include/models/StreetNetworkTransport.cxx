@@ -74,6 +74,14 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::ReadConfiguration()
   {
+
+    /*** Display ***/
+    this->config.SetSection("[display]");
+    // Should the configuration be displayed on screen?
+    this->config.PeekValue("Show_configuration",
+                           this->option_process["show_configuration"]);
+
+      
     /*** Dates ***/
     this->config.SetSection("[domain]");
     this->Date_min = this->config.PeekValue("Date_min");
@@ -379,7 +387,7 @@ namespace Polyphemus
 #else
     rank = 0;
 #endif
-    if (rank == 0)
+    if (this->option_process["show_configuration"] && rank == 0)
       DisplayConfiguration();   
   }
 
