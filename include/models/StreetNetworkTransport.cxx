@@ -3690,8 +3690,8 @@ namespace Polyphemus
 
     T ustar_macd;
 
-    T Af = 2 / pi * Mean_length * 2 * Mean_height; // frontal area of obstacles
-    T At = Mean_length * (Mean_width + 2 * building_width); // lot area of obstacles
+    T Af = 2 / pi * Mean_length * Mean_height; // frontal area of obstacles
+    T At = Mean_length * (Mean_width + building_width); // lot area of obstacles
 
     T Lambdaf = Af / At; // frontal area density of obstacles
     
