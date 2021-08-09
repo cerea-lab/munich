@@ -2,6 +2,25 @@
 
 current_dir=$PWD
 
+for i in "$@"
+do
+case $i in
+# Read the option to choose whether MPI is taken into account.
+# Accepted values: yes or no
+# Default: mpi = yes
+    -m=*|--mpi=*)
+    mpi="${i#*=}"
+    shift
+    ;;
+esac
+done
+
+if [ -z $mpi ]; then
+    mpi="yes"
+fi
+echo "MPI: $mpi"
+
+
 chemistry=cb05
 
 # Compile SSH-Aerosol modele
@@ -14,7 +33,9 @@ echo "==================================="
 
 cd $current_dir
 
-scons -j6 mpi=yes
+
+
+scons -j6 mpi=$mpi
 
 echo "=============================="
 echo "Completed: compiling of MUNICH"
