@@ -15,7 +15,7 @@ mean_speed_PC: 32.5
 mean_speed_LCV: 32.5
 
 # Vehicle speed (km/h) for highway (typo 1 in street.dat)
-mean_speed_highway_2R: 32.5
-mean_speed_highway_HDV: 32.5
-mean_speed_highway_PC: 32.5
-mean_speed_highway_LCV: 32.5
+mean_speed_highway_2R: 65.0
+mean_speed_highway_HDV: 65.0
+mean_speed_highway_PC: 65.0
+mean_speed_highway_LCV: 65.0
