@@ -158,7 +158,10 @@ namespace Polyphemus
     if (this->option_process["with_resuspension"])
       {
 
-        this->config.PeekValue("Resuspension", file_resuspension); 
+        if (this->config.Check("Resuspension"))
+          this->config.PeekValue("Resuspension", file_resuspension);
+        else
+          file_resuspension = "resuspension.dat";
         ConfigStream config_resuspension(file_resuspension);
         //Precipitation that indicates a complete drainage in streets
         this->config.PeekValue("Max_rain", max_rain);
@@ -188,22 +191,19 @@ namespace Polyphemus
         config_resuspension.PeekValue("mean_speed_highway_LCV",
                                       mean_speed_highway_LCV);
       }
-    
-    // this->config.PeekValue("With_pH",
-    //     		   this->option_process["with_pH"]);
-    
-    //! Liquid water content threshold above which there are clouds (in g/m3).
-    this->config.PeekValue("Lwc_cloud_threshold", "positive",
-			   lwc_cloud_threshold);
+   
     
     //! Number concentration
     this->config.PeekValue("With_number_concentration",
-			   this->option_process["with_number_concentration"]);
+                           this->option_process["with_number_concentration"]);
     if (this->option_process["with_number_concentration"])
       {
-        this->config.PeekValue("Number_computation_option",
-                               "based_on_mass|based_on_transport",
-                               number_computation_option);
+        if (this->config.Check("Number_computation_option"))
+          this->config.PeekValue("Number_computation_option",
+                                 "based_on_mass|based_on_transport",
+                                 number_computation_option);
+        else
+          number_computation_option = "based_on_mass"; // recommended
 
         if (this->config.Check("With_bg_number_concentration_data"))        
           this->config.PeekValue("With_bg_number_concentration_data",
@@ -463,7 +463,10 @@ namespace Polyphemus
 	this->input_files["bg_concentration_aer"].Read(data_description_file,
                                                        "bg_concentration_aer");
 	data_description_stream.SetSection("[bg_concentration_aer]");
-	data_description_stream.PeekValue("Format", aerosol_bg_format);
+        if (data_description_stream.Check("Format"))
+          data_description_stream.PeekValue("Format", aerosol_bg_format);
+        else
+          aerosol_bg_format = "Internal";
 	data_description_stream.PeekValue("Nt", "> 0", Nt_bg_aer);
 	this->input_files["bg_concentration_aer"]
 	  .Read(data_description_file, "bg_concentration_aer");

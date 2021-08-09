@@ -129,8 +129,11 @@ namespace Polyphemus
         if (option_dep_svoc == "yes")
           {
 
-            this->config.PeekValue("Config_dep_SVOC",
-                                   file_config_dep_svoc);
+            if (this->config.Check("Config_dep_SVOC"))
+              this->config.PeekValue("Config_dep_SVOC",
+                                     file_config_dep_svoc);
+            else
+              file_config_dep_svoc = "svoc-dep.dat";
 
             ConfigStream config_dep_svoc(file_config_dep_svoc);
             
@@ -169,24 +172,38 @@ namespace Polyphemus
 
     this->config.SetSection("[street]");
     if (this->option_process["with_deposition"])
-      this->config.PeekValue("Deposition_wind_profile",
-			     "masson | macdonald ",
-			     option_wind_profile);
+      {
+        this->config.PeekValue("Deposition_wind_profile",
+                               "Masson | Macdonald ",
+                               option_wind_profile);
+        option_wind_profile = lower_case(option_wind_profile);
+      }
     
-    this->config.PeekValue("Transfert_parameterization",
+    this->config.PeekValue("Transfer_parameterization",
                            "Sirane | Schulte", option_transfer);
     this->config.PeekValue("Mean_wind_speed_parameterization",
                            "Sirane | Exponential", option_ustreet);
     this->config.PeekValue("Building_height_wind_speed_parameterization",
                            "Sirane | Macdonald", option_uH);
 
-    this->config.PeekValue("Zref", "> 0", zref);
+    if (this->config.Check("Zref"))
+      this->config.PeekValue("Zref", "> 0", zref);
+    else
+      zref = 30.0;
     
     this->config.PeekValue("With_horizontal_fluctuation",
 			   this->option_process["with_horizontal_fluctuation"]);
-    this->config.PeekValue("Minimum_Street_Wind_Speed", ">= 0.1", ustreet_min);
-    this->config.PeekValue("With_local_data",
-			   this->option_process["with_local_data"]);
+    if (this->config.Check("Minimum_Street_Wind_Speed"))
+      this->config.PeekValue("Minimum_Street_Wind_Speed",
+                             ">= 0.1", ustreet_min);
+    else
+      ustreet_min = 0.1;
+
+    if (this->config.Check("With_local_data"))
+      this->config.PeekValue("With_local_data",
+                             this->option_process["with_local_data"]);
+    else
+      this->option_process["with_local_data"] = true;
 
     if (this->option_process["with_deposition"] or
         option_uH == "Macdonald")
@@ -229,7 +246,7 @@ namespace Polyphemus
         data_description_stream.PeekValue("Roughness_file", Roughness_file);
         data_description_stream.PeekValue("LUC_file", LUC_file);
         data_description_stream.PeekValue("Urban_index_zhang", "> 0",
-                                          LUC_urban_index);
+                                            LUC_urban_index);
       }
     
     //! Meteorological files.
@@ -395,7 +412,7 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::DisplayConfiguration()
   {
-    cout << "Transfert_parameterization: " << option_transfer << endl;
+    cout << "Transfer_parameterization: " << option_transfer << endl;
     cout << "Mean_wind_speed_parameterization: " << option_ustreet << endl;
     cout << "Scavenging model: " << this->scavenging_model << endl;
     
@@ -1729,7 +1746,7 @@ namespace Polyphemus
 
     //! Compute the wind speed above the street-canyon.    
     if (option_uH == "Macdonald")
-   	Compute_Macdonald_Profile();
+      Compute_Macdonald_Profile(); // 
 
     //! Compute the wind speed in the street-canyon.    
     ComputeUstreet();
@@ -3780,6 +3797,9 @@ namespace Polyphemus
               }
             else if (option_uH == "Macdonald")
               {
+
+                // Compute_Macdonald_Profile()
+                
                 if (z0_city == 0.0)
                   throw string("Math error: zero division, z0_city\n");
                 
@@ -3813,8 +3833,9 @@ namespace Polyphemus
               (temp2 * temp3 + temp4 + temp5);
           }
         else
-          throw("Wrong option given. Choose Lemonsu or Sirane");
+          throw("Wrong option given. Choose Exponential or Sirane");
 
+        cout << option_ustreet << " " << street->GetStreetID() << " " << ustreet << endl;// YK
         street->SetStreetWindSpeed(max(ustreet, ustreet_min));
       }
   }

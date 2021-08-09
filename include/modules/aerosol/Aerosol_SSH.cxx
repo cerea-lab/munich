@@ -312,15 +312,21 @@ namespace Polyphemus
     config.PeekValue("Fixed_aerosol_density", FixedDensity_aer);
     
     // Lwc cloud threshold.
-    config.PeekValue("Lwc_cloud_threshold", lwc_cloud_threshold);
+    if (config.Check("Lwc_cloud_threshold"))
+      config.PeekValue("Lwc_cloud_threshold", lwc_cloud_threshold);
+    else
+      lwc_cloud_threshold = 0.05;
 
     // Redistribution method for aqueous chemistry module
     config.PeekValue("Redistribution_method", redistribution_method);
     redistribution_method = lower_case(redistribution_method);
 
     // 
-    config.PeekValue("Conserving_mass_tolerance", "positive",
-                     conserving_mass_tolerance);
+    if (config.Check("Conserving_mass_tolerance"))
+      config.PeekValue("Conserving_mass_tolerance", "positive",
+                       conserving_mass_tolerance);
+    else
+      conserving_mass_tolerance = 0.0;
     
     // Reads bin bounds.
     vector<string> bin_list;
