@@ -47,6 +47,7 @@ class Street:
         self.background={}     # in ug/m3
         self.emission = emission
         self.eff_emission = emission
+        self.typo = 0
 
 
 # Check if two nodes are same
@@ -890,6 +891,8 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     # node_ID, longitude, latitude, number of connected segments, segment indices
     file_node = output_dir + "intersection.dat"
     f = open(file_node, 'w')
+    header = "#id;lon;lat;number_of_streets;1st_street_id;2nd_street_id;...\n"
+    f.write(header)
     for i in range(len(node_list_eff)):
         node = node_list_eff[i]
         if node.removed == False:
@@ -907,6 +910,8 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     # Write
     file_node = output_dir + "street.dat"
     f = open(file_node, 'w')
+    header = "#id;begin_inter;end_inter;length;width;height;typo\n"
+    f.write(header)
     for i in range(len(street_list_eff)):
         street = street_list_eff[i]
         street_id = street.id
@@ -915,8 +920,10 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         length = street.length
         width = street.width
         height = street.height
+        typo = street.typo
         f.write(str(street_id) + ";" + str(begin_node) + ";" + str(end_node) + 
-                    ";" + str(length) + ";" + str(width) + ";" + str(height) + "\n")
+                ";" + str(length) + ";" + str(width) + ";" + str(height) +
+                ";" + str(typo) + "\n")
     f.close()
     
     # Write
