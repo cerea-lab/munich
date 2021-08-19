@@ -78,9 +78,11 @@ namespace Polyphemus
     /*** Display ***/
     this->config.SetSection("[display]");
     // Should the configuration be displayed on screen?
-    this->config.PeekValue("Show_configuration",
-                           this->option_process["show_configuration"]);
-
+    if (this->config.Check("Show_configuration"))
+      this->config.PeekValue("Show_configuration",
+                             this->option_process["show_configuration"]);
+    else
+      this->option_process["show_configuration"] = true;
       
     /*** Dates ***/
     this->config.SetSection("[domain]");
@@ -412,6 +414,8 @@ namespace Polyphemus
   template<class T>
   void StreetNetworkTransport<T>::DisplayConfiguration()
   {
+
+    cout << "Number of streets: " << total_nstreet << endl;
     cout << "Transfer_parameterization: " << option_transfer << endl;
     cout << "Mean_wind_speed_parameterization: " << option_ustreet << endl;
     cout << "Scavenging model: " << this->scavenging_model << endl;
@@ -998,6 +1002,7 @@ namespace Polyphemus
         StreetStream.GetLine(line);
         ++total_nstreet;
       }
+    
     StreetStream.Rewind();
     //! Get the street data.
     id_street.resize(total_nstreet);
@@ -1015,6 +1020,12 @@ namespace Polyphemus
       {
         StreetStream.GetLine(line);
         v = split(line, ";");
+
+        //! Check the number of values.
+        if (v.size() != 7)
+          throw string("Error: wrong number of values in street.dat ")
+            + to_str(v.size()); 
+        
 	id_street(i) = to_num<T>(v[0]);
         begin_inter(i) = to_num<T>(v[1]);
         end_inter(i) = to_num<T>(v[2]);
@@ -3835,7 +3846,6 @@ namespace Polyphemus
         else
           throw("Wrong option given. Choose Exponential or Sirane");
 
-        cout << option_ustreet << " " << street->GetStreetID() << " " << ustreet << endl;// YK
         street->SetStreetWindSpeed(max(ustreet, ustreet_min));
       }
   }
