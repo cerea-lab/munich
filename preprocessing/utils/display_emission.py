@@ -54,6 +54,7 @@ input_node = open("../output/textfile/intersection.dat")
 #
 node = {}
 
+input_node.readline()
 for line in input_node.readlines():
     line_info = [x for x in re.split(';| ', line) if x.strip() != '']
     # Converting from text to number.
@@ -67,14 +68,14 @@ input_node.close()
 
 # date
 # see file names in ../output/textfile/emission.DATE.txt
-date = "20140316-00"
+date = "20140318-00"
 
 # default species_ind is 0
 # For the species list, please see emission_species in ../sing_preproc.cfg
 # For example,
 # emission_species: NO NO2
 # species_ind = 1 to display NO2 species
-species_ind = 0
+species_ind = 3
     
 plot_data_visum = np.loadtxt("../output/textfile/emission." + date + ".txt")
 
@@ -124,7 +125,7 @@ visum = plt.subplot(111)
 # Display the node numbers.
 # ------------------------
 disp_node_number = False
-disp_street_number = False
+disp_street_number = True
 if (disp_node_number):
   for inode in node:
       visum.text(node[inode][0], node[inode][1], str(inode), size=10, color='b')
