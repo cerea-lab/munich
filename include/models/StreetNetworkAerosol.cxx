@@ -133,9 +133,12 @@ namespace Polyphemus
 	if (!this->option_process["with_deposition"] and this->option_process["with_deposition_aer"])
 	  {
 	    this->config.SetSection("[street]");
-	    this->config.PeekValue("Wind_profile",
-				   "masson | macdonald ",
+	    this->config.PeekValue("Deposition_wind_profile",
+				   "Masson | Macdonald ",
 				   this->option_wind_profile);
+            this->option_wind_profile =
+              lower_case(this->option_wind_profile);
+            
 	    if (this->option_process["with_local_data"])
 	      this->config.PeekValue("Building_density",
 				     this->building_density);
