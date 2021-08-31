@@ -22,20 +22,20 @@ content = [("Species", "[input]", "StringList"),\
            ("Delta_t", "[input]", "Float"), \
 	       ("file_street", "[input]", "String"), \
 	       ("file_intersection", "[input]", "String"), \
-           ("disp_value", "[option]", "Bool"), \
            ("disp_node_number", "[option]", "Bool"), \
            ("disp_street_number", "[option]", "Bool")
 ]
 
 config = talos.Config(sys.argv[1], content)
-shape = (config.Ny, config.Nx)
+# shape = (config.Ny, config.Nx)
 
 # pre-setting figures for articles
 
 width = 25 / 2.54
-matplotlib.rcParams["figure.figsize"] = (0.9 * width, width)
-matplotlib.rcParams["figure.subplot.left"] = 0.08 #0.05
-matplotlib.rcParams["figure.subplot.right"] = 0.75 # 0.8
+
+matplotlib.rcParams["figure.figsize"] = (0.7 * width, width)
+matplotlib.rcParams["figure.subplot.left"] = 0.10
+matplotlib.rcParams["figure.subplot.right"] = 0.95
 matplotlib.rcParams["figure.subplot.bottom"] = 0.08
 matplotlib.rcParams["figure.subplot.top"] = 0.95
 font_size = 11
@@ -82,20 +82,20 @@ nstreet = len(street_id)
 # Read binary data
 # ------------------
 
-species = config.Species
-directory = config.Directory
-data = getd(config, directory + species[0] + ".bin")	
-data2 = np.reshape(data, (data.shape[0], data.shape[1]))
+# species = config.Species
+# directory = config.Directory
+# data = getd(config, directory + species[0] + ".bin")	
+# data2 = np.reshape(data, (data.shape[0], data.shape[1]))
 
 
-date_begin = config.Date_begin
-t_ind = 1
-current_date = date_begin + datetime.timedelta(hours = t_ind)
+# date_begin = config.Date_begin
+# t_ind = 1
+# current_date = date_begin + datetime.timedelta(hours = t_ind)
 street_concentration = []
-hour = current_date.strftime("%Y%m%d_%H")
+# hour = current_date.strftime("%Y%m%d_%H")
 
 for i in range(0,nstreet):
-    street_concentration.append(data2[:, i].mean())
+    street_concentration.append(10)
 
 
 # Display options
@@ -132,9 +132,8 @@ ax = plt.subplot(111)
 
 # Options to display the node/street id.
 # ------------------------
-disp_node_number = config.disp_node_number
-disp_street_number = config.disp_street_number
-disp_value = config.disp_value
+disp_node_number = False
+disp_street_number = False
 
 # Display the node id
 if (disp_node_number):
@@ -142,7 +141,7 @@ if (disp_node_number):
       ax.text(node[inode][0], node[inode][1], str(inode), size=10, color='b')
 
 
-lw_max = 2
+lw_max = 1.5
 for i in range(len(node_begin)):
     xy_begin = node[node_begin[i]]
     xy_end = node[node_end[i]]
@@ -152,14 +151,7 @@ for i in range(len(node_begin)):
     if (disp_street_number):
         x_ = (xy_begin[0] + xy_end[0]) / 2.0
         y_ = (xy_begin[1] + xy_end[1]) / 2.0
-        ax.text(x_, y_, str(street_id[i]), size=10, color='r')
-
-    if (disp_value):
-        x_ = (xy_begin[0] + xy_end[0]) / 2.0
-        y_ = (xy_begin[1] + xy_end[1]) / 2.0
-        ax.text(x_, y_, str(street_id[i]) + ", " +
-                "{:.2f}".format(street_concentration[i]), size=15, color='r')
-        
+        ax.text(x_, y_, str(street_id[i]), size=10, color='r')        
     
     if street_concentration[i] >= interval[0] and street_concentration[i] < interval[1]:
             ax.plot([xy_begin[0], xy_end[0]],
@@ -242,7 +234,7 @@ for i in range(len(node_begin)):
 # -----------
 
 intro = mlines.Line2D([],[],color = 'w',linestyle='-',lw = 0.5 )
-#in_0 = mlines.Line2D([],[],color = 'k',linestyle='-',lw = 0.5 )
+in_0 = mlines.Line2D([],[],color = 'k',linestyle='-',lw = 0.5 )
 in_1 = mlines.Line2D([],[],color = 'indigo',linestyle='-',lw = 0.8 )
 in_2 = mlines.Line2D([],[],color = 'midnightblue',linestyle='-',lw = 1 )
 in_3 = mlines.Line2D([],[],color = 'navy',linestyle='-',lw = 1.2 )
@@ -281,12 +273,24 @@ labels = ['in $\mu$g/m$^3$',\
           '[ '+str(interval_l[14])+', ~ [' ]
 
 # bbox_to_anchor(0.5,-0.1)
-plt.legend(handles,labels,bbox_to_anchor=(1.05,0.0),loc = 'lower left')
+#plt.legend(handles,labels,bbox_to_anchor=(1.05,0.0),loc = 'lower left')
 plt.subplots_adjust(bottom = 0.1)
 
-a = ax.get_yticks().tolist()
-ax.set_yticklabels(a)
-ax.set_title(species[0])
+# a = ax.get_yticks().tolist()
+# ax.set_yticklabels(a)
+# a = [48.835, 48.84, 48.845, 48.85, 48.855, 48.86, 48.865, 48.87]
+# ax.set_yticklabels(a)
+
+# coor_y = np.arange(48.840, 48.870, 0.01)
+# for y_ in coor_y:
+#     l = plt.axhline(y = y_, color = 'k')
+# #coor_x = np.arange(2.4763, 2.5263, 0.01)
+# coor_x = np.arange(2.48, 2.52, 0.01)
+# for x_ in coor_x:
+#     l = plt.axvline(x = x_, color = 'k')
+
+
+# ax.set_title(species[0])
 
 plt.show()
 
