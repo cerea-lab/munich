@@ -1755,10 +1755,6 @@ namespace Polyphemus
   {
     is_stationary = false;
 
-    //! Compute the wind speed above the street-canyon.    
-    if (option_uH == "Macdonald")
-      Compute_Macdonald_Profile(); // 
-
     //! Compute the wind speed in the street-canyon.    
     ComputeUstreet();
     ComputeSigmaW();
@@ -3315,7 +3311,7 @@ namespace Polyphemus
         temp(i) = street->GetStreetAngleIntersection() * 180. / pi;
 
         T dangle = abs(street->GetStreetAngleIntersection() - wind_dir_inter);
-
+        
         if (dangle > (pi / 2.0) and dangle < (pi * 3.0 / 2.0))
           {
             ind_wind(i) = 0; // incoming flow
@@ -3809,7 +3805,7 @@ namespace Polyphemus
             else if (option_uH == "Macdonald")
               {
 
-                // Compute_Macdonald_Profile()
+                Compute_Macdonald_Profile();
                 
                 if (z0_city == 0.0)
                   throw string("Math error: zero division, z0_city\n");
