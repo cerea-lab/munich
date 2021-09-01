@@ -3,7 +3,7 @@ o----------------o
 o----------------o
 
 
-# MUNICH version 2.0 release (2021-08-XX)
+# MUNICH version 2.0 release (2021-09-01)
 
 ## Model
 
@@ -20,17 +20,11 @@ o----------------o
 - Improved in CPU time by rewriting the function arc_streets_same.
 - Map projection type can be selected.
 
-## Bug fixes
-
-- 
--
-
 ## Environment
 
 - Talos/AtmoData/SeldonData changed as a sub module.
 - atmopy added as a sub module.
 - Conversion to Python3 format.
-
 
 
 # Version 1.1.beta is implemented on AmpliSIM platform (2021-05-15).

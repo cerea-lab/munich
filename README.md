@@ -13,50 +13,67 @@ For more information on MUNICH, see http://cerea.enpc.fr/munich/
 Download
 ========
 
-https://gitlab.enpc.fr/cerea/munich
+From Zenodo
+
+https://doi.org/10.5281/zenodo.4168985
+
+or from the git public repository
+
+https://github.com/cerea-lab/munich
 
 
 Installation
 ============
 
-Building
---------
+ssh-aerosol is used to model gas-phase and particle-phase species.
+
+photochemistry is used to model only gas-phase species.
+
+Building ssh-aerosol
+--------------------
+
+```
+$ cd processing/ssh-aerosol
+$ compile
+```
+
+Run ssh-aerosol
+---------------
+
+```
+$ munich-ssh munich.cfg
+```
+
+
+Building photochemistry
+-----------------------
 
 ```
 $ cd processing/photochemistry
 $ scons
 ```
 
-Run
----
+Run photochemistry
+------------------
 
 ```
 $ munich munich.cfg
 ```
 
+
 Input files
 -----------
 
-A Python preprocessing tool is available to generate the input data and
-visualize then by contact with Youngseob Kim (youngseob.kim@enpc.fr).
+Input data for a test case are available at http://cerea.enpc.fr/munich/
 
 
-### intersection.dat
+Users's Guide
+=============
 
-This file contains the informations concerning intersections.
+http://cerea.enpc.fr/munich/doc/munich-guide-v2.pdf
 
-The format of the input data is as follows:
 
-```
-<intersection id>;<longitude>;<latitude>;<number of streets> (which are connected to the intersection);<a series of street id>;
-```
+Help
+====
 
-###  street.dat
-
-This file contains the input data of each street segment.
-
-The format of the input data is as follows:
-
-```
-<street id>;<intersection 1>;<intersection 2>;<street length>;<averaged builing height>;<street width>
-```
+Send e-mail to munich-help@liste.enpc.fr
