@@ -229,7 +229,16 @@ def merging_near_node(node_list):
                     node_list[j].removed = True
                     n_node = n_node + 1
                     for st_ in node_list[j].connected_street:
-                        node_list[i].connected_street.append(st_)
+                        # check if st_ is an element of node_list[i]
+                        if (st_ in node_list[i].connected_street):
+                            sys.exit("Error: street " + str(st_) + " is " \
+                                     "already in node_list.")
+                        else:
+                            node_list[i].connected_street.append(st_)
+
+                    # Node A was merged to Node B.
+                    # Node B was merged to Node C.
+                    # Node A should be merged to Node C.
                     for node_ in node_list:
                         if (node_.eff_id == id_old):
                             node_.eff_id = id_new
