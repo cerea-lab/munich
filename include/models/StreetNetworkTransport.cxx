@@ -187,6 +187,8 @@ namespace Polyphemus
                            "Sirane | Exponential", option_ustreet);
     this->config.PeekValue("Building_height_wind_speed_parameterization",
                            "Sirane | Macdonald", option_uH);
+    this->config.PeekValue("Compute_Macdonald_from",
+                           "Uref | Ustar", option_uH_macdonald);
 
     if (this->config.Check("Zref"))
       this->config.PeekValue("Zref", "> 0", zref);
@@ -3713,62 +3715,66 @@ namespace Polyphemus
   void StreetNetworkTransport<T>::Compute_Macdonald_Profile()
   {
 
-    T k = 0.5 * this->building_density / (1.0 - this->building_density);
+    T width_ratio = 0.5 * this->building_density / (1.0 - this->building_density);
     
-    T building_width = k * Mean_width;
+    T building_width = width_ratio * Mean_width;
 
     T Cd_building = 1.2; // Drag coefficient for buildings
-    T betta = 0.55; // Correction coefficient betta = 1.0 for staggered arrays and betta = 0.55 for square array (Macdonald et al, 1998)
+    T b = 1.0; // Correction coefficient b = 1.0 for staggered arrays and b = 0.55 for square array (Macdonald et al, 1998)
 
-    T ustar_macd;
-
-    T Af = 2 / pi * Mean_length * Mean_height; // frontal area of obstacles
+    T Af = Mean_length * Mean_height; // frontal area of obstacles
     T At = Mean_length * (Mean_width + building_width); // lot area of obstacles
 
     T Lambdaf = Af / At; // frontal area density of obstacles
-    
-    d_city = ComputeD(4.0, this->building_density, Mean_height);
+
+    T A = 4.43; // Correction coefficient A = 4.43 for staggered arrays and A = 3.59 for square array (Macdonald et al, 1998)
+
+    d_city = ComputeD(A, this->building_density, Mean_height);
 
     T temp_dH = 1.0 - (d_city / Mean_height);
-    z0_city = Mean_height * (temp_dH * exp(-pow(0.5 * betta * Cd_building / pow(karman, 2.0) * temp_dH * Lambdaf,-0.5))); //roughness length of city
+    z0_city = Mean_height * (temp_dH * exp(-pow(0.5 * b * Cd_building / pow(karman, 2.0) * temp_dH * Lambdaf,-0.5))); //roughness length of city
 
-    for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
-     {
-       Street<T>* street = *iter;
-       // Compute average Macdonald ustar on street network
-       T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)
-       ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
-       street->SetStreetUstar(ustar_macd);
+    T ustar_macd;
 
-       // Compute Macdonald uH for each street of the street network
-       T H = street->GetHeight();
-       if (zref < H)
-         throw string("Error: reference altitude is inferior to the building height in the street ") + to_str(street->GetStreetID())+ ".";
-    }
+    if (option_uH_macdonald == "Uref")
+      {
+        for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
+          {
+            Street<T>* street = *iter;
+            // Compute average Macdonald ustar on street network
+            T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)
+            ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
+            street->SetStreetUstar(ustar_macd);
+
+            // Compute Macdonald uH for each street of the street network
+            T H = street->GetHeight();
+            if (zref < H)
+              throw string("Error: reference altitude is inferior to the building height in the street ") + to_str(street->GetStreetID())+ ".";
+          }
     
-    // Friction velocity using Macdonald method for intersections in the street network
-    for (typename vector<Intersection<T>* >::iterator iter = IntersectionVector.begin();
-         iter != IntersectionVector.end(); iter++)
-     {
-       Intersection<T>* intersection = *iter;
-       // wind speed at the reference altitude (m/s)       
-       T u_zref = intersection->GetWindSpeed();
-       ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
-       intersection->SetIntersectionUST(ustar_macd);
-     }
-    
+        // Friction velocity using Macdonald method for intersections in the street network
+        for (typename vector<Intersection<T>* >::iterator iter = IntersectionVector.begin();
+             iter != IntersectionVector.end(); iter++)
+          {
+            Intersection<T>* intersection = *iter;
+            // wind speed at the reference altitude (m/s)       
+            T u_zref = intersection->GetWindSpeed();
+            ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
+            intersection->SetIntersectionUST(ustar_macd);
+          }
+      }
   }
 
   
   //! Compute the wind speed in the street-canyon.
   //! Option "Sirane" based on Soulhac et al. (2008)
-  //! Option "Lemonsu" based on Lemonsu et al. (2004), and Cherin et al. (2015)
+  //! Option "Exponential" based on Lemonsu et al. (2004), and Cherin et al. (2015)
   template<class T>
   void StreetNetworkTransport<T>::ComputeUstreet()
   {
     T phi, delta_i;
     //! Wall roughness length from WRF/UCM
-    T z0_build = 0.0001;
+    T z0_build = 0.001;
     T beta;
     Array<T, 1> z, ustreet_z;
     T ustreet, u_h;
@@ -3788,47 +3794,13 @@ namespace Polyphemus
         
         delta_i = min(h, w / 2.0);
         phi = abs(wind_direction - ang);
-        
+
         T solutionC = ComputeBesselC(z0_build, delta_i);
 
-	if (option_ustreet == "Exponential")          
-	  {
-            if (( h == 0.0) or (w == 0.0))
-              throw string("Street height or width is zero. ") + to_str(h) + " " + to_str(w);
-            beta = h / (2.0 * w);
-            ustreet = 0.0;
+        T street_attenuation;
 
-            if (option_uH == "Sirane")
-              {
-                u_h = ComputeUH(solutionC, ustar);
-              }
-            else if (option_uH == "Macdonald")
-              {
-
-                Compute_Macdonald_Profile();
-                
-                if (z0_city == 0.0)
-                  throw string("Math error: zero division, z0_city\n");
-                
-                if  (h < (d_city + z0_city))
-                  u_h = 0.0;
-                else
-                  u_h = ustar / karman * log((h - d_city)/z0_city);
-              }
-            else
-              throw("Wrong option given. Choose Macdonald or Sirane");
-            
-            for (int k = 0; k < nz; ++k)
-              {
-                z(k) = h / (nz - 1) * k;
-		ustreet_z(k) = u_h * abs(cos(phi)) * exp(beta * (z(k) / h - 1.0));
-                ustreet += ustreet_z(k); 
-              }
-            ustreet /= nz;
-          }
-        else if (option_ustreet == "Sirane")
+        if (option_ustreet == "Sirane")
           {
-            T u_h = ComputeUH(solutionC, ustar);                        
             T alpha = log(delta_i / z0_build);
             T beta = exp(solutionC / sqrt(2.0) * (1.0 - h / delta_i));
             T temp1 = pow(delta_i, 2.0) / (h * w);
@@ -3836,11 +3808,58 @@ namespace Polyphemus
             T temp3 = 1.0 - pow(solutionC, 2.0) / 3.0 + pow(solutionC, 4.0) / 45.0;
             T temp4 = beta * (2.0 * alpha - 3.0) / alpha;
             T temp5 = (w / delta_i - 2.0) * (alpha - 1.0) / alpha;
-            ustreet = u_h * abs(cos(phi)) * temp1 * 
-              (temp2 * temp3 + temp4 + temp5);
+            street_attenuation = temp1 * (temp2 * temp3 + temp4 + temp5);
+          }
+
+        else if (option_ustreet == "Exponential")
+          {
+            T att_coeff = 0.5 * h / w;
+            street_attenuation = 1. / att_coeff * (1. - exp(att_coeff * ((z0_build / h) - 1)));
           }
         else
-          throw("Wrong option given. Choose Exponential or Sirane");
+          throw("Wrong option given. Choose Sirane or Exponential.");
+
+        T u_m;
+        T f_mean;
+        ComputeSiraneUm(solutionC, ustar, z0_build, u_m, f_mean);
+
+        if (option_uH == "Sirane")
+          {
+            if (option_ustreet == "Sirane")
+              {
+                u_h = u_m;
+              }
+            else if (option_ustreet == "Exponential")
+              {
+                u_h = u_m * f_mean;
+              }
+            else
+              throw("Wrong option given. Choose Sirane or Exponential.");
+          }
+
+        else if (option_uH == "Macdonald")
+          {
+            Compute_Macdonald_Profile();
+            ustar = street->GetStreetUstar();
+
+            if (z0_city == 0.0)
+              throw string("Math error: zero division, z0_city\n");
+                
+            if  (h < (d_city + z0_city))
+              u_h = 0.0;
+            else
+              u_h = ustar / karman * log((h - d_city)/z0_city);
+
+            if (option_ustreet == "Sirane")
+              {
+                u_h /= f_mean;
+              }
+          }
+
+        else
+          throw("Wrong option given. Choose Sirane or Macdonald.");
+
+        ustreet = u_h * abs(cos(phi)) * street_attenuation;
 
         street->SetStreetWindSpeed(max(ustreet, ustreet_min));
       }
@@ -3852,7 +3871,7 @@ namespace Polyphemus
     \param ustar Friction velocity.
   */
   template<class T>
-  T StreetNetworkTransport<T>::ComputeUH(T c, T ustar)
+  void StreetNetworkTransport<T>::ComputeSiraneUm(T c, T ustar, T z0_build, T& u_m, T& f_mean)
   {
     T j1C = j1(c);
     T y0C = y0(c);
@@ -3860,7 +3879,24 @@ namespace Polyphemus
     T j0C = j0(c);
     T term1 = pi / (sqrt(2.0) * pow(karman, 2.0) * c);
     T term2 = y0C - (j0C * y1C) / j1C;
-    return ustar * sqrt(term1 * term2);
+    u_m = ustar * sqrt(term1 * term2);
+
+    T y, f_y;
+    int ny = 100;
+    f_mean = 0.;
+    int i = 0;
+    for (int k = 1; k <= ny; ++k)
+      {
+        y = 1. * k / ny;
+
+        if (y >= z0_build)
+          {
+            f_y = (j1C * y0(c*y) - j0(c*y) * y1C) / (j1C * y0C - j0C * y1C);
+            f_mean += f_y;
+            i++;
+          }
+      }
+    f_mean /= i * 1.;
   }
   
   //! Compute the solution C of the equation (1) in Soulhac et al. (2011).

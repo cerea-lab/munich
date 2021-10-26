@@ -64,7 +64,7 @@ namespace Polyphemus
 
     //int id_tunnel;
     string option_transfer, option_ustreet, option_method;
-    string option_uH;
+    string option_uH, option_uH_macdonald;
     
     string option_dep_svoc, option_dep_svoc_ra, option_dep_svoc_rb, option_dep_svoc_rc;
     string file_config_dep_svoc, option_roughness;
@@ -517,7 +517,7 @@ namespace Polyphemus
     void ComputeWindDirectionFluctuation();
     T ComputeUstreetSIRANE();
     T ComputeUstreetLemonsu();
-    T ComputeUH(T c, T ustar_street);
+    void ComputeSiraneUm(T c, T ustar_street, T z0_build, T& u_m, T& f_mean);
     T ComputeBesselC(T z0_build, T delta_i);
     void GetMin(Array<T, 1> arr, int length, T& minimum, int& index);
     void ComputeTransferVelocity();
