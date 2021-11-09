@@ -3697,15 +3697,17 @@ namespace Polyphemus
       {
         Street<T>* street = *iter;
         T sigma_w = street->GetSigmaW();
+        T min_velocity = 0.001;
+        T velocity = 0.0;
         if (option_transfer == "Sirane")
-          street->SetTransferVelocity(sigma_w / (sqrt(2.0) * pi));
+          velocity = sigma_w / (sqrt(2.0) * pi);
         else if (option_transfer == "Schulte")
           {
             T aspect_ratio = street->GetHeight() / street-> GetWidth();
             const T beta = 0.45;
-            T velocity = beta * sigma_w * (1.0 / (1.0 + aspect_ratio));
-            street->SetTransferVelocity(velocity);
-          }               
+            velocity = beta * sigma_w * (1.0 / (1.0 + aspect_ratio));
+          }
+        street->SetTransferVelocity(max(velocity, min_velocity));
       }
   }
 
