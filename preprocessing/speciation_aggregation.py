@@ -18,80 +18,85 @@ content = [("Output_dir", "[output]", "String"), \
            ("meca","[option]","String"), \
            ("Nt_polair", "[domain]", "Int")
 ]
-config = talos.Config("sing_preproc.cfg", content)
-meca = config.meca
-home_dir = config.Output_dir
+#config = talos.Config("sing_preproc.cfg", content)
 
-speciation_file = config.speciation_dir + "/COVNM_"+meca+".dat"
-speciation = open(speciation_file)
-header = speciation.readline()
+def speciation_voc(configuration_file = "sing_preproc.cfg"):
 
-# Get snap code for traffic source.
-snap_line = speciation.readline()
-line_info = [x for x in re.split('\t| ', snap_line) if x.strip() != '']
-for n, line in enumerate(line_info):
+    print(configuration_file)
+    config = talos.Config(default_config, content)
+    meca = config.meca
+    home_dir = config.Output_dir
+
+    speciation_file = config.speciation_dir + "/COVNM_"+meca+".dat"
+    speciation = open(speciation_file)
+    header = speciation.readline()
+
+    # Get snap code for traffic source.
+    snap_line = speciation.readline()
+    line_info = [x for x in re.split('\t| ', snap_line) if x.strip() != '']
+    for n, line in enumerate(line_info):
         if line[0] == "7":
                 index = n
                 break
-print("traffic snap index: ", index)
+    print("traffic snap index: ", index)
 
-sp_real_name = []
-speciation_coeff = []
-mw_real = []
-total = 0.0
-intoh=1.  # for melchior2 aggreagation
-for line in speciation.readlines():
+    sp_real_name = []
+    speciation_coeff = []
+    mw_real = []
+    total = 0.0
+    intoh=1.  # for melchior2 aggreagation
+    for line in speciation.readlines():
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         sp_real_name.append(line_info[0])
         speciation_coeff.append(float(line_info[index]))
         total += float(line_info[index])
         mw_real.append(float(line_info[1]))
-speciation.close()
+    speciation.close()
 
-print("total coeff.: ", total, "%")
-ns_real = len(sp_real_name)
-print("Number of the real species: ", ns_real)
+    print("total coeff.: ", total, "%")
+    ns_real = len(sp_real_name)
+    print("Number of the real species: ", ns_real)
 
-# Get VOC aggregation to model species.
-if meca == "cb05":
-    aggregation_file = config.speciation_dir + "/aggregation_cb05-siream.dat"
-elif meca == "melchior2": 
-    aggregation_file = config.speciation_dir + "/aggregation_melchior2.dat"
-else:
-    print('For now the "meca" flag at the [option] section of the sing_preproc.cfg has to be set to either cb05 or melchior2')
-    sys.exit()
+    # Get VOC aggregation to model species.
+    if meca == "cb05":
+        aggregation_file = config.speciation_dir + "/aggregation_cb05-siream.dat"
+    elif meca == "melchior2": 
+        aggregation_file = config.speciation_dir + "/aggregation_melchior2.dat"
+    else:
+        print('For now the "meca" flag at the [option] section of the sing_preproc.cfg has to be set to either cb05 or melchior2')
+        sys.exit()
 
-aggregation = open(aggregation_file)
-# Read the line for the list of the model species.
-line = aggregation.readline()
-line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
-model_species = []
-for n, line in enumerate(line_info):
+    aggregation = open(aggregation_file)
+    # Read the line for the list of the model species.
+    line = aggregation.readline()
+    line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+    model_species = []
+    for n, line in enumerate(line_info):
         if n > 2:
                 model_species.append(line.strip())
-ns_model = len(model_species)
+    ns_model = len(model_species)
 
-line = aggregation.readline()
-line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
-mw_model = []
-for n, line in enumerate(line_info):
+    line = aggregation.readline()
+    line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
+    mw_model = []
+    for n, line in enumerate(line_info):
         if n > 2:
                 mw_model.append(float(line))
 
-header = aggregation.readline()
+    header = aggregation.readline()
 
-if meca == 'melchior2' :
-   line_info = [x for x in re.split('\t| ', header) if x.strip() != '']
-   reac_model = []
-   for n, line in enumerate(line_info):
-        if n > 2:
+    if meca == 'melchior2' :
+        line_info = [x for x in re.split('\t| ', header) if x.strip() != '']
+        reac_model = []
+        for n, line in enumerate(line_info):
+            if n > 2:
                 reac_model.append(float(line))
 
 
 
 
-species_factor = np.zeros([ns_model], 'float')
-for s_real in range(ns_real):
+    species_factor = np.zeros([ns_model], 'float')
+    for s_real in range(ns_real):
         line = aggregation.readline()
         line_info = [x for x in re.split('\t| ', line) if x.strip() != '']
         if meca == 'melchior2' :
@@ -108,24 +113,24 @@ for s_real in range(ns_real):
                     sys.exit()
 
                 species_factor[s_model] += temp
-aggregation.close()
+    aggregation.close()
 
 
 
-### Compute speciated VOC emissions for street segments.
+    ### Compute speciated VOC emissions for street segments.
 
-input_dir = home_dir + "/emission/"
-input_file = input_dir + "NMHC.bin"
+    input_dir = home_dir + "/emission/"
+    input_file = input_dir + "NMHC.bin"
 
-total = 0.0
-# Get array shape of input file and load to an array.
-inputfile_size = io.get_filesize(input_file)
-array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
-print(array_shape)
-input_array = io.load_binary(input_file, array_shape)
+    total = 0.0
+    # Get array shape of input file and load to an array.
+    inputfile_size = io.get_filesize(input_file)
+    array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
+    print(array_shape)
+    input_array = io.load_binary(input_file, array_shape)
 
-# Compute and write to binary files;
-for s_model in range(ns_model):
+    # Compute and write to binary files;
+    for s_model in range(ns_model):
         total += species_factor[s_model]
         print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
@@ -134,22 +139,22 @@ for s_model in range(ns_model):
         output_filename = input_dir + model_species[s_model] + ".bin"
 
         io.save_binary(output_array, output_filename)
-print("total species factor:", total)
+    print("total species factor:", total)
 
 
-### Compute speciated VOC emissions for grided data.
+    ### Compute speciated VOC emissions for grided data.
 
-# Get array shape of input file and load to an array.
-input_dir = home_dir + "/grid_emission/"
-input_file = input_dir + "NMHC.bin"
+    # Get array shape of input file and load to an array.
+    input_dir = home_dir + "/grid_emission/"
+    input_file = input_dir + "NMHC.bin"
 
-inputfile_size = io.get_filesize(input_file)
-array_shape = (config.Nt_polair, config.Ny, config.Nx)
-print(array_shape)
-input_array = io.load_binary(input_file, array_shape)
+    inputfile_size = io.get_filesize(input_file)
+    array_shape = (config.Nt_polair, config.Ny, config.Nx)
+    print(array_shape)
+    input_array = io.load_binary(input_file, array_shape)
 
-# Compute and write to binary files;
-for s_model in range(ns_model):
+    # Compute and write to binary files;
+    for s_model in range(ns_model):
         total += species_factor[s_model]
         print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
@@ -163,8 +168,10 @@ for s_model in range(ns_model):
 
 
 
-def speciation_nox():
-        
+def speciation_nox(configuration_file = "sing_preproc.cfg"):
+    
+        config = talos.Config(configuration_file, content)
+    
         home_dir = config.Output_dir
         input_dir = home_dir + "/emission/"
         input_file = input_dir + "NOx.bin"
@@ -180,7 +187,7 @@ def speciation_nox():
         # NO2 is assumed to be 20% of NOx.
         no2 = nox * 0.2;
         # NOx is given as NO2 equivalent.
-        no = (nox - no2) *30.0 / 44.0
+        no = (nox - no2) *30.0 / 46.0
         
         output_filename = input_dir + "NO2.bin"
         io.save_binary(no2, output_filename)
@@ -202,10 +209,21 @@ def speciation_nox():
         # NO2 is assumed to be 20% of NOx.
         no2 = nox * 0.2;
         # NOx is given as NO2 equivalent.
-        no = (nox - no2) *30.0 / 44.0
+        no = (nox - no2) *30.0 / 46.0
         
         output_filename = input_dir + "NO2.bin"
+        print(output_filename)
         io.save_binary(no2, output_filename)
         output_filename = input_dir + "NO.bin"
         io.save_binary(no, output_filename);
         
+
+def main():
+
+    speciation_voc("sing_preproc.cfg")
+
+    speciation_nox("sing_preproc.cfg")
+
+if __name__ == '__main__':
+
+    main()

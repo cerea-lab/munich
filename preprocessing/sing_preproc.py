@@ -403,11 +403,12 @@ for t in range(nt):
 # VOC speciated
 if (config.is_voc_speciated):
         import speciation_aggregation
-
+        speciation_aggregation.speciation_voc(sys.argv[1])
+        
 # NOx speciated
 if (config.is_nox_speciated):
         import speciation_aggregation
-        speciation_aggregation.speciation_nox()
+        speciation_aggregation.speciation_nox(sys.argv[1])
 
 #LL----------
 # PM10 speciated
