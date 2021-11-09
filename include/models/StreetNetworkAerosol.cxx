@@ -992,6 +992,8 @@ namespace Polyphemus
 
     InitMeteo();
 
+    //! Chemistry() is called within ComputeMassBalance()
+    //! when non-stationary approach is used
     ComputeMassBalance();
     
     if (this->option_process["with_stationary_hypothesis"])
