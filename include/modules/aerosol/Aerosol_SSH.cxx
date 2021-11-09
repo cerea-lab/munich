@@ -47,7 +47,7 @@ namespace Polyphemus
     //! ONLY if it has been open.
     if (_aerosol_so != NULL)
       {
-        api.call(_aerosol_so, "api_sshaerosol_finalize");
+        api.call(_aerosol_so, "api_sshaerosol_finalize_");
 
         char *error = NULL;
 
@@ -80,98 +80,96 @@ namespace Polyphemus
     // Declare SSH-aerosol as not running standalone
     // This removes most of the output to stdout
     api.send_bool(_aerosol_so,
-                  "api_sshaerosol_set_standalone",
+                  "api_sshaerosol_set_standalone_",
                   false);
 
     // Declare SSH-aerosol logs informations.
     api.send_bool(_aerosol_so,
-                  "api_sshaerosol_set_logger",
+                  "api_sshaerosol_set_logger_",
                   true);
-    
+
 
     // Initialize SSH-aerosol with namelist.ssh
     char namelist_ssh[] = "namelist.ssh";
     api.exchange_char_array(_aerosol_so,
-                            "api_sshaerosol_initialize",
+                            "api_sshaerosol_initialize_",
                             namelist_ssh);
-    
+
     // Initialize the photolysis
-    api.call(_aerosol_so, "api_sshaerosol_initphoto");
+    api.call(_aerosol_so, "api_sshaerosol_initphoto_");
     
     // Get the number of gas species
     Ns = api.recv_int(_aerosol_so,
-                      "api_sshaerosol_get_ngas");
+                      "api_sshaerosol_get_ngas_");
     
     // Get the number of aerosol species
     Ns_aer_nolayer = api.recv_int(_aerosol_so,
-                                  "api_sshaerosol_get_naero");
+                                  "api_sshaerosol_get_naero_");
     
     // Get the number of aerosol layers
     N_layer = api.recv_int(_aerosol_so,
-                           "api_sshaerosol_get_nlayer");
+                           "api_sshaerosol_get_nlayer_");
 
     // Get i_hydrophilic
     i_hydrophilic = api.recv_int(_aerosol_so,
-                                 "api_sshaerosol_get_i_hydrophilic");
+                                 "api_sshaerosol_get_i_hydrophilic_");
     
     // Get the number of aerosol species in different layers
     Ns_aer = api.recv_int(_aerosol_so,
-                          "api_sshaerosol_get_n_aerosol_layers");
+                          "api_sshaerosol_get_n_aerosol_layers_");
 
     // Get the number of aerosol bins
     Nbin_aer = api.recv_int(_aerosol_so,
-                            "api_sshaerosol_get_nsize");
+                            "api_sshaerosol_get_nsize_");
     
     // Get the number of aerosol size-sections
     Nsize_section_aer = api.recv_int(_aerosol_so,
-                                     "api_sshaerosol_get_nsizebin");
-    ssh_diam_input.resize(Nsize_section_aer);
+                                     "api_sshaerosol_get_nsizebin_");
+    ssh_diam_input.resize(Nsize_section_aer + 1);
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_diam_input",
+                              "api_sshaerosol_get_diam_input_",
                               ssh_diam_input);
     ssh_diam_input *= 1.e-6; // conversion from microm to m.
-    
+
     // Get the number of photolysis
     Nr_photolysis = api.recv_int(_aerosol_so,
-                                 "api_sshaerosol_get_nphotolysis");
-
+                                 "api_sshaerosol_get_nphotolysis_");
 
     // Whether the gas-phase chemistry taken into accout.
     with_gas_chemistry = api.recv_bool(_aerosol_so,
-                                       "api_sshaerosol_get_tag_chem");
+                                       "api_sshaerosol_get_tag_chem_");
 
     // Whether externally mixed.
     with_external_composition = api.recv_bool(_aerosol_so,
-                                              "api_sshaerosol_get_tag_external");
+                                              "api_sshaerosol_get_tag_external_");
 
     // in g/mol
     ssh_mass_density_layers.resize(Ns_aer);
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_mass_density_layers",
+                              "api_sshaerosol_get_mass_density_layers_",
                               ssh_mass_density_layers);
-
 
     // Get the number of inorganic aerosol species
     Ns_inorganic_aer = api.recv_int(_aerosol_so,
-                                    "api_sshaerosol_get_nesp_isorropia");
+                                    "api_sshaerosol_get_nesp_isorropia_");
 
     // Get the number of organic aerosol species
     Ns_organic_aer = api.recv_int(_aerosol_so,
-                                  "api_sshaerosol_get_nesp_aec");
+                                  "api_sshaerosol_get_nesp_aec_");
 
     // Get the number of inert aerosol species
     Ns_inert_aer = api.recv_int(_aerosol_so,
-                                "api_sshaerosol_get_n_inert");
+                                "api_sshaerosol_get_n_inert_");
 
     // Get index of aerosol groups.
     index_groups.resize(Ns_aer_nolayer);
     api.exchange_int_array(_aerosol_so,
-                           "api_sshaerosol_get_index_groups",
+                           "api_sshaerosol_get_index_groups_",
                            index_groups);
  
     index_groups_ext.resize(this->Ns_aer);
     api.exchange_int_array(_aerosol_so,
-                           "api_sshaerosol_get_index_groups_ext",
+                           "api_sshaerosol_get_index_groups_ext_",
                            index_groups_ext);    
     
 
@@ -187,12 +185,12 @@ namespace Polyphemus
 
     discretization_composition.resize(2, Ngroup_aer, Ncomposition_aer); 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_discretization_composition",
+                              "api_sshaerosol_get_discretization_composition_",
                               discretization_composition);
 
     aerosol_type.resize(Ns_aer_nolayer);
     api.exchange_int_array(_aerosol_so,
-                           "api_sshaerosol_get_aerosol_type",
+                           "api_sshaerosol_get_aerosol_type_",
                            aerosol_type);
     
     // Get names of aerosol species.
@@ -201,7 +199,7 @@ namespace Polyphemus
       {
         char aero_name[81];
         api.exchange_char_array(_aerosol_so,
-                                "api_sshaerosol_get_aero_name",
+                                "api_sshaerosol_get_aero_name_",
                                 n + 1, aero_name);
         aerosol_spec_name(n) = trim(aero_name);
       }
@@ -340,7 +338,7 @@ namespace Polyphemus
       BinBound_aer(i) = 1.e-6 * convert<T>(bin_list[i]);
 
 
-    for (int i = 0; i < Nsize_section_aer; i++)
+    for (int i = 0; i < Nsize_section_aer + 1; i++)
       {
         if (ssh_diam_input(i) != BinBound_aer(i))
           throw string("Initial aerosol size is not same between the model ") + to_str(BinBound_aer(i))
@@ -1195,47 +1193,47 @@ namespace Polyphemus
                     lon, lat);
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_gas",
+                              "api_sshaerosol_set_gas_",
                               concentration);
 
 
-    api.call(_aerosol_so, "api_sshaerosol_updatephoto");
+    api.call(_aerosol_so, "api_sshaerosol_updatephoto_");
     
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_aero",
+                              "api_sshaerosol_set_aero_",
                               concentration_aer);
 
 
     if (option_process_aer["with_number_concentration"])
       {
         api.exchange_double_array(_aerosol_so,
-                                  "api_sshaerosol_set_aero_num",
+                                  "api_sshaerosol_set_aero_num_",
                                   number_concentration_aer);
       }
     else
       {
         // Estimate number concentration from mass
         // Call compute_number
-        api.call(_aerosol_so, "api_sshaerosol_compute_number");
+        api.call(_aerosol_so, "api_sshaerosol_compute_number_");
         
       }
     
     // Call gaseous chemistry
     if (with_gas_chemistry)
-      api.call(_aerosol_so, "api_sshaerosol_gaschemistry");
+      api.call(_aerosol_so, "api_sshaerosol_gaschemistry_");
 
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_gas",
+                              "api_sshaerosol_get_gas_",
                               concentration);
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero",
+                              "api_sshaerosol_get_aero_",
                               concentration_aer);
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero_num",
+                              "api_sshaerosol_get_aero_num_",
                               number_concentration_aer);
 
   }
@@ -1316,7 +1314,7 @@ namespace Polyphemus
         density_aer_bin = fixed_density;
         density_aer_size = fixed_density;
         api.send_double(_aerosol_so,
-                        "api_sshaerosol_set_fixed_density",
+                        "api_sshaerosol_set_fixed_density_",
                         fixed_density);
 
       }
@@ -1325,10 +1323,10 @@ namespace Polyphemus
         api.call(_aerosol_so,
                  "api_sshaerosol_compute_all_density");
         api.exchange_double_array(_aerosol_so,
-                                  "api_sshaerosol_get_density_aer_bin",
+                                  "api_sshaerosol_get_density_aer_bin_",
                                   density_aer_bin);
         api.exchange_double_array(_aerosol_so,
-                                  "api_sshaerosol_get_density_aer_size",
+                                  "api_sshaerosol_get_density_aer_size_",
                                   density_aer_size);        
       }
 
@@ -1374,18 +1372,18 @@ namespace Polyphemus
 
         concentration_index.resize(2, Nbin_aer);
         api.exchange_int_array(_aerosol_so,
-                               "api_sshaerosol_get_concentration_index",
+                               "api_sshaerosol_get_concentration_index_",
                                concentration_index);
 
         // Get list_species from ssh-aerosol
         list_species.resize(Ns_aer);
         api.exchange_int_array(_aerosol_so,
-                               "api_sshaerosol_get_list_species",
+                               "api_sshaerosol_get_list_species_",
                                list_species);        
 
         //
         section_pass = api.recv_int(_aerosol_so,
-                                    "api_sshaerosol_get_section_pass");
+                                    "api_sshaerosol_get_section_pass_");
         
 
         // Call VSRM aqueous chemistry module.
@@ -1395,11 +1393,11 @@ namespace Polyphemus
             if (!option_process_aer["with_number_concentration"])
               {
                 // Call compute_number
-                api.call(_aerosol_so, "api_sshaerosol_compute_number");
+                api.call(_aerosol_so, "api_sshaerosol_compute_number_");
 
                 // Get number concentration from ssh-aerosol
                 api.exchange_double_array(_aerosol_so,
-                                          "api_sshaerosol_get_aero_num",
+                                          "api_sshaerosol_get_aero_num_",
                                           number_concentration_aer);
               }
 
@@ -1427,11 +1425,11 @@ namespace Polyphemus
             if (!option_process_aer["with_number_concentration"])
               {
                 // Call compute_number
-                api.call(_aerosol_so, "api_sshaerosol_compute_number");
+                api.call(_aerosol_so, "api_sshaerosol_compute_number_");
 
                 // Get number concentration from ssh-aerosol
                 api.exchange_double_array(_aerosol_so,
-                                          "api_sshaerosol_get_aero_num",
+                                          "api_sshaerosol_get_aero_num_",
                                           number_concentration_aer);
               }
             
@@ -1460,30 +1458,30 @@ namespace Polyphemus
             
             // Send concentration arrays to ssh-aerosol.
             api.exchange_double_array(_aerosol_so,
-                                      "api_sshaerosol_set_gas",
+                                      "api_sshaerosol_set_gas_",
                                       concentration);
 
             api.exchange_double_array(_aerosol_so,
-                                      "api_sshaerosol_set_aero",
+                                      "api_sshaerosol_set_aero_",
                                       concentration_aer);
 
             if (option_process_aer["with_number_concentration"])
               {
                 api.exchange_double_array(_aerosol_so,
-                                          "api_sshaerosol_set_aero_num",
+                                          "api_sshaerosol_set_aero_num_",
                                           number_concentration_aer);
               }
             else
               {
                 // Estimate number concentration from mass
                 // Call compute_number
-                api.call(_aerosol_so, "api_sshaerosol_compute_number");
+                api.call(_aerosol_so, "api_sshaerosol_compute_number_");
                 
               }
             
             
             // Call aerosols dynamic
-            api.call(_aerosol_so, "api_sshaerosol_aerodyn");
+            api.call(_aerosol_so, "api_sshaerosol_aerodyn_");
 
           }
       }
@@ -1492,50 +1490,50 @@ namespace Polyphemus
       {
         // Send concentration arrays to ssh-aerosol.
         api.exchange_double_array(_aerosol_so,
-                                  "api_sshaerosol_set_gas",
+                                  "api_sshaerosol_set_gas_",
                                   concentration);
 
         api.exchange_double_array(_aerosol_so,
-                                  "api_sshaerosol_set_aero",
+                                  "api_sshaerosol_set_aero_",
                                   concentration_aer);
 
         if (option_process_aer["with_number_concentration"])
           {
             api.exchange_double_array(_aerosol_so,
-                                      "api_sshaerosol_set_aero_num",
+                                      "api_sshaerosol_set_aero_num_",
                                       number_concentration_aer);
           }
         else
           {
             // Estimate number concentration from mass
             // Call compute_number
-            api.call(_aerosol_so, "api_sshaerosol_compute_number");
+            api.call(_aerosol_so, "api_sshaerosol_compute_number_");
           }
         
         // Call aerosols dynamic
-        api.call(_aerosol_so, "api_sshaerosol_aerodyn");
+        api.call(_aerosol_so, "api_sshaerosol_aerodyn_");
       }
    
 
     // Return new gas-phase concentrations.
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_gas",
+                              "api_sshaerosol_get_gas_",
                               concentration);
 
     // Return new aerosol mass concentrations.
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero",
+                              "api_sshaerosol_get_aero_",
                               concentration_aer);
 
     // Return new aerosol number concentrations.
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero_num",
+                              "api_sshaerosol_get_aero_num_",
                               number_concentration_aer);
 
 
     // Return wet diameter.
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_wet_diameter",
+                              "api_sshaerosol_get_wet_diameter_",
                               wet_diameter_aer);
 
 
@@ -1543,7 +1541,7 @@ namespace Polyphemus
     // Please use compiling option ssh-output=yes
     // if you run 0-D test cases. 
 #ifdef WRITE_SSH_OUTPUT            
-        api.call(_aerosol_so, "api_sshaerosol_output");
+        api.call(_aerosol_so, "api_sshaerosol_output_");
 #endif
 
   }
@@ -1628,36 +1626,36 @@ namespace Polyphemus
     // cout << "++ Computed Relative humidity: " << rh << endl;
     
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_current_t",
+                    "api_sshaerosol_set_current_t_",
                     current_time);
 
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_attenuation",
+                    "api_sshaerosol_set_attenuation_",
                     attenuation);
     
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_humidity",
+                    "api_sshaerosol_set_humidity_",
                     humidity);
 
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_relhumidity",
+                    "api_sshaerosol_set_relhumidity_",
                     rh);
     
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_temperature",
+                    "api_sshaerosol_set_temperature_",
                     temperature);
 
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_pressure",
+                    "api_sshaerosol_set_pressure_",
                     pressure);
 
     api.send_double(_aerosol_so,
-                    "api_sshaerosol_set_dt",
+                    "api_sshaerosol_set_dt_",
                     delta_t);
 
     T lonlat[2] = {lon, lat};
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_lonlat",
+                              "api_sshaerosol_set_lonlat_",
                               lonlat);
 
   }
@@ -2173,29 +2171,29 @@ namespace Polyphemus
   {
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_gas",
+                              "api_sshaerosol_set_gas_",
                               Concentration1D);
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_init_bin_mass",
+                              "api_sshaerosol_set_init_bin_mass_",
                               Concentration_aer2D);
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_set_init_bin_number",
+                              "api_sshaerosol_set_init_bin_number_",
                               NumberConcentration_aer1D);
     api.call(_aerosol_so,
-             "api_sshaerosol_init_distributions");
+             "api_sshaerosol_init_distributions_");
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_gas",
+                              "api_sshaerosol_get_gas_",
                               Concentration1D);
             
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero",
+                              "api_sshaerosol_get_aero_",
                               InitConcentration_aer);
 
     api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero_num",
+                              "api_sshaerosol_get_aero_num_",
                               InitNumberConcentration_aer);
 
 
@@ -2204,13 +2202,13 @@ namespace Polyphemus
     // if you run 0-D test cases. 
 #ifdef WRITE_SSH_OUTPUT            
     /* InitOutput */
-    api.call(_aerosol_so, "api_sshaerosol_initoutput");
+    api.call(_aerosol_so, "api_sshaerosol_initoutput_");
                 
     /* Report */
-    api.call(_aerosol_so, "api_sshaerosol_report");
+    api.call(_aerosol_so, "api_sshaerosol_report_");
         
     /* Output */
-    api.call(_aerosol_so, "api_sshaerosol_output");
+    api.call(_aerosol_so, "api_sshaerosol_output_");
 #endif
     
   }
