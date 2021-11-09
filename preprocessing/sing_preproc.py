@@ -73,6 +73,12 @@ os.makedirs(emis_dir)
 emis_species_list = config.emission_species
 print(emis_species_list)
 
+
+# Remove old look-up table.
+lut_file = "street-merging-lookup-table.txt"
+if (os.path.isfile(lut_file)):
+    os.remove(lut_file)
+
 # Number of emitted species
 ns_emis = len(emis_species_list)
 
@@ -323,6 +329,9 @@ for t in range(nt):
 
     outfile = config.Output_dir + 'textfile/street_all.csv'
     with open(outfile, 'w') as f:
+        f.write('id' + ',' + 'eff_id' + ',' + 'node_begin'\
+            + ',' + 'node_eff_begin' + ',' + 'node_end' + ','\
+            + 'node_eff_end' + '\n')
 
         for street in street_list:
             f.write(str(street.id) + ',' + str(street.eff_id) + ',' + str(street.begin)\
