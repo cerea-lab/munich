@@ -1026,7 +1026,7 @@ namespace Polyphemus
         //! Check the number of values.
         if (v.size() != 7)
           throw string("Error: wrong number of values in street.dat ")
-            + to_str(v.size()); 
+            + to_str(v.size() + " " + line); 
         
 	id_street(i) = to_num<T>(v[0]);
         begin_inter(i) = to_num<T>(v[1]);
