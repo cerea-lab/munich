@@ -236,6 +236,7 @@ POAhP	 0.1	 SOAlP	  0.1	 SOAmP	  0.1	  SOAhP    0.1
 
 [alpha]
 
+# For gas-phase dry deposition
 SO2	1.	SULF	1.	NO	0.	NO2	0.
 O3	0.	H2O2	1.	HNO3	10.	HONO	2.
 HNO4	5.	NH3	1.	PAN	0.	PANX	0.
@@ -247,6 +248,7 @@ SOAlP	0.	SOAmP	0.	SOAhP   0.
 
 [beta]
 
+# For gas-phase dry deposition
 SO2	0.	SULF	1.	NO	0.	NO2	0.8
 O3	1.	H2O2	1.	HNO3	10.	HONO	2.
 HNO4	5.	NH3	0.	PAN	0.6	PANX	0.6
