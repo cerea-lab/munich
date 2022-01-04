@@ -68,6 +68,9 @@ namespace Polyphemus
     //! Deposition rate (ug/s)
     T deposition_rate_;
 
+    //! Mixing length factor sH (-)
+    T sH_;
+
     //! Turbulent transfer velocity (m/s)
     T transfer_velocity_;
 
@@ -219,10 +222,12 @@ namespace Polyphemus
     T GetRain() const;
     T GetLiquidWaterContent() const;
     void SetpH(T ph);
+    void SetsH(T sH);
 
     virtual void SetAttenuation(T attenuation);
     virtual T GetAttenuation() const;
     T GetpH() const;
+    T GetsH() const;
     T GetInflowRate(int s) const;
     void SetInflowRate(T inflow_rate, int s);
     T GetOutgoingFlux() const;

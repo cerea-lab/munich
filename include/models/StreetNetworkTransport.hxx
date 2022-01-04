@@ -519,6 +519,8 @@ namespace Polyphemus
     T ComputeUstreetLemonsu();
     void ComputeSiraneUm(T c, T ustar_street, T z0_build, T& u_m, T& f_mean);
     T ComputeBesselC(T z0_build, T delta_i);
+    T BESSI0(T X);
+    T BESSK0(T X);
     void GetMin(Array<T, 1> arr, int length, T& minimum, int& index);
     void ComputeTransferVelocity();
     void ComputeAlpha(int nstreet_in, int nstreet_out, 

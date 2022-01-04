@@ -182,9 +182,9 @@ namespace Polyphemus
       }
     
     this->config.PeekValue("Transfer_parameterization",
-                           "Sirane | Schulte", option_transfer);
+                           "Sirane | Schulte | Wang", option_transfer);
     this->config.PeekValue("Mean_wind_speed_parameterization",
-                           "Sirane | Exponential", option_ustreet);
+                           "Sirane | Exponential | Wang", option_ustreet);
     this->config.PeekValue("Building_height_wind_speed_parameterization",
                            "Sirane | Macdonald", option_uH);
     this->config.PeekValue("Compute_Macdonald_from",
@@ -3703,9 +3703,14 @@ namespace Polyphemus
           velocity = sigma_w / (sqrt(2.0) * pi);
         else if (option_transfer == "Schulte")
           {
-            T aspect_ratio = street->GetHeight() / street-> GetWidth();
+            T aspect_ratio = street->GetHeight() / street->GetWidth();
             const T beta = 0.45;
             velocity = beta * sigma_w * (1.0 / (1.0 + aspect_ratio));
+          }
+         else if (option_transfer == "Wang")
+          {
+            T sH = street->GetsH();
+            velocity = sigma_w * karman * sH;
           }
         street->SetTransferVelocity(max(velocity, min_velocity));
       }
@@ -3771,6 +3776,7 @@ namespace Polyphemus
   //! Compute the wind speed in the street-canyon.
   //! Option "Sirane" based on Soulhac et al. (2008)
   //! Option "Exponential" based on Lemonsu et al. (2004), and Cherin et al. (2015)
+  //! Option "Wang" based on Wang (2012; 2014) and Maison et al. (2022)
   template<class T>
   void StreetNetworkTransport<T>::ComputeUstreet()
   {
@@ -3778,7 +3784,7 @@ namespace Polyphemus
     //! Wall roughness length from WRF/UCM
     T z0_build = 0.001;
     T beta;
-    Array<T, 1> z, ustreet_z;
+    Array<T, 1> z, u_z, function_g_z;
     T ustreet, u_h;
 
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
@@ -3790,9 +3796,10 @@ namespace Polyphemus
         T ustar = street->GetStreetUstar();
         T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)        
         T wind_direction = street->GetWindDirection();
-        int nz = 2 * h; // to get one point every about 50cm        
+        int nz = 10 * h; // number of points to itegrate Wang's wind profile
         z.resize(nz);
-        ustreet_z.resize(nz);
+        u_z.resize(nz);
+        function_g_z.resize(nz);
         
         delta_i = min(h, w / 2.0);
         phi = abs(wind_direction - ang);
@@ -3818,9 +3825,39 @@ namespace Polyphemus
             T att_coeff = 0.5 * h / w;
             street_attenuation = 1. / att_coeff * (1. - exp(att_coeff * ((z0_build / h) - 1)));
           }
+
+        else if (option_ustreet == "Wang")
+          {
+            T f_phi;
+            if (((phi >= 0) and (phi <= pi/4)) or ((phi >= 3*pi/4) and (phi <= 5*pi/4)) or ((phi >= 7*pi/4) and (phi <= 2*pi)))
+              f_phi = pow(abs(cos(2 * phi)),3);
+            else if (((phi > pi/4) and (phi < 3*pi/4)) or ((phi > 5*pi/4) and (phi < 7*pi/4)))
+              f_phi = pow(abs(cos(2 * pi / 4)),3);
+            else
+              throw string("Error: wind angle is out of range in street number: ") + to_str(street->GetStreetID())+ ".";
+            T Cb = 0.31 * (1 - exp(-1.6 * (h / w))) * f_phi;
+            T lcb = 0.5 * w;
+            T sH = lcb / (karman * h + lcb);
+            street->SetsH(sH);
+            T alpha = Cb * (h / w)/(karman * sH);
+            T g_z0 = 2 * sqrt(alpha * z0_build / h);
+            T g_h = 2 * sqrt(alpha * h / h);
+            T C1 = 1 / (BESSI0(g_h) - BESSI0(g_z0) * BESSK0(g_h) / BESSK0(g_z0));
+            T C2 = -C1 * BESSI0(g_z0) / BESSK0(g_z0);
+            
+            street_attenuation = 0.0;
+            for (int k = 0; k <= nz; ++k)
+              {
+                z(k) = z0_build + k * (h - z0_build) / nz;
+                function_g_z(k) = 2 * sqrt(alpha * z(k) / h);
+		u_z(k) = (C1 * BESSI0(function_g_z(k)) + C2 * BESSK0(function_g_z(k)));
+                street_attenuation += u_z(k);
+              }
+            street_attenuation /= (nz + 1);
+          }
         else
           throw("Wrong option given. Choose Sirane or Exponential.");
-
+        
         T u_m;
         T f_mean;
         ComputeSiraneUm(solutionC, ustar, z0_build, u_m, f_mean);
@@ -3831,12 +3868,12 @@ namespace Polyphemus
               {
                 u_h = u_m;
               }
-            else if (option_ustreet == "Exponential")
+            else if (option_ustreet == "Exponential" or option_ustreet == "Wang")
               {
                 u_h = u_m * f_mean;
               }
             else
-              throw("Wrong option given. Choose Sirane or Exponential.");
+              throw("Wrong option given. Choose Sirane, Exponential or Wang.");
           }
 
         else if (option_uH == "Macdonald")
@@ -3938,6 +3975,53 @@ namespace Polyphemus
       throw string("Fail to find a solution. Please adjust maxC (current value: ")
         + to_str(maxC) + ").";
     return solutionC;
+  }
+
+  //! Compute the first kind modified Bessel function of order 0 used in Wang wind profile
+  template<class T>
+  T StreetNetworkTransport<T>::BESSI0(T X)
+  {
+    T Y,P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,AX,BX;
+    P1=1.0; P2=3.5156229; P3=3.0899424; P4=1.2067492;
+    P5=0.2659732; P6=0.360768e-1; P7=0.45813e-2;
+    Q1=0.39894228; Q2=0.1328592e-1; Q3=0.225319e-2;
+    Q4=-0.157565e-2; Q5=0.916281e-2; Q6=-0.2057706e-1;
+    Q7=0.2635537e-1; Q8=-0.1647633e-1; Q9=0.392377e-2;
+    if (abs(X) < 3.75) {
+      Y=(X/3.75)*(X/3.75);
+      return (P1+Y*(P2+Y*(P3+Y*(P4+Y*(P5+Y*(P6+Y*P7))))));
+    }
+    else {
+      AX=abs(X);
+      Y=3.75/AX;
+      BX=exp(AX)/sqrt(AX);
+      AX=Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5+Y*(Q6+Y*(Q7+Y*(Q8+Y*Q9)))))));
+      return (AX*BX);
+    }
+  }
+
+  //! Compute the second kind modified Bessel function of order 0 used in Wang wind profile
+  template<class T>
+  T StreetNetworkTransport<T>::BESSK0(T X)
+  {
+    T Y,AX,P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,tmp;
+    P1=-0.57721566; P2= 0.42278420; P3=0.23069756; P4=0.3488590e-1;
+    P5= 0.262698e-2; P6=0.10750e-3; P7=0.74e-5;
+    Q1= 1.25331414; Q2=-0.7832358e-1; Q3=0.2189568e-1; Q4=-0.1062446e-1;
+    Q5= 0.587872e-2; Q6=-0.251540e-2; Q7=0.53208e-3;
+    if (X == 0.0) return 1e30;  //arbitrary big value
+    if (X <= 2.0) {
+      Y=X*X/4.0;
+      AX=-log(X/2.0)*BESSI0(X);
+      tmp = AX+(P1+Y*(P2+Y*(P3+Y*(P4+Y*(P5+Y*(P6+Y*P7))))));
+      return tmp;
+    }
+    else {
+      Y=2.0/X;
+      AX=exp(-X)/sqrt(X);
+      tmp = AX*(Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5+Y*(Q6+Y*Q7))))));
+      return tmp;
+    }
   }
 
   //! Returns the minimum value of array
