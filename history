@@ -3,6 +3,20 @@ o----------------o
 o----------------o
 
 
+# MUNICH version 2.0.1 release (2022-01-05)
+
+## Model
+
+- Added a new parametrization for wind speed and vertical transfer coefficient based on Wang (2012; 2014). 
+- Correction of the formulations to compute wind speed at roof level (uH) and
+  wind speed attenuation in the street.
+
+## Bug fixes
+
+- Use a minimum value for transfer_velocity to avoid the zero division.
+- Corrected the array size for diam_input
+
+
 # MUNICH version 2.0 release (2021-09-01)
 
 ## Model
