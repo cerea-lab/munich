@@ -6,7 +6,7 @@ used to simulate subgrid concentrations in the urban canopy represented by the
 street network. MUNICH is designed for the coupling to Polair3D
 chemical-transport model to form a Street-in-Grid model (SinG) on the
 Polyphemus air-quality modeling platform (see http://cerea.enpc.fr/polyphemus/).
-MUNICH is distributed under the GNU General Public License.
+MUNICH is distributed under the GNU General Public License v3.
 
 For more information on MUNICH, see http://cerea.enpc.fr/munich/
 
