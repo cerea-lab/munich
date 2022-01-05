@@ -15,7 +15,7 @@ fi
 if [ $method = "1" ]
 then
 
-    git clone git@gitlab.enpc.fr:cerea/munich.git $DIR
+    git clone git@gitlab.enpc.fr:cerea/codes/munich/munich.git $DIR
     git clone git@gitlab.enpc.fr:cerea/ssh-aerosol.git $DIR/include/ssh-aerosol    
     git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
     git clone git@gitlab.enpc.fr:cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
@@ -27,7 +27,7 @@ then
 
     read -p "Please enter Gitlab user name [often, firstname.name] " USER
 
-    git clone https://$USER@gitlab.enpc.fr/cerea/munich.git $DIR
+    git clone https://$USER@gitlab.enpc.fr/cerea/codes/munich/munich.git $DIR
     git clone https://$USER@gitlab.enpc.fr/cerea/ssh-aerosol.git $DIR/include/ssh-aerosol
     git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/atmodata.git $DIR/include/AtmoData
     git clone https://$USER@gitlab.enpc.fr/cerea/codes/polyphemus/seldondata.git $DIR/include/SeldonData
