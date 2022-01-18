@@ -23,7 +23,7 @@ content = [("Output_dir", "[output]", "String"), \
 def speciation_voc(configuration_file = "sing_preproc.cfg"):
 
     print(configuration_file)
-    config = talos.Config(default_config, content)
+    config = talos.Config(configuration_file, content)
     meca = config.meca
     home_dir = config.Output_dir
 
@@ -122,23 +122,27 @@ def speciation_voc(configuration_file = "sing_preproc.cfg"):
     input_dir = home_dir + "/emission/"
     input_file = input_dir + "NMHC.bin"
 
-    total = 0.0
     # Get array shape of input file and load to an array.
     inputfile_size = io.get_filesize(input_file)
     array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
     print(array_shape)
     input_array = io.load_binary(input_file, array_shape)
 
+    total = 0.0
     # Compute and write to binary files;
     for s_model in range(ns_model):
-        total += species_factor[s_model]
         print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
         
         output_array = input_array * species_factor[s_model]
         output_filename = input_dir + model_species[s_model] + ".bin"
 
-        io.save_binary(output_array, output_filename)
+        if (model_species[s_model] == "CH4"):
+            print(model_species[s_model], " is ignored.")
+        else:
+            io.save_binary(output_array, output_filename)
+            total += species_factor[s_model]
+
     print("total species factor:", total)
 
 
@@ -155,7 +159,6 @@ def speciation_voc(configuration_file = "sing_preproc.cfg"):
 
     # Compute and write to binary files;
     for s_model in range(ns_model):
-        total += species_factor[s_model]
         print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
         # print command
@@ -163,8 +166,11 @@ def speciation_voc(configuration_file = "sing_preproc.cfg"):
 
         output_array = input_array * species_factor[s_model]
         output_filename = input_dir + model_species[s_model] + ".bin"
-
-        io.save_binary(output_array, output_filename)
+        
+        if (model_species[s_model] == "CH4"):
+            print(model_species[s_model], " is ignored.")
+        else:
+            io.save_binary(output_array, output_filename)
 
 
 
