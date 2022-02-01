@@ -3796,10 +3796,10 @@ namespace Polyphemus
         T ustar = street->GetStreetUstar();
         T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)        
         T wind_direction = street->GetWindDirection();
-        int nz = 10 * h; // number of points to itegrate Wang's wind profile
-        z.resize(nz);
-        u_z.resize(nz);
-        function_g_z.resize(nz);
+        int nz = int(10 * h); // number of points to itegrate Wang's wind profile
+        z.resize(nz + 1);
+        u_z.resize(nz + 1);
+        function_g_z.resize(nz + 1);
         
         delta_i = min(h, w / 2.0);
         phi = abs(wind_direction - ang);
