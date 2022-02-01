@@ -12,6 +12,13 @@ case $i in
     mpi="${i#*=}"
     shift
     ;;
+# Read the option for Chemistry kinetic mechanism.
+# Accepted values: racm, racm2, cb05
+# Default: chemistry=cb05
+    -c=*|--chemistry=*)
+    chemistry="${i#*=}"
+    shift
+    ;;
 esac
 done
 
@@ -20,8 +27,9 @@ if [ -z $mpi ]; then
 fi
 echo "MPI: $mpi"
 
-
-chemistry=cb05
+if [ -z $chemistry ]; then
+    chemistry="cb05"
+fi
 
 # Compile SSH-Aerosol modele
 cd ../../include/ssh-aerosol
@@ -32,8 +40,6 @@ echo "Completed: compiling of SSH-Aerosol"
 echo "==================================="
 
 cd $current_dir
-
-
 
 scons -j6 mpi=$mpi
 
