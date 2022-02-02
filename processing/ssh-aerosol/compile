@@ -19,6 +19,12 @@ case $i in
     chemistry="${i#*=}"
     shift
     ;;
+# Read the option to debug.
+    -d)
+        profile="debug"
+        echo "=== DEBUG MODE ==="
+    shift
+    ;;
 esac
 done
 
@@ -31,6 +37,11 @@ if [ -z $chemistry ]; then
     chemistry="cb05"
 fi
 
+if [ -z $profile ]; then
+    profile="fast"
+fi
+
+
 # Compile SSH-Aerosol modele
 cd ../../include/ssh-aerosol
 ./compile -s=yes -c=$chemistry
@@ -41,7 +52,7 @@ echo "==================================="
 
 cd $current_dir
 
-scons -j6 mpi=$mpi
+scons -j6 mpi=$mpi profile=$profile 
 
 echo "=============================="
 echo "Completed: compiling of MUNICH"
