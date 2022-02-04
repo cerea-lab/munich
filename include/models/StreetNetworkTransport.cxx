@@ -2713,7 +2713,12 @@ namespace Polyphemus
             else if (DepositionVelocityName(s) == "SO2")
               Rg = Rg_SO2;
             else
-              Rg = 1. / (alpha_ / Rg_SO2 + beta_ / Rg_O3);
+	      {
+		if (alpha_ == 0. && beta_ == 0.)
+		  Rg = numeric_limits<real>::infinity();
+		else
+		  Rg = 1. / (alpha_ / Rg_SO2 + beta_ / Rg_O3);
+	      }
             T temperature_celsius = temperature_ - 273.15;
             if (temperature_celsius < -1.)
               Rg = Rg * exp(0.2 * (-1. - temperature_celsius));
