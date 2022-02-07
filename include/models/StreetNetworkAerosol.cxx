@@ -3076,7 +3076,7 @@ namespace Polyphemus
               concentration_aer_mpi(i, s, b) = new_concentration_array_aer(s, b);
               massflux_roof_to_background_aer_mpi(i, s, b) = temp * (new_concentration_array_aer(s, b) - street->GetBackgroundConcentration_aer(s, b)); // ug/s
               T conc_delta = new_concentration_array_aer(s, b) - init_concentration_array_aer(s, b);
-              street_quantity_delta_mpi(i, s, b) = conc_delta * street_volume; // ug
+              street_quantity_delta_aer_mpi(i, s, b) = conc_delta * street_volume; // ug
             }
 #else
 	    {
