@@ -1,0 +1,246 @@
+[species]
+
+NH3     HCL	MALEIC	HUMULE	BiBmP
+BiBlP	TOL	POAhP	POAlP	POAmP
+SOAhP	SOAlP	SOAmP	OXYL	MEMALD
+GLYOX	NC4H10	TMB	C2H6	N2O5
+SO2	H2SO4	H2O	BiPER	BiNIT3
+CH3COY	CH3OH	BiDER	obioH	oROOH
+PAN	PANH	PPA	toPAN	H2O2
+APINEN	LIMONE	BiNIT	C5H8	MAC
+C3H6	CH4	H2	CARNIT	BPINEN
+BiA1D	BiA2D	ISHP	MAHP	BiMGA
+BiNGA	BiMT	MVK	MGLYOX	HONO
+CH3O2H	OCIMEN	BiA0D	C2H4	ISON
+MPAN	ISNI	CH3COE	CH3CHO	oRN1
+AnBlP	AnBmP	CO	HNO3	AnClP
+TOLP	XYLP	O3	OH	MACR
+MACP	obio	oRO2	CO2	HCHO
+CH3O2	ISOP	HO2	NO3	oPAN
+CH3COO	NO2	NO				
+
+
+[aerosol_species]
+
+# Water must be the last species.
+
+PDUST   PPM  	POCAR	PBCAR     PNA	     PSO4
+PNH4    PNO3	PHCL	PBiA2D    PBiA1D     PBiA0D
+PBiMT   PBiPER 	PBiDER	PBiMGA 	  PAnBlP     PAnBmP
+PBiBlP  PBiBmP	PBiNGA	PBiNIT3   PBiNIT     PAnClP
+PSOAlP  PSOAmP	PSOAhP	PPOAlP    PPOAmP     PPOAhP
+PH2O
+
+
+[molecular_weight]
+
+# Unit: g / mol
+NH3     17.                                                                                                   
+HCL     36.5                                                                                                  
+MALEIC  1.                                                                                                    
+HUMULE  136.                                                                                                  
+BiBmP   236.                                                                                                  
+BiBlP   298.                                                                                                  
+TOL     92.                                                                                                   
+POAhP   280.                                                                                                  
+POAlP   280.                                                                                                  
+POAmP   280.                                                                                                  
+SOAhP   392.                                                                                                  
+SOAlP   392.                                                                                                  
+SOAmP   392.                                                                                                  
+OXYL    106.                                                                                                  
+MEMALD  98.                                                                                                   
+GLYOX   58.                                                                                                   
+NC4H10  58.                                                                                                   
+TMB     120.                                                                                                  
+C2H6    30.                                                                                                   
+N2O5    108.                                                                                                  
+SO2     64.                                                                                                   
+H2SO4   98.                                                                                                   
+H2O     18.                                                                                                   
+BiPER   168.
+BiNIT3  272.                                                                                                  
+CH3COY  86.                                                                                                   
+CH3OH   32.                                                                                                   
+BiDER   136.                                                                                                  
+obioH   64.                                                                                                   
+oROOH   64.                                                                                                   
+PAN     109.                                                                                                  
+PANH    64.                                                                                                   
+PPA     64.                                                                                                   
+toPAN   161.                                                                                                  
+H2O2    34.                                                                                                   
+APINEN  136.                                                                                                  
+LIMONE  136.                                                                                                  
+BiNIT   215.                                                                                                  
+C5H8    68.                                                                                                   
+MAC     70.                                                                                                   
+C3H6    42.                                                                                                   
+CH4     16.                                                                                                   
+H2      2.                                                                                                    
+CARNIT  1.                                                                                                    
+BPINEN  136.                                                                                                  
+BiA1D   170.                                                                                                  
+BiA2D   186.                                                                                                  
+ISHP    117.                                                                                                  
+MAHP    102.                                                                                                  
+BiMGA   120.                                                                                                  
+BiNGA   165.                                                                                                  
+BiMT    136.                                                                                                  
+MVK     70.                                                                                                   
+MGLYOX  72.                                                                                                   
+HONO    47.
+CH3O2H  64.                                                                                                   
+OCIMEN  136.                                                                                                  
+BiA0D   168.                                                                                                  
+C2H4    28.                                                                                                   
+ISON    147.                                                                                                  
+MPAN    148.                                                                                                  
+ISNI    1.                                                                                                    
+CH3COE  72.                                                                                                   
+CH3CHO  44.                                                                                                   
+oRN1    1.                                                                                                    
+AnBlP   167.                                                                                                  
+AnBmP   152.                                                                                                  
+CO      28.                                                                                                   
+HNO3    63.                                                                                                   
+AnClP   167.                                                                                                  
+TOLP    141.                                                                                                  
+XYLP    155.                                                                                                  
+O3      48.                                                                                                   
+OH      17.                                                                                                   
+MACR    70.                                                                                                   
+MACP    101.                                                                                                  
+obio    1.                                                                                                    
+oRO2    1.                                                                                                    
+CO2     44.                                                                                                   
+HCHO    30.
+CH3O2   47.                                                                                                   
+ISOP    68.18                                                                                                 
+HO2     33.                                                                                                   
+NO3     62.                                                                                                   
+oPAN    1.                                                                                                    
+CH3COO  59.                                                                                                   
+NO2     46.                                                                                                   
+NO      30.
+
+[molecular_weight_aer]
+
+# Unit: g / mol
+PDUST   28.0   PPM     12.0   POCAR   12.0   PBCAR   12.0
+PNA     23.0   PSO4    98.0   PNH4    17.0   PNO3    63.0
+PHCL    36.5   PBiA2D  186.0  PBiA1D  170.0  PBiA0D  168.0
+PBiMT   136.0  PBiPER  168.0  PBiDER  136.0  PBiMGA  120.0
+PAnBlP  167.0  PAnBmP  152.0  PBiBlP  298.0  PBiBmP  236.0
+PBiNGA  165.0  PBiNIT3 272.0  PBiNIT  215.0  PAnClP  167.0
+PSOAlP  392.0  PSOAmP  392.0  PSOAhP  392.0  PPOAlP  280.0
+PPOAmP  280.0  PPOAhP  280.0  PH2O    18.0
+
+
+[mass_density_aer]
+
+# Unit: g / cm^3
+PDUST     2.33	 PPM	 2.25   POCAR   2.25   PBCAR   2.25
+PNA 	  0.97   PSO4    1.84   PNH4    0.91   PNO3    1.5
+PHCL      1.15   PBiA2D  1.3    PBiA1D  1.3    PBiA0D  1.3
+PBiMT  	  1.3    PBiPER  1.3    PBiDER  1.3    PBiMGA  1.3
+PAnBlP 	  1.3    PAnBmP  1.3    PBiBlP  1.3    PBiBmP  1.3
+PBiNGA 	  1.3    PBiNIT3 1.3    PBiNIT  1.3    PAnClP  1.3
+PPOAlP 	  1.3    PPOAmP  1.3    PPOAhP  1.3    PSOAlP  1.3
+PSOAmP 	  1.3    PSOAhP  1.3    PH2O    1.0
+
+[gas_species_cloud_interact]
+
+# List of gas species interacting with cloud phase,
+# the order is imposed by VSRM and simple.
+NH3 HNO3 HCL SO2 H2O2 HCHO HONO O3 OH HO2 NO3 NO NO2 PAN H2SO4
+
+[diffusivity]
+
+# Gas-phase diffusivities: cm^2 / s.
+O3        0.14    NO        0.17    NO2       0.14    H2O2      0.16
+PAN       0.08    HONO      0.14    SO2       0.12    HNO3      0.12
+CO        0.18    N2O5      0.1     POAlP     0.0634  POAmP     0.0634
+POAhP     0.0634  SOAlP     0.0388  SOAmP     0.0388  SOAhP     0.0388
+NH3	  0.20	  HCL	    0.14
+
+[henry]
+
+# Henry constant: mol / L / atm.
+# Must be effective Henry constant except HONO, HNO3, HCL, NH3 and SO2.
+O3      1.14e-2    NO      1.9e-3    NO2    1.2e-2       H2O2   1.02e5
+PAN     5.         HONO    49.0      SO2    1.23         HNO3   2.1e5
+CO      1.e3       N2O5    1.e14     POAlP  4.0e5        POAmP  1.6e5
+POAhP   1.0e5      SOAlP   1.3e7     SOAmP  4.0e5        SOAhP  1.45e5
+NH3	62.0	   HCL	   1.1
+
+[dissolution_heat]
+
+# Heat of dissolution: kcal / mol at 298K.
+O3       -5.04    NO      -2.9    NO2      -5.0    H2O2     -14.5
+PAN      0.0      HONO    -9.5    SO2      -6.25   HNO3     -17.27
+CO       0.0      N2O5    0.0	  NH3      -8.17   HCL	    -4.0
+
+
+[reactivity]
+
+# Chemical reactivity.
+O3       1.0     NO       0.0    NO2      0.1     H2O2     1.0
+PAN      0.1     HONO     0.1
+SO2      0.0     HNO3     0.0    PACD     0.1
+CO       0.0     POAlP	  0.1 	 POAmP    0.1
+POAhP	 0.1	 SOAlP	  0.1	 SOAmP	  0.1	  SOAhP    0.1
+
+[alpha]
+
+SO2	1.	NO	0.	NO2	0.	O3	0.
+H2O2	1.	HNO3	10.	HONO	2.	PAN	0.
+CO	0.01	POAlP	0.	POAmP	0.	POAhP   0.
+SOAlP	0.	SOAmP	0.	SOAhP   0.	NH3	1.
+HCL	1.
+
+[beta]
+
+SO2	0.	NO	0.	NO2	0.8	O3	1.
+H2O2	1.	HNO3	10.	HONO	2.	PAN	0.6
+CO	0.	POAlP	0.05	POAmP	0.05	POAhP   0.05
+SOAlP	0.05	SOAmP	0.05	SOAhP   0.05	NH3	0.
+HCL	0.
+
+[drainage_efficiency]
+
+PDUST  1.e-3
+PPM    1.e-3
+POCAR  1.e-3
+PBCAR  1.e-3
+PNA    1.0
+PSO4   1.0
+PNH4   1.0
+PNO3 1.0
+PHCL 1.0
+PBiA2D 1.0
+PBiA1D 1.0
+PBiA0D 1.0
+PBiMT  1.0
+PBiPER 1.0
+PBiDER 1.0
+PBiMGA 1.0
+PAnBlP 1.e-3
+PAnBmP 1.e-3
+PBiBlP 1.e-3
+PBiBmP 1.e-3
+PBiNGA 1.e-3
+PBiNIT3  1.e-3
+PBiNIT 1.e-3
+PAnClP 1.e-3
+PPOAlP 1.e-3
+PPOAmP 1.e-3
+PPOAhP 1.e-3
+PSOAlP 1.e-3
+PSOAmP 1.e-3
+PSOAhP 1.e-3
+
+[Rm]
+
+POAlP	0.	POAmP	0.	POAhP   0.
+SOAlP	0.	SOAmP	0.	SOAhP   0.
