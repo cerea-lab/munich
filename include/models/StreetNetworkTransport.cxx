@@ -2140,8 +2140,8 @@ namespace Polyphemus
               Rg = Rg_SO2;
             else
               Rg = ComputeGroundResistance(Rg_SO2, Rg_O3, alpha_(s), beta_(s), temperature_celsius);
-            Cut(Rg);
-	    
+
+	    Cut(Rg);
             T Req = Rb(s) + Rg;
 	    
             if (Req <= 0.0)
