@@ -1421,6 +1421,10 @@ namespace Polyphemus
         // Call a simplified aqueous chemistry module.        
         else if (aqueous_module == "simple")
           {
+	    if (Ns_cloud_interact != 15)
+	      {
+		throw string( "be careful, the gas_species_cloud_interact list in the species file must, for now, contain exactly 15 elements. The list must respect this order : NH3 HNO3 HCL SO2 H2O2 HCHO HONO O3 OH HO2 NO3 NO NO2 PAN H2SO4" );
+	      }
             // Estimate number concentration from mass
             if (!option_process_aer["with_number_concentration"])
               {
