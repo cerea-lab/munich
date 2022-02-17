@@ -199,6 +199,9 @@ file_psfc = output_dir + "/meteo/SurfacePressure.bin"
 file_t2 = output_dir + "/meteo/SurfaceTemperature.bin"
 file_sh = output_dir + "/meteo/SpecificHumidity.bin"
 file_attenuation = output_dir + "/meteo/Attenuation.bin"
+file_lwc = output_dir + "/meteo/LiquidWaterContent.bin"
+file_rain = output_dir + "/meteo/Rain.bin"
+
 
 file_wind_dir_inter = output_dir + "/meteo/WindDirectionInter.bin"
 file_wind_speed_inter = output_dir + "/meteo/WindSpeedInter.bin"
@@ -338,7 +341,7 @@ for t in range(nt):
                     + ',' + str(street.eff_begin) + ',' + str(street.end) + ','\
                     + str(street.eff_end) + '\n')
     get_meteo_data(config.meteo_dir, current_date, \
-                           street_list_eff, node_list_eff, config.wrfout_prefix)
+                   street_list_eff, node_list_eff, config.wrfout_prefix)
     
     background_concentration_file = config.background_concentration
 
@@ -369,7 +372,7 @@ for t in range(nt):
 # ------------
 # Write output
 # ------------
-    wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
+    wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter_, wind_speed_inter_, pblh_inter_, ust_inter_, lmo_inter_, emission_array, lwc, rain = write_output(node_list, street_list, node_list_eff, street_list_eff, current_date, textfile_dir, emis_species_list)
 
     append_binary(wind_dir, file_wind_dir)
     append_binary(wind_speed, file_wind_speed)
@@ -380,6 +383,8 @@ for t in range(nt):
     append_binary(t2, file_t2)
     append_binary(sh, file_sh)
     append_binary(attenuation, file_attenuation)
+    append_binary(lwc, file_lwc)
+    append_binary(rain, file_rain)
 
     append_binary(wind_dir_inter_, file_wind_dir_inter)
     append_binary(wind_speed_inter_, file_wind_speed_inter)

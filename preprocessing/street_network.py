@@ -1,4 +1,4 @@
-import re, sys
+import re, sys, os
 from compute_distance import *
 import datetime
 import numpy as np
@@ -48,6 +48,8 @@ class Street:
         self.emission = emission
         self.eff_emission = emission
         self.typo = 0
+        self.lwc = 0.0
+        self.rain = 0.0
 
 
 # Check if two nodes are same
@@ -310,6 +312,14 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
     str_date = current_date.strftime("%Y-%m-%d")
     input_file = input_dir + wrfout_prefix + "_" + str_date + "_00:00:00"
     f = netcdf.netcdf_file(input_file, 'r')
+
+    start_date = f.__getattribute__("SIMULATION_START_DATE")
+    print(str_date, start_date)
+    
+    previous_date = current_date - datetime.timedelta(seconds = 3600)
+    str_prev_date = previous_date.strftime("%Y-%m-%d")
+    previous_file = input_dir + wrfout_prefix + "_" + str_prev_date + "_00:00:00"
+     
     times = f.variables["Times"][:]
     lons = f.variables["XLONG"][:]
     lats = f.variables["XLAT"][:]
@@ -323,6 +333,9 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
     hfx = f.variables["HFX"][:] # Sensible heat
     lh = f.variables["LH"][:] # Latent heat
 
+    nx = lons.shape[2]
+    ny = lons.shape[1]
+    
     # For chemistry
     sh = f.variables["QVAPOR"][:] # Specific humidity
     t2 = f.variables["T2"][:] # Surface temperature
@@ -330,6 +343,27 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
     pressure_pert = f.variables["P"][:] # Pressure Perturbation
     base_pres = f.variables["PB"][:] # Base state pressure
 
+    rainc = f.variables["RAINC"][:] # Convective Rain
+    rainnc = f.variables["RAINNC"][:] # Non-convective Rain
+    rain = rainc + rainnc
+
+    prev_accumulated_rain = True
+    print(rain.shape)
+    if (os.path.isfile(previous_file) and prev_accumulated_rain):
+        f_prev = netcdf.netcdf_file(previous_file, 'r')
+        rainc_prev = f_prev.variables["RAINC"][:] # Convective Rain
+        rainnc_prev = f_prev.variables["RAINNC"][:] # Non-convective Rain
+        rain_prev = (rainc_prev + rainnc_prev)
+        for i in range(nx):
+            for j in range(ny):
+                rain[0,j,i] = max((rain[0,j,i] - rain_prev[-1,j,i]), 0.0)
+    else:
+        print("File for the previous date is not available.")
+        
+    solar_radiation = f.variables["SWDOWN"][:] # Solar Radiation
+    
+
+    
     # Heights
     ptop = f.variables["P_TOP"][0]
     Tiso = f.variables["TISO"][0]
@@ -361,9 +395,13 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
         print("Error: meteo data are not available")
         sys.exit()
 
-    nx = lons.shape[2]
-    ny = lons.shape[1]
-
+    # Decumulate rain
+    if (ind_t == 0):
+        rain = rain[ind_t]
+    else:
+        rain = rain[ind_t] - rain[ind_t - 1]
+   
+    
     # Get meteo data for the streets
     for s in range(len(street_list)):
         street = street_list[s]
@@ -386,8 +424,14 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
         sh_cell = sh[ind_t, 0, ind_j, ind_i]
         psfc_cell = psfc[ind_t, ind_j, ind_i]
         t2_cell = t2[ind_t, ind_j, ind_i]
-        lwc_colon = lwc[ind_t, :, ind_j, ind_i]
 
+        # For chemistry
+        lwc_cell = lwc[ind_t, 0, ind_j, ind_i]
+        lwc_colon = lwc[ind_t, :, ind_j, ind_i]
+        rain_cell = rain[ind_j, ind_i]
+        solar_radiation_cell = solar_radiation[ind_t, ind_j, ind_i]
+    
+        
         # Compute wind direction
         temp = math.atan2(v10_cell, u10_cell) # -pi < temp < pi
         if temp <= (math.pi / 2.0):
@@ -455,7 +499,10 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
         hfx_cell = hfx[ind_t, ind_j, ind_i]
         lmo = (-1.0 * pow(ust_cell, 3.0) * theta_mean) / (ka * g * (hfx_cell + 0.608 * theta_mean * evaporation))
         street.lmo = lmo
-
+        
+        street.lwc = lwc_cell
+        street.rain = rain_cell
+        
     # Get meteo data for the intersections.    
     for n in range(len(node_list)):
         node = node_list[n]
@@ -656,6 +703,11 @@ def compute_relative_humidity(SpecificHumidity, Temperature, Pressure):
                         / (Temperature - 29.65))
     RelativeHumidity = SpecificHumidity * Pressure / ( (0.62197 * (1.0 - SpecificHumidity) + SpecificHumidity ) * P_sat)
     return RelativeHumidity
+
+
+
+
+
 
 def get_background_concentration(input_file, current_date, street_list):
 
@@ -950,6 +1002,8 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
     t2 = np.zeros((len(street_list_eff)), 'float')
     attenuation = np.zeros((len(street_list_eff)), 'float')
     sh = np.zeros((len(street_list_eff)), 'float')
+    lwc = np.zeros((len(street_list_eff)), 'float')
+    rain = np.zeros((len(street_list_eff)), 'float')
     background={}
     street0=street_list_eff[0]
     for spec in list(street0.background.keys()):
@@ -969,6 +1023,8 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         t2[i] = street.t2
         sh[i] = street.sh
         attenuation[i] = street.attenuation
+        lwc[i] = street.lwc
+        rain[i] = street.rain
 
         for spec in list(background.keys()):
             background[spec][i]=street.background[spec]
@@ -986,7 +1042,7 @@ def write_output(node_list, street_list, node_list_eff, street_list_eff, current
         ust_inter[i] = node.ust
         lmo_inter[i] = node.lmo
 
-    return wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter, wind_speed_inter, pblh_inter, ust_inter, lmo_inter, emission_array
+    return wind_dir, wind_speed, pblh, ust, lmo, psfc, t2, sh, attenuation, background, wind_dir_inter, wind_speed_inter, pblh_inter, ust_inter, lmo_inter, emission_array, lwc, rain
 
 
 def get_polair_ind(polair_lon, polair_lat, street):
