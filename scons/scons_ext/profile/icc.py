@@ -212,19 +212,19 @@ def debug(utils):
 
         # The run-time error 'recursive call to nonrecursive procedure' appears
         #        "-fcheck=all", (YK)
-        "-fcheck=array-temps,bounds,do,mem,pointer",
+        "-check all",
         # Equivalent to "implicit none" in every procedure.
         #-fimplicit-none
         # Display the stack on fatal error
-        "-fbacktrace",
+        "-traceback",
     ])
 
-    # GFortran can trap invalid operations and float overflow. It can also trap
-    # float division by zero, but we rely on the sanitizer for this.
-    if ARGUMENTS["float_overflow"] == "abort":
-        p.flag_fortran += " -ffpe-trap=invalid,overflow"
-    else:
-        p.flag_fortran += " -ffpe-trap=invalid"
+    # # GFortran can trap invalid operations and float overflow. It can also trap
+    # # float division by zero, but we rely on the sanitizer for this.
+    # if ARGUMENTS["float_overflow"] == "abort":
+    #     p.flag_fortran += " -ffpe-trap=invalid,overflow"
+    # else:
+    #     p.flag_fortran += " -ffpe-trap=invalid"
 
     # GFortran can sets default values to a some unitialized memory, but it
     # would silent '-Wunitialized' so it is not enabled.
