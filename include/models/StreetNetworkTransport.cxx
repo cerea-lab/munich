@@ -2715,7 +2715,7 @@ namespace Polyphemus
             else
 	      {
 		if (alpha_ == 0. && beta_ == 0.)
-		  Rg = numeric_limits<real>::infinity();
+		  Rg = 1e+30;
 		else
 		  Rg = 1. / (alpha_ / Rg_SO2 + beta_ / Rg_O3);
 	      }
