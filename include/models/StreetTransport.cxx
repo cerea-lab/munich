@@ -61,11 +61,6 @@ namespace Polyphemus
     cloud_height_ = 0.0;
     relative_humidity_ = 0.0;
     specific_humidity_ = 0.0;
-    richardson_ = 0.0;
-    solar_radiation_ = 0.0;
-    canopy_wetness_ = 0.0;
-    pardiff_ = 0.0;
-    pardir_ = 0.0;
     pH_ = 4.5;
     sH_ = 1.0;
 
@@ -479,13 +474,7 @@ namespace Polyphemus
                                            T pressure,
 					   T temperature,
 					   T rain,
-					   //new meteo for SVOC deposition
-					   T specific_humidity,
-					   T richardson,
-					   T solar_radiation,
-					   T canopy_wetness,
-					   T pardiff,
-					   T pardir)
+					   T specific_humidity)
   {
     wind_direction_ = wind_direction;
     wind_speed_ = wind_speed;
@@ -495,13 +484,7 @@ namespace Polyphemus
     pressure_ = pressure;
     temperature_ = temperature;
     rain_ = rain;
-    //new meteo for SVOC deposition
     specific_humidity_ = specific_humidity;
-    richardson_ = richardson;
-    solar_radiation_ = solar_radiation;
-    canopy_wetness_ = canopy_wetness;
-    pardiff_ = pardiff;
-    pardir_ = pardir;
   }
 
   //! Returns the attenuation
@@ -1086,55 +1069,6 @@ namespace Polyphemus
     return typo_;
   }
 
-  //! Returns the emission rate.
-  /*!
-    \return The emission rate in the street (ug/s).
-  */
-  template<class T>
-  inline T Street<T>::GetRichardson() const
-  {
-    return richardson_;
-  }
-
-  //! Returns the emission rate.
-  /*!
-    \return The emission rate in the street (ug/s).
-  */
-  template<class T>
-  inline T Street<T>::GetSolarRadiation() const
-  {
-    return solar_radiation_;
-  }
-
-  //! Returns the emission rate.
-  /*!
-    \return The emission rate in the street (ug/s).
-  */
-  template<class T>
-  inline T Street<T>::GetCanopyWetness() const
-  {
-    return canopy_wetness_;
-  }
-
-  //! Returns the emission rate.
-  /*!
-    \return The emission rate in the street (ug/s).
-  */
-  template<class T>
-  inline T Street<T>::GetPARdiff() const
-  {
-    return pardiff_;
-  }
-
-  //! Returns the emission rate.
-  /*!
-    \return The emission rate in the street (ug/s).
-  */
-  template<class T>
-  inline T Street<T>::GetPARdir() const
-  {
-    return pardir_;
-  }
 
     //! 
   /*!

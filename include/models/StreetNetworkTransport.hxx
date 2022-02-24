@@ -66,9 +66,6 @@ namespace Polyphemus
     string option_transfer, option_ustreet, option_method;
     string option_uH, option_uH_macdonald;
     
-    string option_dep_svoc, option_dep_svoc_ra, option_dep_svoc_rb, option_dep_svoc_rc;
-    string file_config_dep_svoc, option_roughness;
-    
     T sub_delta_t_min;
     bool is_stationary;
     //! Output configuration.
@@ -96,9 +93,6 @@ namespace Polyphemus
     //! 2D grid for species.
     RegularGrid<T> GridS2D;
 
-    //! 2D grid for streets.
-    RegularGrid<T> GridNluc;
-    
     /*** Emission ***/
 
     int Nt_emis;
@@ -268,8 +262,6 @@ namespace Polyphemus
     //! LMO buffer.
     Data<T, 1> FileLMO_f;
 
-    //new meteo for SVOC deposition--------
-    
     //! SpecificHumidity at current date.
     Data<T, 1> SpecificHumidity_i;    
     //! SpecificHumidity at next date.
@@ -278,61 +270,6 @@ namespace Polyphemus
     Data<T, 1> FileSpecificHumidity_i;
     //! SpecificHumidity buffer.
     Data<T, 1> FileSpecificHumidity_f;
-
-    //! Richardson at current date.
-    Data<T, 1> Richardson_i;    
-    //! Richardson at next date.
-    Data<T, 1> Richardson_f;    
-    //! Richardson buffer.
-    Data<T, 1> FileRichardson_i;
-    //! Richardson buffer.
-    Data<T, 1> FileRichardson_f;
-
-    //! SolarRadiation at current date.
-    Data<T, 1> SolarRadiation_i;    
-    //! SolarRadiation at next date.
-    Data<T, 1> SolarRadiation_f;    
-    //! SolarRadiation buffer.
-    Data<T, 1> FileSolarRadiation_i;
-    //! SolarRadiation buffer.
-    Data<T, 1> FileSolarRadiation_f;
-
-    //! CanopyWetness at current date.
-    Data<T, 1> CanopyWetness_i;    
-    //! CanopyWetness at next date.
-    Data<T, 1> CanopyWetness_f;    
-    //! CanopyWetness buffer.
-    Data<T, 1> FileCanopyWetness_i;
-    //! CanopyWetness buffer.
-    Data<T, 1> FileCanopyWetness_f;
-
-    //! PARdiff at current date.
-    Data<T, 1> PARdiff_i;    
-    //! PARdiff at next date.
-    Data<T, 1> PARdiff_f;    
-    //! PARdiff buffer.
-    Data<T, 1> FilePARdiff_i;
-    //! PARdiff buffer.
-    Data<T, 1> FilePARdiff_f;
-
-    //! Ground Land Use.
-    Data<T, 2> LandUse;
-
-    //! Roughness.
-    Data<T, 1> Roughness;
-
-    string LUC_file, Roughness_file;
-    int LUC_urban_index, Nluc;
-
-    //! PARdir at current date.
-    Data<T, 1> PARdir_i;    
-    //! PARdir at next date.
-    Data<T, 1> PARdir_f;    
-    //! PARdir buffer.
-    Data<T, 1> FilePARdir_i;
-    //! PARdir buffer.
-    Data<T, 1> FilePARdir_f;
-    //-------------------------------------
 
     //! WindDirectionInt at current date.
     Data<T, 1> WindDirectionInter_i;    
@@ -537,7 +474,6 @@ namespace Polyphemus
     void Infinity(Data<T, 1>& Data_info);
     void Cut(Data<T, 1>& Data_info);
     void Cut(T& Data_info);
-    void ComputeSVOCDryDepositionVelocities();
     string DepositionVelocityName(int s) const;
     int DepositionVelocityGlobalIndex(int s) const;
     void SetStreetDryDepositionFlux();

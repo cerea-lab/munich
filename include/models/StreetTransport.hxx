@@ -130,11 +130,6 @@ namespace Polyphemus
     T temperature_;
     T relative_humidity_;
     T specific_humidity_;
-    T richardson_;
-    T solar_radiation_;
-    T canopy_wetness_;
-    T pardiff_;
-    T pardir_;
     
     /*** Dry deposition ***/
     Array<T, 1> street_dry_deposition_velocity_;
@@ -209,13 +204,7 @@ namespace Polyphemus
 			   T pressure,
 			   T temperature,
 			   T rain,
-			   //new meteo for SVOC deposition
-			   T specific_humidity,
-			   T richardson,
-			   T solar_radiation,
-			   T canopy_wetness,
-			   T pardiff,
-			   T pardir);
+			   T specific_humidity);
     T GetPressure() const;
     T GetTemperature() const;
     T GetWindSpeed() const;
@@ -268,11 +257,6 @@ namespace Polyphemus
 
     T GetRelativeHumidity() const;
     T GetSpecificHumidity() const;
-    T GetRichardson() const;
-    T GetSolarRadiation() const;
-    T GetCanopyWetness() const;
-    T GetPARdiff() const;
-    T GetPARdir() const;
     void SetRelativeHumidity(T relative_humidity);
     //aerosol------------------------------------------
 
