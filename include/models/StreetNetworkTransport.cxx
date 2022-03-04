@@ -4,8 +4,6 @@
 // INCLUDES //
 
 #include "StreetNetworkTransport.hxx"
-#include "libRa.cxx"
-#include "libRs.cxx"
 
 // INCLUDES //
 //////////////
@@ -141,13 +139,6 @@ namespace Polyphemus
       this->option_process["with_initial_condition"] = false;
 
     this->config.SetSection("[street]");
-    if (this->option_process["with_deposition"])
-      {
-        this->config.PeekValue("Deposition_wind_profile",
-                               "Masson | Macdonald ",
-                               option_wind_profile);
-        option_wind_profile = lower_case(option_wind_profile);
-      }
     
     this->config.PeekValue("Transfer_parameterization",
                            "Sirane | Schulte | Wang", option_transfer);
@@ -162,7 +153,12 @@ namespace Polyphemus
       this->config.PeekValue("Zref", "> 0", zref);
     else
       zref = 30.0;
-    
+
+      if (this->config.Check("z0_surface"))
+      this->config.PeekValue("z0_surface", "> 0", z0s);
+    else
+      z0s = 0.05;
+   
     this->config.PeekValue("With_horizontal_fluctuation",
 			   this->option_process["with_horizontal_fluctuation"]);
     if (this->config.Check("Minimum_Street_Wind_Speed"))
@@ -568,7 +564,10 @@ namespace Polyphemus
     /*** Deposition ***/
 
     StreetDryDepositionVelocity.Resize(GridS2D, GridST2D);
-    StreetDryDepositionVelocity.SetZero();
+    StreetDryDepositionVelocity.SetZero(); 
+    WallDryDepositionVelocity.Resize(GridS2D, GridST2D);
+    WallDryDepositionVelocity.SetZero(); 
+ 
     
     // //StreetSurfaceDepositedMass.Resize(GridS2D, GridST2D);
 	
@@ -751,7 +750,10 @@ namespace Polyphemus
                            USTInter_f);
             
           }
+<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
         
+=======
+>>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
       }
     
     //  *** Emissions ***/
@@ -1546,6 +1548,7 @@ namespace Polyphemus
     
     SetStreetConcentration();
     SetStreetDryDepositionVelocity();
+    SetWallDryDepositionVelocity();
     this->AddTime(this->Delta_t);
     this->step++;
   }
@@ -1564,7 +1567,11 @@ namespace Polyphemus
 
     //! Compute deposition velocity
     if(this->option_process["with_deposition"])
+<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
         ComputeDryDepositionVelocities();
+=======
+      ComputeDryDepositionVelocities();
+>>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
 
     //! Compute scavenging coefficient
     if(this->option_process["with_scavenging"])
@@ -1606,25 +1613,26 @@ namespace Polyphemus
   }
   
   
-  // //Set new street concentration and deposition
-  // template<class T>
-  // void StreetNetworkTransport<T>::SetStreetOutput()
-  // {
-  //   SetStreetConcentration();
-  //   if(this->option_process["with_deposition"])
-  //     {
-  // 	SetStreetDryDepositionFlux();
-  // 	SetWallDryDepositionFlux();
-  // 	SetStreetDryDepositionRate(); // ug/s
-  // 	SetWallDryDepositionRate(); // ug/s
-	
-  //     }
-  //   if(this->option_process["with_scavenging"])
-  //     {
-  // 	SetStreetScavengingFlux();
-  // 	SetStreetScavengingRate();
-  //     }
-  // }
+  //Set new street concentration and deposition
+  template<class T>
+  void StreetNetworkTransport<T>::SetStreetOutput()
+  {
+    SetStreetConcentration();
+    if(this->option_process["with_deposition"])
+      {
+        SetStreetDryDepositionVelocity();
+        SetWallDryDepositionVelocity();
+        //SetStreetDryDepositionFlux();
+        //SetWallDryDepositionFlux();
+        //SetStreetDryDepositionRate(); // ug/s
+        //SetWallDryDepositionRate(); // ug/s	
+      }
+    if(this->option_process["with_scavenging"])
+      {
+        SetStreetScavengingFlux();
+        SetStreetScavengingRate();
+      }
+  }
 
   //! Checks if the stationarity is acheved for every streets.
   template<class T>
@@ -1854,8 +1862,69 @@ namespace Polyphemus
     Data_info = max(Data_info, 0.0);
     Data_info = min(Data_info, 1.0e+30);
   }
+
   
+<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
   
+=======
+  //! Compute surface friction velocity for deposisiton velocity according to the wind speed options
+  template<class T>
+  T StreetNetworkTransport<T>::ComputeUstarAboveSurface(T z1, T H, T W, T z0s, T ustar_city)
+  {
+    T ustar_z1;
+    T Uh = 0.0;
+    T Um = 0.0;
+    if (option_uH == "Sirane")
+      {
+        T delta = min(H, W / 2);
+        T C = ComputeSiraneC(z0s, delta);
+        Um = ComputeSiraneUm(C, ustar_city, z0s);
+        if (option_ustreet == "Sirane")
+          ustar_z1 = ComputeSiraneUstarProfile(z1, H, C, delta, Um);
+        else if (option_ustreet == "Wang")
+          {
+            T sH = ComputeWangsH(H, W);
+            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city);
+          }
+        else if (option_ustreet == "Exponential")
+          {
+            ustar_z1 = ComputeExpUstarProfile(z1, H, W, ustar_city);
+          }
+        else
+          throw("Wrong option given. Choose Sirane, Wang or Exponential.");
+      }
+    else if (option_uH == "Macdonald")
+      {
+        ComputeMacdonaldProfile();
+        if (option_ustreet == "Sirane")
+          {
+            if  (H < (d_city + z0_city))
+              Uh = 0.0;
+            else
+              Uh = ComputeMacdonaldUH(H, ustar_city, d_city, z0_city);
+            T delta = min(H, W / 2);
+            T C = ComputeSiraneC(z0s, delta);
+            T Uh_Um_factor = ComputeUmtoUHFactor(C, z0s);
+            Um = Uh / Uh_Um_factor;
+            ustar_z1 = ComputeSiraneUstarProfile(z1, H, C, delta, Um);
+          }
+        else if (option_ustreet == "Wang")
+          {
+            T sH = ComputeWangsH(H, W);
+            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city); 
+          }
+        else if (option_ustreet == "Exponential")
+          ustar_z1 = ComputeExpUstarProfile(z1, H, W, ustar_city);
+        else
+          throw("Wrong option given. Choose Sirane, Wang or Exponential.");
+      }
+    else
+      throw("Wrong option given. Choose Sirane or Macdonald.");
+  return ustar_z1;
+  }
+
+
+>>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
   //! Compute dry deposition of gas species for the whole street-network.
   template<class T>
   void StreetNetworkTransport<T>::ComputeDryDepositionVelocities()
@@ -1867,147 +1936,46 @@ namespace Polyphemus
         T H = street->GetHeight();
         T W = street->GetWidth();
         T temperature_ = street->GetTemperature();
-        T pressure_ = street->GetPressure();
 
-        // Dry deposition
-        T Ra_street_recirculation, Ra_wall_recirculation;
-
-        //
-        T Ra_street_ventilation, Ra_wall_ventilation;
-        Ra_street_ventilation = 0.0;
-        Ra_wall_ventilation = 0.0;
-
-        // Building density
-        T lambda_p = this->building_density;
-
-        // Displacement height
-        T A = 4.0;
-        T d = ComputeD(A, lambda_p, H);
-
-        // Mixing length
-        T lc = ComputeLc(H, d);
-
-        // Dimensionless parameter in Eq. 22 in Cherin et al. (2015)
-        T phi = 0.2;
-
-        T z_can_recirculation = ComputeZcan(W, H);
-
-        T z0_street = 0.01; 
-        T z0_wall = 0.0001;
-
-        T Utop = street->GetWindSpeed();
-        
-        T Dzeta = ComputeUtop_CanyonIntegration(W, H, 3.0 * H);
-
-        T lambda_f = H / (W + ((lambda_p * W) / (1. - lambda_p)));
-        if (lambda_p == 1.0)
-          throw string("Building density is irrealistic: 1.0");
-
-        T WindProfile_coeff = 0.5 * H / W;
-        if(option_wind_profile == "masson")
-          WindProfile_coeff = 0.5 * H / W;
-        else if(option_wind_profile == "macdonald")
-          WindProfile_coeff = 9.6 * lambda_f;
-
-        /*** Ra ***/
-        // Aerodynamic resistance of the street (Ra)
-        Ra_street_recirculation = 
-          ComputeRsurface_recirculation_exp_profile(lc, z_can_recirculation, 
-                                                    z0_street, H, Utop*Dzeta, 
-                                                    WindProfile_coeff, phi);
-        // Aerodynamic resistance of the wall (Ra)
-        Ra_wall_recirculation = 
-          ComputeRsurface_recirculation_exp_profile(lc, z_can_recirculation, 
-                                                    z0_wall, H, Utop*Dzeta, 
-                                                    WindProfile_coeff, phi);
-
-        if (W > 3*H) //for wide canyons
-          {
-            // Aerodynamic resistance of the street (Ra)
-            Ra_street_ventilation = 
-              ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
-                                                     z0_street, H, Utop*Dzeta, 
-                                                     WindProfile_coeff, phi);
-
-            // Aerodynamic resistance of the wall (Ra)
-            Ra_wall_ventilation = 
-              ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
-                                                     z0_wall, H, Utop*Dzeta, 
-                                                     WindProfile_coeff, phi);
-            
-          }	
-	
-        /*** Input data for Rb 
-             (Quasi-laminar sublayer resistance or diffusion resistance) ***/ 
+        // Compute wall and ground surface friction velocity
+        T z1 = z0s; // altitude above the surface to compute the friction velocty (m)
+        T ustar_city = street->GetStreetUstar();
+        T ustar_surface = ComputeUstarAboveSurface(z1, H, W, z0s, ustar_city);
+ 
+        /*** Input data for Rb (Quasi-laminar sublayer resistance or diffusion resistance) ***/ 
         Array<T, 1> gas_phase_diffusivity_(Ns_dep), Sc(Ns_dep);
-        Array<T, 1> Rb_street(Ns_dep), Rb_wall(Ns_dep);
+        Array<T, 1> Rb(Ns_dep);
 
-        T zlim = ComputeZlim(lc, phi);
-        T ustar_incanopy_street = ComputeUstar_Surface(z0_street, zlim, H,
-                                                       WindProfile_coeff, Utop*Dzeta);
-        T ustar_incanopy_wall = ComputeUstar_Surface(z0_wall, zlim, H,
-                                                     WindProfile_coeff, Utop*Dzeta);
-
-        /*** Input data for Rc (Surface resistance or ground resistance) ***/ 
-
-        T Rg_O3 = 0.0;
-        T Rg_SO2 = 0.0;
-        int MM = this->current_date.GetMonth();
-        if (MM == 5 || MM == 6 || MM == 7 || MM == 8) // midsummer
-          {
-            Rg_SO2 = 700.;
-            Rg_O3 = 400.;
-          }
-        else if (MM == 9 || MM == 10) // autumn
-          {
-            Rg_SO2 = 700.;
-            Rg_O3 = 400.;
-          }
-        else if (MM == 11 || MM == 12 || MM == 1 || MM == 2) // late_autumn
-          {
-            Rg_SO2 = 700.;
-            Rg_O3 = 400.;
-          }
-        else if (MM == 3 || MM == 4) // spring
-          {
-            Rg_SO2 = 750.;
-            Rg_O3 = 400.;
-          }
-        else
-          {
-            throw string("Error: wrong date type given.\t") + to_str(this->current_date);
-          }
-
-        // Extracts species data for scavenged species only.
+       // Extracts species data for scavenged species only.
         for (int s = 0; s < Ns_dep; s++)
           {
+<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
             
+=======
+>>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
             /*** Rb ***/ 
             // Quasi-laminar sublayer resistance (diffusion resistance)
             gas_phase_diffusivity_(s) = gas_phase_diffusivity[DepositionVelocityName(s)];
             if (gas_phase_diffusivity_(s) == 0.0)
                 throw string("Error: diffusivity is required for ") +
                   DepositionVelocityName(s) + ".";            
-            Sc(s) = nu / gas_phase_diffusivity_(s);
-	    
-            Rb_street(s) = 1. / (karman * ustar_incanopy_street)
-              * pow(T(Sc(s) / Pr), T(2. / 3.));
-
-            Rb_wall(s) = 1. / (karman * ustar_incanopy_wall)
-              * pow(T(Sc(s) / Pr), T(2. / 3.));
-					      
-
+            Sc(s) = ComputeSchmidtNumber(nu, gas_phase_diffusivity_(s));
+            Rb(s) = ComputeBoundaryLayerResistance(ustar_surface, Sc(s));
+ 
             /*** Rc ***/ 
             // Surface resistance (ground resistance)
             T alpha_ = alpha[DepositionVelocityName(s)];
             T beta_ = beta[DepositionVelocityName(s)];
-            
+            T Rg_O3 = 500.; // values for dry surfaces
+            T Rg_SO2 = 300.;
             T Rg;
+            T temperature_celsius = temperature_ - 273.15;
             if (DepositionVelocityName(s) == "O3")
               Rg = Rg_O3;
             else if (DepositionVelocityName(s) == "SO2")
               Rg = Rg_SO2;
             else
+<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
 	      {
 		if (alpha_ == 0. && beta_ == 0.)
 		  Rg = 1e+30;
@@ -2019,25 +1987,22 @@ namespace Polyphemus
               Rg = Rg * exp(0.2 * (-1. - temperature_celsius));
             //! Rg becomes inf when alpha and beta are zero.
             Rg = min(T(1e+30), Rg);
+=======
+              Rg = ComputeGroundResistance(Rg_SO2, Rg_O3, alpha_, beta_, temperature_celsius);
+            Cut(Rg);
+>>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
 	    
-            T R_street = Ra_street_recirculation + Ra_street_ventilation + Rb_street(s) + Rg;
+            T Req = Rb(s) + Rg;
 	    
-            if (R_street <= 0.0)
+            if (Req <= 0.0)
               throw string("Error in deposistion, R_street: ")
-                + to_str(R_street);
-
-            T street_dry_deposition_velocity = 1. / R_street;
+                + to_str(Req);
+            // Walls and street ground have the same roughness length and surface friction velocity
+            // so the dry deposition velocity is equal on both surfaces.
+            T street_dry_deposition_velocity = 1. / Req;
             street->SetStreetDryDepositionVelocity(street_dry_deposition_velocity, 
                                                    DepositionVelocityGlobalIndex(s));
-
-            T R_wall = Ra_wall_recirculation + Ra_wall_ventilation + Rb_wall(s) + Rg;
-            if (R_wall <= 0.0)
-              throw string("Error in deposistion, R_wall: ")
-                + to_str(R_wall);
-
-            T wall_dry_deposition_velocity = 1. / R_wall;
-
-            street->SetWallDryDepositionVelocity(wall_dry_deposition_velocity,
+            street->SetWallDryDepositionVelocity(street_dry_deposition_velocity, 
                                                  DepositionVelocityGlobalIndex(s));
 
           }
@@ -2138,7 +2103,23 @@ namespace Polyphemus
         ++ist;
       }
   }
-    
+
+  //! Sets the concentrations for the whole street-network.
+  template<class T>
+  void StreetNetworkTransport<T>::SetWallDryDepositionVelocity()
+  {
+    int ist = 0;
+    for (typename vector<Street<T>* >::iterator iter = StreetVector.begin();
+         iter != StreetVector.end(); iter++)
+      {
+        Street<T>* street = *iter;
+        for (int s = 0; s < this->Ns; ++s)
+          WallDryDepositionVelocity(s, ist) = street->GetWallDryDepositionVelocity(s);
+        ++ist;
+      }
+  }
+
+
   //! Sets the concentrations for the whole street-network.
   template<class T>
   void StreetNetworkTransport<T>::SetStreetConcentration()
@@ -2168,15 +2149,22 @@ namespace Polyphemus
     for (int s = 0; s < this->Ns; ++s)
         street->SetBackgroundConcentration(background_concentration(s), s);
   }
-
-  
+ 
   //! Returns the concentrations for the whole street-network.
   template<class T>
   inline Data<T, 2>& StreetNetworkTransport<T>::GetStreetDryDepositionVelocity()
   {
     return StreetDryDepositionVelocity;
   }
-  
+
+  //! Returns the concentrations for the whole street-network.
+  template<class T>
+  inline Data<T, 2>& StreetNetworkTransport<T>::GetWallDryDepositionVelocity()
+  {
+    return WallDryDepositionVelocity;
+  }
+
+
   //! Returns the concentrations for the whole street-network.
   template<class T>
   inline Data<T, 2>& StreetNetworkTransport<T>::GetStreetConcentration()
@@ -2312,7 +2300,7 @@ namespace Polyphemus
 	    	T wall_dry_deposition_rate = wall_area * 
 	    	  street->GetWallDryDepositionVelocity(s); // m3/s
 	    	deposition_rate = street_dry_deposition_rate +
-	    	  wall_dry_deposition_rate; // m3/s
+	    	  wall_dry_deposition_rate; // m3/s           
 	      }
 
 	    if (this->option_process["with_scavenging"])
@@ -2996,6 +2984,8 @@ namespace Polyphemus
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
       {
         Street<T>* street = *iter;
+        T H = street->GetHeight();
+        T W = street->GetWidth();
         T sigma_w = street->GetSigmaW();
         T min_velocity = 0.001;
         T velocity = 0.0;
@@ -3003,13 +2993,12 @@ namespace Polyphemus
           velocity = sigma_w / (sqrt(2.0) * pi);
         else if (option_transfer == "Schulte")
           {
-            T aspect_ratio = street->GetHeight() / street->GetWidth();
-            const T beta = 0.45;
-            velocity = beta * sigma_w * (1.0 / (1.0 + aspect_ratio));
+            T lm = ComputeSchulteLm(H, W);
+            velocity = sigma_w * lm;
           }
          else if (option_transfer == "Wang")
           {
-            T sH = street->GetsH();
+            T sH = ComputeWangsH(H, W);
             velocity = sigma_w * karman * sH;
           }
         street->SetTransferVelocity(max(velocity, min_velocity));
@@ -3019,27 +3008,21 @@ namespace Polyphemus
 
   //! Compute ustar and uH with the method of Macdonald et al (1998)
   template<class T>
-  void StreetNetworkTransport<T>::Compute_Macdonald_Profile()
+  void StreetNetworkTransport<T>::ComputeMacdonaldProfile()
   {
 
-    T width_ratio = 0.5 * this->building_density / (1.0 - this->building_density);
-    
-    T building_width = width_ratio * Mean_width;
-
-    T Cd_building = 1.2; // Drag coefficient for buildings
-    T b = 1.0; // Correction coefficient b = 1.0 for staggered arrays and b = 0.55 for square array (Macdonald et al, 1998)
-
+    T LambdaP = this->building_density; // plan area density of obstacles
+    T building_width = 0.5 * LambdaP / (1.0 - LambdaP) * Mean_width;
     T Af = Mean_length * Mean_height; // frontal area of obstacles
     T At = Mean_length * (Mean_width + building_width); // lot area of obstacles
+    T LambdaF = Af / At; // frontal area density of obstacles
 
-    T Lambdaf = Af / At; // frontal area density of obstacles
-
+    T Cd_building = 1.2; // Drag coefficient for buildings
     T A = 4.43; // Correction coefficient A = 4.43 for staggered arrays and A = 3.59 for square array (Macdonald et al, 1998)
+    T b = 1.0; // Correction coefficient b = 1.0 for staggered arrays and b = 0.55 for square array (Macdonald et al, 1998)
 
-    d_city = ComputeD(A, this->building_density, Mean_height);
-
-    T temp_dH = 1.0 - (d_city / Mean_height);
-    z0_city = Mean_height * (temp_dH * exp(-pow(0.5 * b * Cd_building / pow(karman, 2.0) * temp_dH * Lambdaf,-0.5))); //roughness length of city
+    d_city = ComputeMacdonaldD(Mean_height, LambdaP, A);
+    z0_city = ComputeMacdonaldZ0(Mean_height, LambdaF, LambdaP, d_city, b, Cd_building);
 
     T ustar_macd;
 
@@ -3050,7 +3033,7 @@ namespace Polyphemus
             Street<T>* street = *iter;
             // Compute average Macdonald ustar on street network
             T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)
-            ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
+            ustar_macd = ComputeMacdonaldUstar(u_zref, zref, d_city, z0_city);
             street->SetStreetUstar(ustar_macd);
 
             // Compute Macdonald uH for each street of the street network
@@ -3066,7 +3049,7 @@ namespace Polyphemus
             Intersection<T>* intersection = *iter;
             // wind speed at the reference altitude (m/s)       
             T u_zref = intersection->GetWindSpeed();
-            ustar_macd = u_zref * karman / log((zref - d_city)/z0_city);
+            ustar_macd = ComputeMacdonaldUstar(u_zref, zref, d_city, z0_city);
             intersection->SetIntersectionUST(ustar_macd);
           }
       }
@@ -3076,266 +3059,78 @@ namespace Polyphemus
   //! Compute the wind speed in the street-canyon.
   //! Option "Sirane" based on Soulhac et al. (2008)
   //! Option "Exponential" based on Lemonsu et al. (2004), and Cherin et al. (2015)
-  //! Option "Wang" based on Wang (2012; 2014) and Maison et al. (2022)
+  //! Option "Wang" based on Wang (2012; 2014)
   template<class T>
   void StreetNetworkTransport<T>::ComputeUstreet()
   {
-    T phi, delta_i;
-    //! Wall roughness length from WRF/UCM
-    T z0_build = 0.001;
-    T beta;
-    Array<T, 1> z, u_z, function_g_z;
-    T ustreet, u_h;
-
+    T Ustreet_y;
+    T Ustreet = 0.0;
+    T Uh = 0.0;
+    T Um = 0.0;
+ 
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
       {
         Street<T>* street = *iter;
-        T h = street->GetHeight();
-        T w = street->GetWidth();
+        T H = street->GetHeight();
+        T W = street->GetWidth();       
         T ang = street->GetStreetAngle();
-        T ustar = street->GetStreetUstar();
-        T u_zref = street->GetWindSpeed(); // wind speed at the reference altitude (m/s)        
         T wind_direction = street->GetWindDirection();
-        int nz = int(10 * h); // number of points to itegrate Wang's wind profile
-        z.resize(nz + 1);
-        u_z.resize(nz + 1);
-        function_g_z.resize(nz + 1);
-        
-        delta_i = min(h, w / 2.0);
-        phi = abs(wind_direction - ang);
-
-        T solutionC = ComputeBesselC(z0_build, delta_i);
-
-        T street_attenuation;
-
-        if (option_ustreet == "Sirane")
-          {
-            T alpha = log(delta_i / z0_build);
-            T beta = exp(solutionC / sqrt(2.0) * (1.0 - h / delta_i));
-            T temp1 = pow(delta_i, 2.0) / (h * w);
-            T temp2 = 2.0 * sqrt(2.0) / solutionC * (1.0 - beta);
-            T temp3 = 1.0 - pow(solutionC, 2.0) / 3.0 + pow(solutionC, 4.0) / 45.0;
-            T temp4 = beta * (2.0 * alpha - 3.0) / alpha;
-            T temp5 = (w / delta_i - 2.0) * (alpha - 1.0) / alpha;
-            street_attenuation = temp1 * (temp2 * temp3 + temp4 + temp5);
-          }
-
-        else if (option_ustreet == "Exponential")
-          {
-            T att_coeff = 0.5 * h / w;
-            street_attenuation = 1. / att_coeff * (1. - exp(att_coeff * ((z0_build / h) - 1)));
-          }
-
-        else if (option_ustreet == "Wang")
-          {
-            T f_phi;
-            if (((phi >= 0) and (phi <= pi/4)) or ((phi >= 3*pi/4) and (phi <= 5*pi/4)) or ((phi >= 7*pi/4) and (phi <= 2*pi)))
-              f_phi = pow(abs(cos(2 * phi)),3);
-            else if (((phi > pi/4) and (phi < 3*pi/4)) or ((phi > 5*pi/4) and (phi < 7*pi/4)))
-              f_phi = pow(abs(cos(2 * pi / 4)),3);
-            else
-              throw string("Error: wind angle is out of range in street number: ") + to_str(street->GetStreetID())+ ".";
-            T Cb = 0.31 * (1 - exp(-1.6 * (h / w))) * f_phi;
-            T lcb = 0.5 * w;
-            T sH = lcb / (karman * h + lcb);
-            street->SetsH(sH);
-            T alpha = Cb * (h / w)/(karman * sH);
-            T g_z0 = 2 * sqrt(alpha * z0_build / h);
-            T g_h = 2 * sqrt(alpha * h / h);
-            T C1 = 1 / (BESSI0(g_h) - BESSI0(g_z0) * BESSK0(g_h) / BESSK0(g_z0));
-            T C2 = -C1 * BESSI0(g_z0) / BESSK0(g_z0);
-            
-            street_attenuation = 0.0;
-            for (int k = 0; k <= nz; ++k)
-              {
-                z(k) = z0_build + k * (h - z0_build) / nz;
-                function_g_z(k) = 2 * sqrt(alpha * z(k) / h);
-		u_z(k) = (C1 * BESSI0(function_g_z(k)) + C2 * BESSK0(function_g_z(k)));
-                street_attenuation += u_z(k);
-              }
-            street_attenuation /= (nz + 1);
-          }
-        else
-          throw("Wrong option given. Choose Sirane or Exponential.");
-        
-        T u_m;
-        T f_mean;
-        ComputeSiraneUm(solutionC, ustar, z0_build, u_m, f_mean);
-
+        T phi = abs(wind_direction - ang);
+        T ustar = street->GetStreetUstar();
+        int nz = int(10 * H);
         if (option_uH == "Sirane")
           {
+            T delta = min(H, W / 2);
+            T C = ComputeSiraneC(z0s, delta);
+            Um = ComputeSiraneUm(C, ustar, z0s);
+            T Uh_Um_factor = ComputeUmtoUHFactor(C, z0s);
             if (option_ustreet == "Sirane")
+              Ustreet = ComputeSiraneUstreet(H, W, C, z0s, delta, Um);
+            else if (option_ustreet == "Wang")
               {
-                u_h = u_m;
+                T sH = ComputeWangsH(H, W);
+                Uh = Um * Uh_Um_factor;
+                Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh);
               }
-            else if (option_ustreet == "Exponential" or option_ustreet == "Wang")
+            else if (option_ustreet == "Exponential")
               {
-                u_h = u_m * f_mean;
+                Uh = Um * Uh_Um_factor;
+                Ustreet = ComputeExpUstreet(H, W, z0s, Uh);
               }
             else
-              throw("Wrong option given. Choose Sirane, Exponential or Wang.");
+              throw("Wrong option given. Choose Sirane, Wang or Exponential.");
           }
-
         else if (option_uH == "Macdonald")
           {
-            Compute_Macdonald_Profile();
-            ustar = street->GetStreetUstar();
-
-            if (z0_city == 0.0)
-              throw string("Math error: zero division, z0_city\n");
-                
-            if  (h < (d_city + z0_city))
-              u_h = 0.0;
+            ComputeMacdonaldProfile();
+            if  (H < (d_city + z0_city))
+              Uh = 0.0;
             else
-              u_h = ustar / karman * log((h - d_city)/z0_city);
-
+              Uh = ComputeMacdonaldUH(H, ustar, d_city, z0_city);
             if (option_ustreet == "Sirane")
               {
-                u_h /= f_mean;
+                T delta = min(H, W / 2);
+                T C = ComputeSiraneC(z0s, delta);
+                T Uh_Um_factor = ComputeUmtoUHFactor(C, z0s);
+                Um = Uh / Uh_Um_factor;
+                Ustreet = ComputeSiraneUstreet(H, W, C, z0s, delta, Um);
               }
+            else if (option_ustreet == "Wang")
+              {
+                T sH = ComputeWangsH(H, W);
+                Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh);
+              }
+            else if (option_ustreet == "Exponential")
+              Ustreet = ComputeExpUstreet(H, W, z0s, Uh);
+            else
+              throw("Wrong option given. Choose Sirane, Wang or Exponential.");
           }
-
         else
           throw("Wrong option given. Choose Sirane or Macdonald.");
 
-        ustreet = u_h * abs(cos(phi)) * street_attenuation;
-
-        street->SetStreetWindSpeed(max(ustreet, ustreet_min));
+        Ustreet_y = Ustreet * abs(cos(phi));
+        street->SetStreetWindSpeed(max(Ustreet_y, ustreet_min));
       }
-  }
-
-  //! Compute U_H in the formulation for the wind speed in the street-canyon.
-  /*!
-    \param c solution of the Bessel function.
-    \param ustar Friction velocity.
-  */
-  template<class T>
-  void StreetNetworkTransport<T>::ComputeSiraneUm(T c, T ustar, T z0_build, T& u_m, T& f_mean)
-  {
-    T j1C = j1(c);
-    T y0C = y0(c);
-    T y1C = y1(c);
-    T j0C = j0(c);
-    T term1 = pi / (sqrt(2.0) * pow(karman, 2.0) * c);
-    T term2 = y0C - (j0C * y1C) / j1C;
-    u_m = ustar * sqrt(term1 * term2);
-
-    T y, f_y;
-    int ny = 100;
-    f_mean = 0.;
-    int i = 0;
-    for (int k = 1; k <= ny; ++k)
-      {
-        y = 1. * k / ny;
-
-        if (y >= z0_build)
-          {
-            f_y = (j1C * y0(c*y) - j0(c*y) * y1C) / (j1C * y0C - j0C * y1C);
-            f_mean += f_y;
-            i++;
-          }
-      }
-    f_mean /= i * 1.;
-  }
-  
-  //! Compute the solution C of the equation (1) in Soulhac et al. (2011).
-  //! y1(C) and j1(C): the Bessel function of the first kind of order 0 and 1 (see 
-  //! http://www.gnu.org/software/libc/manual/html_node/Special-Functions.html)
-  /*!
-    \param z0_build  Wall roughness length
-    \param delta_i
-  */
-  template<class T>
-  T StreetNetworkTransport<T>::ComputeBesselC(T z0_build, T delta_i)
-  {
-    T gamma = 0.577;
-    int nc = 100;
-    T maxC = 2.0;
-    T step = maxC / nc;
-    Array<T, 1> temp(nc);
-    Array<T, 1> listC(nc);
-    T tempC = 0.0;
-    T solutionC;
-    for (int i = 0; i < nc; ++i)
-      {
-        tempC += step;
-        listC(i) = tempC;
-        T y1C = y1(tempC);
-        T j1C = j1(tempC);
-        temp(i) = abs(2.0 / tempC * exp(pi / 2.0 * y1C / j1C - gamma) - 
-                      z0_build / delta_i);
-      }
-
-    int index;
-    T minValue;
-    GetMin(temp, nc, minValue, index);
-    solutionC = listC(index);
-    T threshold = 0.001;
-    if (minValue > threshold)
-      throw string("Fail to find a solution. Please adjust maxC (current value: ")
-        + to_str(maxC) + ").";
-    return solutionC;
-  }
-
-  //! Compute the first kind modified Bessel function of order 0 used in Wang wind profile
-  template<class T>
-  T StreetNetworkTransport<T>::BESSI0(T X)
-  {
-    T Y,P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,AX,BX;
-    P1=1.0; P2=3.5156229; P3=3.0899424; P4=1.2067492;
-    P5=0.2659732; P6=0.360768e-1; P7=0.45813e-2;
-    Q1=0.39894228; Q2=0.1328592e-1; Q3=0.225319e-2;
-    Q4=-0.157565e-2; Q5=0.916281e-2; Q6=-0.2057706e-1;
-    Q7=0.2635537e-1; Q8=-0.1647633e-1; Q9=0.392377e-2;
-    if (abs(X) < 3.75) {
-      Y=(X/3.75)*(X/3.75);
-      return (P1+Y*(P2+Y*(P3+Y*(P4+Y*(P5+Y*(P6+Y*P7))))));
-    }
-    else {
-      AX=abs(X);
-      Y=3.75/AX;
-      BX=exp(AX)/sqrt(AX);
-      AX=Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5+Y*(Q6+Y*(Q7+Y*(Q8+Y*Q9)))))));
-      return (AX*BX);
-    }
-  }
-
-  //! Compute the second kind modified Bessel function of order 0 used in Wang wind profile
-  template<class T>
-  T StreetNetworkTransport<T>::BESSK0(T X)
-  {
-    T Y,AX,P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,tmp;
-    P1=-0.57721566; P2= 0.42278420; P3=0.23069756; P4=0.3488590e-1;
-    P5= 0.262698e-2; P6=0.10750e-3; P7=0.74e-5;
-    Q1= 1.25331414; Q2=-0.7832358e-1; Q3=0.2189568e-1; Q4=-0.1062446e-1;
-    Q5= 0.587872e-2; Q6=-0.251540e-2; Q7=0.53208e-3;
-    if (X == 0.0) return 1e30;  //arbitrary big value
-    if (X <= 2.0) {
-      Y=X*X/4.0;
-      AX=-log(X/2.0)*BESSI0(X);
-      tmp = AX+(P1+Y*(P2+Y*(P3+Y*(P4+Y*(P5+Y*(P6+Y*P7))))));
-      return tmp;
-    }
-    else {
-      Y=2.0/X;
-      AX=exp(-X)/sqrt(X);
-      tmp = AX*(Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5+Y*(Q6+Y*Q7))))));
-      return tmp;
-    }
-  }
-
-  //! Returns the minimum value of array
-  template<class T>
-  void StreetNetworkTransport<T>::GetMin(Array<T, 1> arr, int length, T& minimum, int& index)
-  {
-    minimum = arr(0);
-    index = 0;
-    for (int i = 1; i < length; ++i)
-      if (minimum > arr(i))
-        {
-          minimum = arr(i);
-          index = i; 
-        }
   }
 
   //! Compute the horizontal fluctuation of the wind direction.
@@ -4031,6 +3826,7 @@ namespace Polyphemus
       }
   }
 
+/*
 //! Sets the wall dry deposition flux for all species at the whole street-network.
   template<class T>
   void StreetNetworkTransport<T>::SetWallDryDepositionFlux()
@@ -4049,7 +3845,7 @@ namespace Polyphemus
         ++ist;
       }
   }
-
+*/
   //! Sets the dry deposition rate for the whole street-network.
   template<class T>
   void StreetNetworkTransport<T>::SetStreetDryDepositionRate()

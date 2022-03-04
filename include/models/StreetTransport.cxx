@@ -62,7 +62,6 @@ namespace Polyphemus
     relative_humidity_ = 0.0;
     specific_humidity_ = 0.0;
     pH_ = 4.5;
-    sH_ = 1.0;
 
     /*** Dry deposition ***/
     street_dry_deposition_velocity_.resize(ns_local_);
@@ -1069,8 +1068,7 @@ namespace Polyphemus
     return typo_;
   }
 
-
-    //! 
+  //! 
   /*!
     \param 
   */
@@ -1599,20 +1597,7 @@ namespace Polyphemus
     return pH_;
   }
 
-  //! Sets the mixing length factor sH (-)
-  template<class T>
-  inline void Street<T>::SetsH(T sH)
-  {
-    sH_ = sH;
-  }
 
-  //! Returns the mixing length factor sH
-  template<class T>
-  inline T Street<T>::GetsH() const
-  {
-    return sH_;
-  }
- 
   //--------------------------------------------------------
 
 

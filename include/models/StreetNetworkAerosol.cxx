@@ -122,28 +122,12 @@ namespace Polyphemus
       {
 	this->config.PeekValue("Collect_dry_flux_aerosol",
 			       this->option_process["collect_dry_flux_aer"]);
-	this->config.PeekValue("Particles_dry_velocity_option",
-			       "zhang|giardina|venkatran|muyshondt",
+        this->config.PeekValue("Particles_dry_velocity_option",
+			       "zhang|giardina",
 			       particles_dry_velocity_option);
-	if (particles_dry_velocity_option == "giardina")
-	  this->config.PeekValue("Brownian_diffusion_resistence_option",
-                                 "paw|chamberlain",
+        this->config.PeekValue("Brownian_diffusion_resistence_option",
+                                 "zhang|giardina|seigneur|chamberlain",
                                  brownian_diffusion_resistence_option);
-
-	if (!this->option_process["with_deposition"] and this->option_process["with_deposition_aer"])
-	  {
-	    this->config.SetSection("[street]");
-	    this->config.PeekValue("Deposition_wind_profile",
-				   "Masson | Macdonald ",
-				   this->option_wind_profile);
-            this->option_wind_profile =
-              lower_case(this->option_wind_profile);
-            
-	    if (this->option_process["with_local_data"])
-	      this->config.PeekValue("Building_density",
-				     this->building_density);
-	    this->config.SetSection("[options]");
-	  }
       }
     
     //! Scavenging
@@ -1002,6 +986,7 @@ namespace Polyphemus
     
     this->SetStreetConcentration();
 
+    this->SetStreetDryDepositionVelocity();
     SetStreetSurfaceDepositedMass_aer();
     SetStreetResuspensionRate_aer();
     SetStreetSurfaceDryDepositionRate_aer();
@@ -1341,7 +1326,7 @@ namespace Polyphemus
     if(this->option_process["with_deposition_aer"])
       {
 	SetStreetDryDepositionFlux_aer();
-	SetWallDryDepositionFlux_aer();
+        SetWallDryDepositionFlux_aer();
 	SetStreetDryDepositionRate_aer(); // ug/s
 	SetWallDryDepositionRate_aer(); // ug/s
       }
@@ -1511,86 +1496,13 @@ namespace Polyphemus
 	// Street data
         T H = street->GetHeight();
         T W = street->GetWidth();
+        // Compute wall and ground surface friction velocities
+        T z1 = this->z0s; // altitude above the surface to compute the friction velocty (m)
+        T ustar_city = street->GetStreetUstar();
+        T ustar_surface = StreetNetworkTransport<T>::ComputeUstarAboveSurface(z1, H, W, this->z0s, ustar_city);
+
         T temperature_ = street->GetTemperature();
         T pressure_ = street->GetPressure();
-	
-        // Dry deposition
-        T Ra_street_recirculation, Ra_wall_recirculation;
-	T Ra_street_ventilation, Ra_wall_ventilation;
-
-	Ra_street_recirculation = 0.0;
-	Ra_wall_recirculation = 0.0;
-	Ra_street_ventilation = 0.0;
-	Ra_wall_ventilation = 0.0;
-	
-        // Building density
-        T lambda_p = this->building_density;
-
-        T lambda_f = H / (W + ((lambda_p * W) / (1. - lambda_p)));
-
-        // Displacement height
-        T A = 4.0;
-        T d = ComputeD(A, lambda_p, H);
-
-        // Mixing length
-        T lc = ComputeLc(H, d);
-
-        // Dimensionless parameter in Eq. 22 in Cherin et al. (2015)
-        T phi = 0.2;
-
-        T z_can_recirculation = ComputeZcan(W, H);
-
-        T z0_street = 0.01; 
-        T z0_wall = 0.0001;
-
-        T zlim = ComputeZlim(lc, phi);
-
-        T WindProfile_coeff = 0.5 * H / W;
-  
-	if(this->option_wind_profile == "masson")  
-          WindProfile_coeff = 0.5 * H / W;
-        else if(this->option_wind_profile == "macdonald")
-          WindProfile_coeff = 9.6 * lambda_f;
-
-        T Utop = street->GetWindSpeed();
-        T Ustar_street = ComputeUstar_Surface(z0_street, zlim, H, WindProfile_coeff, Utop);
-        T Ustar_wall = ComputeUstar_Surface(z0_wall, zlim, H, WindProfile_coeff, Utop);
-        
-        T Dzeta = ComputeUtop_CanyonIntegration(W, H, 3.0 * H);
-
-	T pblh = street->GetPBLH();
-	T lmo = street->GetLMO();
-
-        if (lambda_p == 1.0)
-          throw string("Building density is irrealistic: 1.0");
-
-        /*** Ra ***/
-        // Aerodynamic resistance of the street (Ra)
-        Ra_street_recirculation = 
-          ComputeRsurface_recirculation_exp_profile(lc, z_can_recirculation, 
-                                                    z0_street, H, Utop*Dzeta, 
-                                                    WindProfile_coeff, phi);
-
-        // Aerodynamic resistance of the wall (Ra)
-        Ra_wall_recirculation = 
-          ComputeRsurface_recirculation_exp_profile(lc, z_can_recirculation, 
-                                                    z0_wall, H, Utop*Dzeta, 
-                                                    WindProfile_coeff, phi);
-
-	if (W > 3*H) //for wide canyons
-	  {
-	    // Aerodynamic resistance of the street (Ra)
-	    Ra_street_ventilation = 
-	      ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
-						     z0_street, H, Utop*Dzeta, 
-						     WindProfile_coeff, phi);
-
-	    // Aerodynamic resistance of the wall (Ra)
-	    Ra_wall_ventilation = 
-	      ComputeRsurface_ventilated_exp_profile(lc, z_can_recirculation, 
-						     z0_wall, H, Utop*Dzeta, 
-						     WindProfile_coeff, phi);
-	  }
 	
 	Array<T, 1> WetDiameter_dep_aer(Nbin_dep_aer);
 	WetDiameter_dep_aer = 0.0;
@@ -1612,128 +1524,73 @@ namespace Polyphemus
 
 	    // compute AirDensity = f(Temperature)
 	    T AirDensity = 1.293 * (273.15 / Ts);
+            T KinematicViscosity = DynamicViscosity / AirDensity;
 
-	    // T ustar = street->GetStreetUstar();
-	    T Radius = 10.e-3;
-	    T Alpha = 1.5;
-	    T Beta = 2.0;
-	    T Gamma_street = 0.56;
-
-	    T Rs_street = ComputeSurfaceResistance(DynamicViscosity, Ps, Ts, wet_diameter, ParticleDensity, AirDensity, Ustar_street, Radius, Alpha, Beta, Gamma_street);
-            
-	    T street_dry_deposition_velocity;
-	    T vs = ComputeSedimentationVelocity(DynamicViscosity, Ps, Ts,
-						wet_diameter,
-						ParticleDensity);
-            if (vs == 0.0)
+            // Compute sedimentation velocity
+            T L = ComputeMeanFreePath(Ts, Ps, KinematicViscosity);
+            T Cu = ComputeCunninghamNumber(wet_diameter, L);
+            T Vs = ComputeSedimentationVelocity(wet_diameter, Cu, KinematicViscosity, ParticleDensity);
+            if (Vs == 0.0)
               throw string("Error: sedimentation velocity is zero.") + 
                 "Please check particle diameter and density.\n" +
                 " The diameter is " + to_str(wet_diameter) + " and the density is " +
                 to_str(ParticleDensity) + ".";
 
+            // Compute Schmidt number
+            T Dm = ComputeMolecularDiffusivity(wet_diameter, Cu, Ts, DynamicViscosity);
+            T Sc = ComputeSchmidtNumber(KinematicViscosity, Dm);
+            
+	    T Radius = 10.e-3;
+            T Rs;
+            // Compute surface resistance according to Zhang et al., (2001)
+            if (particles_dry_velocity_option == "zhang")
+            {
+              T Alpha = 1.5; // model constants for urban LUC
+	      T Beta = 2.0;
+	      T Gamma = 0.56;
+              T St = ComputeStokesNumber(ustar_surface, Radius, Vs, KinematicViscosity);
+              T Rr = ComputeReboundCoefficient(St);
+              T Eim = ComputeZhangImpactionEfficiency(St, Alpha, Beta);
+              T Ein = ComputeZhangInterceptionEfficiency(wet_diameter, Radius);
+              T Eb;
+              if (brownian_diffusion_resistence_option == "zhang")
+                Eb = ComputeZhangBrownianEfficiency(Sc, Gamma);
+              else if (brownian_diffusion_resistence_option == "seigneur")
+                Eb = ComputeSeigneurBrownianEfficiency(Sc);
+              else
+                throw string("Error in brownian_diffusion_resistence_option");
+              Rs = ComputeZhangSurfaceResistance(ustar_surface, Eim, Ein, Eb, Rr);
+            }
 
-	    if (particles_dry_velocity_option == "muyshondt")
-	      {
-		T Sc = ComputeSchmidtNumber(DynamicViscosity,
-                                            Ps, Ts, wet_diameter,
-                                            AirDensity);
-		T KinematicViscosity = DynamicViscosity / AirDensity;
-		T Re_star = Ustar_street * z0_street / KinematicViscosity;
-		T b1, b2, b3, b4, b5, b6, tau_p, tau, g;
-		b1 = 2.26E-2;
-		b2 = 4.03E4;
-		b3 = 1.533E4;
-		b4 = 0.1394;
-		b5 = 49.0;
-		b6 = 1.136;
-		g = 9.81;
-		tau = vs/g;
-		tau_p = tau * pow(Ustar_street, 2.) / KinematicViscosity;
-		T tmp1 = -0.5 * pow((Re_star-b2) / b3, 2.);
-		T tmp2 = -0.5 * pow((log(tau_p) - log(b5))/b6, 2.);
-		T vdi = Ustar_street * (b1 * exp(tmp1) - b4 * exp(tmp2));
-		T vdd = 0.084 * pow(Sc,-0.667);
-		street_dry_deposition_velocity = vs + vdi + vdd;
-		street->SetStreetDryDepositionVelocity_aer
-                  (street_dry_deposition_velocity, b);
-	      }
-	    
-	    else if (particles_dry_velocity_option == "venkatran")
-	      {
-		T R_street = Ra_street_recirculation + Ra_street_ventilation + Rs_street;
-		if (R_street <= 0.0)
-		  throw string("Error in deposistion, R_street: ")
-		    + to_str(R_street);
+            // Compute surface resistance according to Giardina and Buffa, (2018)
+            else if (particles_dry_velocity_option == "giardina")
+            {
+              T tau = ComputeRelaxationTime(wet_diameter, Cu, DynamicViscosity, ParticleDensity);
+              T Re_star = ComputeReynoldsNumber(ustar_surface, this->z0s, KinematicViscosity);
+              T St = ComputeStokesNumber(ustar_surface, 0., Vs, KinematicViscosity); // In Giardina and Buffa, (2018) St number calculated with equation for smooth surfaces
+              T Rr = ComputeReboundCoefficient(St);
+              T Rii = ComputeGiardinaInertialImpactResistance(St, ustar_surface, Radius);
+              T Rti = ComputeGiardinaTurbulentImpactResistance(ustar_surface, tau, KinematicViscosity);
+              T Rdb; 
+              if (brownian_diffusion_resistence_option == "giardina")
+                Rdb = ComputeGiardinaBrownianDiffusionResistance(Sc, ustar_surface);
+              else if (brownian_diffusion_resistence_option == "chamberlain")
+                Rdb = ComputeChamberlainBrownianEfficiency(Sc, ustar_surface, Re_star);
+              else
+                throw string("Error in brownian_diffusion_resistence_option");
+              Rs = ComputeGiardinaSurfaceResistance(Rii, Rti, Rdb, Rr);
+            }
+            else
+              throw string("Error in particle dry deposition velocity option");
+            
+            if (Rs <= 0.0)
+              throw string("Error in deposistion, Rs: ") + to_str(Rs);
+            T street_dry_deposition_velocity = ComputeVenkatranDepositionVelocity(Vs, Rs);
+            street->SetStreetDryDepositionVelocity_aer(street_dry_deposition_velocity, b);
 
-		street_dry_deposition_velocity = vs / (1. - exp(-vs * R_street));
-		street->SetStreetDryDepositionVelocity_aer
-                  (street_dry_deposition_velocity, b);
-	      }
-
-	    else if(particles_dry_velocity_option == "zhang")
-	      {
-		T R_street = Ra_street_recirculation + Ra_street_ventilation + Rs_street;
-		if (R_street <= 0.0)
-		  throw string("Error in deposistion, R_street: ")
-		    + to_str(R_street);
-
-		
-		street_dry_deposition_velocity = vs + 1/(R_street);
-	    
-		street->SetStreetDryDepositionVelocity_aer
-                  (street_dry_deposition_velocity, b);
-	      }
-
-	    else if(particles_dry_velocity_option == "giardina")
-	      {
-		//Rbd: Brownian diffusion process
-		//Rii: inertial impact conditions
-		//Rti: turbulent impactation
-		T Sc = ComputeSchmidtNumber(DynamicViscosity,
-					    Ps, Ts, wet_diameter,
-					    AirDensity);
-		T Rbd, Rii, Rti, R, St_rought, b;
-		T KinematicViscosity = DynamicViscosity / AirDensity;
-		T tau = vs / g;
-		T tau_p = tau * pow(Ustar_street, 2.) / KinematicViscosity;
-		T Re_star = Ustar_street * z0_street / KinematicViscosity;
-		St_rought = ComputeStokesNumberRough
-                  (DynamicViscosity, Ps, Ts, wet_diameter,
-                   ParticleDensity, AirDensity, Ustar_street, Radius);
-		b = 2.0;
-		R = exp(-b * sqrt(St_rought));
-		T tmp = pow(St_rought, 2.)/(pow(St_rought, 2.) + 1.);
-		Rii = 1. / (Ustar_street * tmp * R);
-		T m, n;
-		m = 0.05;
-		n = 0.75;
-		Rti = 1. / (Ustar_street * m * pow(tau_p, n) * R);
-		if (brownian_diffusion_resistence_option == "paw")
-		  Rbd = 1./(Ustar_street*pow(Sc, (-2./3.)));
-		else if(brownian_diffusion_resistence_option == "chamberlain")
-		  Rbd = 1./(Ustar_street*pow(Sc, -0.5)*pow(Re_star, -0.05));
-		else
-		  throw string("Error in brownian_diffusion_resistence_option");
-		T Req = 1. / Rbd + 1. / (Rii + Rti);
-		T Ra_street = Ra_street_recirculation + Ra_street_ventilation;
-		street_dry_deposition_velocity =
-                  vs / (1 - exp(-vs * (Ra_street + 1. / Req)));
-		street->SetStreetDryDepositionVelocity_aer
-                  (street_dry_deposition_velocity, b);
-	      }
-	      
-	    T Rs_wall = ComputeSurfaceResistance
-              (DynamicViscosity, Ps, Ts, wet_diameter,
-               ParticleDensity, AirDensity, Ustar_wall,
-               Radius, Alpha, Beta, Gamma_street);
-	    T R_wall = Ra_wall_recirculation + Ra_wall_ventilation + Rs_wall;
-	    if (R_wall <= 0.0)
-	      throw string("Error in deposistion, R_wall: ")
-		+ to_str(R_wall);
-	    T wall_dry_deposition_velocity = 1. / R_wall;
-	    
-	    street->SetWallDryDepositionVelocity_aer(wall_dry_deposition_velocity, b);
-
+	    // Sedimentation velocity does not impact deposition on walls
+	    T wall_dry_deposition_velocity = 1. / Rs;
+            street->SetWallDryDepositionVelocity_aer(wall_dry_deposition_velocity, b);
 	  }
 	st += 1;
       }

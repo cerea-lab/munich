@@ -73,6 +73,8 @@ namespace Polyphemus
     string output_dir;
     bool text_file, interpolated;
 
+    T z0s;
+
     T zref;
     T d_city, z0_city;
     
@@ -85,23 +87,23 @@ namespace Polyphemus
     RegularGrid<T> GridST2D;
 
     //! 3D grid for streets.
-    RegularGrid<T> GridST3D;    
+    RegularGrid<T> GridST3D;
     
     //! Grid for intersections.
     RegularGrid<T> GridINT2D;
 
     //! 2D grid for species.
     RegularGrid<T> GridS2D;
-
+    
     /*** Emission ***/
 
     int Nt_emis;
     int Ns_emis;
     
     //! Emission rate at current date.
-    Data<T, 2> Emission_i;    
+    Data<T, 2> Emission_i;
     //! Emission rate at next date.
-    Data<T, 2> Emission_f;    
+    Data<T, 2> Emission_f;
     //! Emission rate buffer.
     Data<T, 2> FileEmission_i;
     //! Emission rate buffer.
@@ -119,6 +121,8 @@ namespace Polyphemus
     int Ns_dep;
     //! Dry deposition velocities at current date.
     Data<T, 2> StreetDryDepositionVelocity;
+    //! Dry deposition velocities at current date.
+    Data<T, 2> WallDryDepositionVelocity; 
     //! Dry deposition fluxes at current date.
     Data<T, 2> StreetDryDepositionFlux;
     //! Dry wall deposition fluxes at current date.
@@ -165,9 +169,9 @@ namespace Polyphemus
     int Ns_background;
 
     //! Background concentration at current date.
-    Data<T, 2> Background_i;    
+    Data<T, 2> Background_i;
     //! Background concentration at next date.
-    Data<T, 2> Background_f;    
+    Data<T, 2> Background_f;
     //! Background concentration buffer.
     Data<T, 2> FileBackground_i;
     //! Background concetration buffer.
@@ -191,99 +195,99 @@ namespace Polyphemus
     T ustreet_min; // Minimum wind speed in the streets (m/s)
     
     //! Rain at current date.
-    Data<T, 1> Rain_i;    
+    Data<T, 1> Rain_i;
     //! Rain at next date.
-    Data<T, 1> Rain_f;    
+    Data<T, 1> Rain_f;
     //! Rain buffer.
     Data<T, 1> FileRain_i;
     //! Rain buffer.
     Data<T, 1> FileRain_f;
 
     //! Temperature at current date.
-    Data<T, 1> Temperature_i;    
+    Data<T, 1> Temperature_i;
     //! Temperature at next date.
-    Data<T, 1> Temperature_f;    
+    Data<T, 1> Temperature_f;
     //! Temperature buffer.
     Data<T, 1> FileTemperature_i;
     //! Temperature buffer.
     Data<T, 1> FileTemperature_f;
 
     //! Pressure at current date.
-    Data<T, 1> Pressure_i;    
+    Data<T, 1> Pressure_i;
     //! Pressure at next date.
-    Data<T, 1> Pressure_f;    
+    Data<T, 1> Pressure_f;
     //! Pressure buffer.
     Data<T, 1> FilePressure_i;
     //! Pressure buffer.
     Data<T, 1> FilePressure_f;
 
     //! WindDirection at current date.
-    Data<T, 1> WindDirection_i;    
+    Data<T, 1> WindDirection_i;
     //! WindDirection at next date.
-    Data<T, 1> WindDirection_f;    
+    Data<T, 1> WindDirection_f;
     //! WindDirection buffer.
     Data<T, 1> FileWindDirection_i;
     //! WindDirection buffer.
     Data<T, 1> FileWindDirection_f;
 
     //! WindSpeed at current date.
-    Data<T, 1> WindSpeed_i;    
+    Data<T, 1> WindSpeed_i;
     //! WindSpeed at next date.
-    Data<T, 1> WindSpeed_f;    
+    Data<T, 1> WindSpeed_f;
     //! WindSpeed buffer.
     Data<T, 1> FileWindSpeed_i;
     //! WindSpeed buffer.
     Data<T, 1> FileWindSpeed_f;
 
     //! PBLH at current date.
-    Data<T, 1> PBLH_i;    
+    Data<T, 1> PBLH_i;
     //! PBLH at next date.
-    Data<T, 1> PBLH_f;    
+    Data<T, 1> PBLH_f;
     //! PBLH buffer.
     Data<T, 1> FilePBLH_i;
     //! PBLH buffer.
     Data<T, 1> FilePBLH_f;
 
     //! UST at current date.
-    Data<T, 1> UST_i;    
+    Data<T, 1> UST_i;
     //! UST at next date.
-    Data<T, 1> UST_f;    
+    Data<T, 1> UST_f;
     //! UST buffer.
     Data<T, 1> FileUST_i;
     //! UST buffer.
     Data<T, 1> FileUST_f;
 
     //! LMO at current date.
-    Data<T, 1> LMO_i;    
+    Data<T, 1> LMO_i;
     //! LMO at next date.
-    Data<T, 1> LMO_f;    
+    Data<T, 1> LMO_f;
     //! LMO buffer.
     Data<T, 1> FileLMO_i;
     //! LMO buffer.
     Data<T, 1> FileLMO_f;
 
     //! SpecificHumidity at current date.
-    Data<T, 1> SpecificHumidity_i;    
+    Data<T, 1> SpecificHumidity_i;
     //! SpecificHumidity at next date.
-    Data<T, 1> SpecificHumidity_f;    
+    Data<T, 1> SpecificHumidity_f;
     //! SpecificHumidity buffer.
     Data<T, 1> FileSpecificHumidity_i;
     //! SpecificHumidity buffer.
     Data<T, 1> FileSpecificHumidity_f;
 
     //! WindDirectionInt at current date.
-    Data<T, 1> WindDirectionInter_i;    
+    Data<T, 1> WindDirectionInter_i;
     //! WindDirectionInt at next date.
-    Data<T, 1> WindDirectionInter_f;    
+    Data<T, 1> WindDirectionInter_f;
     //! WindDirectionInt buffer.
     Data<T, 1> FileWindDirectionInter_i;
     //! WindDirectionInt buffer.
     Data<T, 1> FileWindDirectionInter_f;
 
     //! WindSpeedInt at current date.
-    Data<T, 1> WindSpeedInter_i;    
+    Data<T, 1> WindSpeedInter_i;
     //! WindSpeedInt at next date.
-    Data<T, 1> WindSpeedInter_f;    
+    Data<T, 1> WindSpeedInter_f;
     //! WindSpeedInt buffer.
     Data<T, 1> FileWindSpeedInter_i;
     //! WindSpeedInt buffer.
@@ -306,27 +310,27 @@ namespace Polyphemus
     Array<bool, 1> is_virtual;
 
     //! PBLHInt at current date.
-    Data<T, 1> PBLHInter_i;    
+    Data<T, 1> PBLHInter_i;
     //! PBLHInt at next date.
-    Data<T, 1> PBLHInter_f;    
+    Data<T, 1> PBLHInter_f;
     //! PBLHInt buffer.
     Data<T, 1> FilePBLHInter_i;
     //! PBLHInt buffer.
     Data<T, 1> FilePBLHInter_f;
 
     //! USTInt at current date.
-    Data<T, 1> USTInter_i;    
+    Data<T, 1> USTInter_i;
     //! USTInt at next date.
-    Data<T, 1> USTInter_f;    
+    Data<T, 1> USTInter_f;
     //! USTInt buffer.
     Data<T, 1> FileUSTInter_i;
     //! USTInt buffer.
     Data<T, 1> FileUSTInter_f;
 
     //! LMOInt at current date.
-    Data<T, 1> LMOInter_i;    
+    Data<T, 1> LMOInter_i;
     //! LMOInt at next date.
-    Data<T, 1> LMOInter_f;    
+    Data<T, 1> LMOInter_f;
     //! LMOInt buffer.
     Data<T, 1> FileLMOInter_i;
     //! LMOInt buffer.
@@ -398,10 +402,13 @@ namespace Polyphemus
     
     /*** Access Methods ***/
 
+    void SetStreetOutput();
     void SetStreetConcentration();
     void SetStreetDryDepositionVelocity();
+    void SetWallDryDepositionVelocity();
     Data<T, 2>& GetStreetConcentration();
     Data<T, 2>& GetStreetDryDepositionVelocity();
+    Data<T, 2>& GetWallDryDepositionVelocity();
     void SetInitialStreetConcentration();
     void SetStreetBackgroundConcentration(int street_index,
                                           Array<T, 1> background_concentration);
@@ -449,15 +456,9 @@ namespace Polyphemus
     T ComputeGaussian(double theta, double sigma_theta, 
                       double theta0);
     void ComputeSigmaW();
-    void Compute_Macdonald_Profile();   
+    void ComputeMacdonaldProfile();
     void ComputeUstreet();
     void ComputeWindDirectionFluctuation();
-    T ComputeUstreetSIRANE();
-    T ComputeUstreetLemonsu();
-    void ComputeSiraneUm(T c, T ustar_street, T z0_build, T& u_m, T& f_mean);
-    T ComputeBesselC(T z0_build, T delta_i);
-    T BESSI0(T X);
-    T BESSK0(T X);
     void GetMin(Array<T, 1> arr, int length, T& minimum, int& index);
     void ComputeTransferVelocity();
     void ComputeAlpha(int nstreet_in, int nstreet_out, 
@@ -470,6 +471,7 @@ namespace Polyphemus
     void ComputeStreetConcentrationNoStationary();
 
     // Deposition
+    T ComputeUstarAboveSurface(T z1, T H, T W, T z0s, T ustar_city);
     void ComputeDryDepositionVelocities();
     void Infinity(Data<T, 1>& Data_info);
     void Cut(Data<T, 1>& Data_info);

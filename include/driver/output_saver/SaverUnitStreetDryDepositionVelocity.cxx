@@ -118,7 +118,7 @@ namespace Polyphemus
         for (s = 0; s < this->Ns; s++)
           for (st = 0; st < Nstreet; st++)
             Concentration_(s, st) = 0.5
-              * Model.D2("StreetDepositionVelocity")(this->species_index[s], st);
+              * Model.D2("StreetDryDepositionVelocity")(this->species_index[s], st);
 
       }
 
