@@ -289,9 +289,9 @@ class Utils:
 
         if ARGUMENTS["mpi"] == "yes":
             if ARGUMENTS["intel"] == "yes":
-                cpp_compiler = "mpiicpc"
-                c_compiler = "mpiicc"
-                fortran_compiler = "mpiifort"
+                cpp_compiler = "mpic++" # "mpiicpc"
+                c_compiler = "mpicc" # "mpiicc"
+                fortran_compiler = "mpif90" # "mpiifort" YK
             else:
                 for cpp_compiler in ['mpiCC', 'mpicxx', 'mpic++']:
                     if WhereIs(cpp_compiler) != None:
