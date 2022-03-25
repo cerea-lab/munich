@@ -748,12 +748,7 @@ namespace Polyphemus
                            FileUSTInter_f,
                            this->current_date,
                            USTInter_f);
-            
           }
-<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
-        
-=======
->>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
       }
     
     //  *** Emissions ***/
@@ -1567,11 +1562,7 @@ namespace Polyphemus
 
     //! Compute deposition velocity
     if(this->option_process["with_deposition"])
-<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
-        ComputeDryDepositionVelocities();
-=======
       ComputeDryDepositionVelocities();
->>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
 
     //! Compute scavenging coefficient
     if(this->option_process["with_scavenging"])
@@ -1864,9 +1855,6 @@ namespace Polyphemus
   }
 
   
-<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
-  
-=======
   //! Compute surface friction velocity for deposisiton velocity according to the wind speed options
   template<class T>
   T StreetNetworkTransport<T>::ComputeUstarAboveSurface(T z1, T H, T W, T z0s, T ustar_city)
@@ -1923,8 +1911,6 @@ namespace Polyphemus
   return ustar_z1;
   }
 
-
->>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
   //! Compute dry deposition of gas species for the whole street-network.
   template<class T>
   void StreetNetworkTransport<T>::ComputeDryDepositionVelocities()
@@ -1946,13 +1932,8 @@ namespace Polyphemus
         Array<T, 1> gas_phase_diffusivity_(Ns_dep), Sc(Ns_dep);
         Array<T, 1> Rb(Ns_dep);
 
-       // Extracts species data for scavenged species only.
         for (int s = 0; s < Ns_dep; s++)
           {
-<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
-            
-=======
->>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
             /*** Rb ***/ 
             // Quasi-laminar sublayer resistance (diffusion resistance)
             gas_phase_diffusivity_(s) = gas_phase_diffusivity[DepositionVelocityName(s)];
@@ -1975,22 +1956,8 @@ namespace Polyphemus
             else if (DepositionVelocityName(s) == "SO2")
               Rg = Rg_SO2;
             else
-<<<<<<< 22772074a942bf71ec47071c66049063dfb951c7
-	      {
-		if (alpha_ == 0. && beta_ == 0.)
-		  Rg = 1e+30;
-		else
-		  Rg = 1. / (alpha_ / Rg_SO2 + beta_ / Rg_O3);
-	      }
-            T temperature_celsius = temperature_ - 273.15;
-            if (temperature_celsius < -1.)
-              Rg = Rg * exp(0.2 * (-1. - temperature_celsius));
-            //! Rg becomes inf when alpha and beta are zero.
-            Rg = min(T(1e+30), Rg);
-=======
               Rg = ComputeGroundResistance(Rg_SO2, Rg_O3, alpha_, beta_, temperature_celsius);
             Cut(Rg);
->>>>>>> Correction and reorganization of the transport and dry deposition calculation functions.
 	    
             T Req = Rb(s) + Rg;
 	    
