@@ -198,7 +198,20 @@ namespace Polyphemus
         else
           sub_delta_t_min = 1.0;
       }
-    
+
+    this->config.PeekValue("With_tree_aero",
+                           this->option_process["with_trees"]);
+    //! Aerodynamic effect of trees must be computed with Wang parametrization
+    if (this->option_process["with_trees"] and (option_transfer != "Wang" or option_ustreet != "Wang"))
+      throw ("Choose option Wang for Mean_wind_speed_parameterization and Transfer_parameterization if option with_trees is activated");
+    if (this->option_process["with_trees"])
+      {
+        if (this->config.Check("Tree_drag_coefficient"))
+          this->config.PeekValue("Tree_drag_coefficient", "> 0", Cdt);
+        else
+          Cdt = 0.2;
+      }
+
     /*** Input files ***/
 
     //! The configuration-file path is the field "Data_description" in the main
@@ -335,11 +348,14 @@ namespace Polyphemus
         species = species_data_stream.GetElement();
         species_data_stream.GetNumber(gas_phase_diffusivity[species]);
       }
-    
+
     ReadStreetData();
 
+    if (this->option_process["with_trees"])
+      ReadTreeData();
+
     CheckConfiguration();
-    
+
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI    
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #else
@@ -372,6 +388,9 @@ namespace Polyphemus
       cout<<"With dry deposition of gas-phase pollutants in streets."<<endl;
     if(this->option_process["with_scavenging"])
       cout<<"With wet deposition of gas-phase pollutants in streets."<<endl;
+
+    if(this->option_process["with_trees"])
+      cout<<"With tree aerodynamic effect in streets."<<endl;
   }
   
   //! Allocates memory.
@@ -605,6 +624,8 @@ namespace Polyphemus
     InitIntersection();
     Allocate();
     ComputeStreetAngle();
+    if (this->option_process["with_trees"])
+      InitTree();
   }
 
   //! Returns the name of a species with deposition velocities.
@@ -905,8 +926,60 @@ namespace Polyphemus
     stdDeviation_L = sqrt(variance_L);
     stdDeviation_W = sqrt(variance_W);
     stdDeviation_H = sqrt(variance_H);
+  }
 
+  template<class T>
+  void StreetNetworkTransport<T>::ReadTreeData()
+  {
+    /*** Tree data ***/
 
+    string line;
+    vector<string> v;
+
+    //! Get the input file name for the tree data.
+    this->config.SetSection("[street]");
+    this->config.PeekValue("Tree", file_tree);
+
+    total_ntree_street = 0;
+    ExtStream TreeStream(file_tree);
+    if (!TreeStream.is_open())
+      throw string("File ") + file_tree + " doesn't exist.";
+
+    //! Get the number of the streets in tree.dat.
+    while (has_element(TreeStream))
+      {
+        TreeStream.GetLine(line);
+        ++total_ntree_street;
+      }
+    if (total_nstreet != total_ntree_street)
+      throw string("Missing streets in tree.dat : ") + to_str(total_nstreet) + " streets in street.dat vs " + to_str(total_ntree_street) + " in tree.dat.";
+    TreeStream.Rewind();
+    //! Get the tree data.
+    id_street_tree.resize(total_nstreet);
+    tree_height.resize(total_nstreet);
+    tree_LAI.resize(total_nstreet);
+    for (int i = 0; i < total_nstreet; ++i)
+      {
+        TreeStream.GetLine(line);
+        v = split(line, ";");
+        id_street_tree(i) = to_num<T>(v[0]);
+        tree_height(i) = to_num<T>(v[1]);
+        tree_LAI(i) = to_num<T>(v[2]);
+      }
+  }
+
+  //! Init tree data
+  template<class T>
+  void StreetNetworkTransport<T>::InitTree()
+  {
+    int ist = 0;
+    for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
+      {
+        Street<T>* street = *iter;
+        street->SetTreeHeight(tree_height(ist));
+        street->SetTreeLAI(tree_LAI(ist));
+        ++ist;
+      }
   }
 
   //! Streets initialization.
@@ -1540,7 +1613,7 @@ namespace Polyphemus
     InitMeteo();
 
     ComputeMassBalance();
-    
+
     SetStreetConcentration();
     SetStreetDryDepositionVelocity();
     SetWallDryDepositionVelocity();
@@ -1871,8 +1944,8 @@ namespace Polyphemus
           ustar_z1 = ComputeSiraneUstarProfile(z1, H, C, delta, Um);
         else if (option_ustreet == "Wang")
           {
-            T sH = ComputeWangsH(H, W);
-            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city);
+            T sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
+            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city, 0.0, 0.0);
           }
         else if (option_ustreet == "Exponential")
           {
@@ -1898,8 +1971,8 @@ namespace Polyphemus
           }
         else if (option_ustreet == "Wang")
           {
-            T sH = ComputeWangsH(H, W);
-            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city); 
+            T sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
+            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city, 0.0, 0.0);
           }
         else if (option_ustreet == "Exponential")
           ustar_z1 = ComputeExpUstarProfile(z1, H, W, ustar_city);
@@ -2266,8 +2339,8 @@ namespace Polyphemus
 	    	  street->GetStreetDryDepositionVelocity(s); // m3/s
 	    	T wall_dry_deposition_rate = wall_area * 
 	    	  street->GetWallDryDepositionVelocity(s); // m3/s
-	    	deposition_rate = street_dry_deposition_rate +
-	    	  wall_dry_deposition_rate; // m3/s           
+                deposition_rate = street_dry_deposition_rate +
+                  wall_dry_deposition_rate; // m3/s
 	      }
 
 	    if (this->option_process["with_scavenging"])
@@ -2965,7 +3038,11 @@ namespace Polyphemus
           }
          else if (option_transfer == "Wang")
           {
-            T sH = ComputeWangsH(H, W);
+            T sH;
+            if (this->option_process["with_trees"])
+              sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
+            else
+              sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
             velocity = sigma_w * karman * sH;
           }
         street->SetTransferVelocity(max(velocity, min_velocity));
@@ -3034,7 +3111,7 @@ namespace Polyphemus
     T Ustreet = 0.0;
     T Uh = 0.0;
     T Um = 0.0;
- 
+
     for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
       {
         Street<T>* street = *iter;
@@ -3055,9 +3132,18 @@ namespace Polyphemus
               Ustreet = ComputeSiraneUstreet(H, W, C, z0s, delta, Um);
             else if (option_ustreet == "Wang")
               {
-                T sH = ComputeWangsH(H, W);
+                T sH;
                 Uh = Um * Uh_Um_factor;
-                Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh);
+                if (this->option_process["with_trees"])
+                  {
+                    sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
+                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, street->GetTreeLAI(), Cdt);
+                  }
+                else
+                  {
+                    sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
+                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, 0.0, 0.0);
+                  }
               }
             else if (option_ustreet == "Exponential")
               {
@@ -3084,8 +3170,17 @@ namespace Polyphemus
               }
             else if (option_ustreet == "Wang")
               {
-                T sH = ComputeWangsH(H, W);
-                Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh);
+                T sH;
+                if (this->option_process["with_trees"])
+                  {
+                    sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
+                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, street->GetTreeLAI(), Cdt);
+                  }
+                else
+                  {
+                    sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
+                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, 0.0, 0.0);
+                  }
               }
             else if (option_ustreet == "Exponential")
               Ustreet = ComputeExpUstreet(H, W, z0s, Uh);

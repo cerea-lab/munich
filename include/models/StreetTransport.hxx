@@ -49,7 +49,13 @@ namespace Polyphemus
 
     //! Building height in the street (m)
     int typo_;
-    
+
+    //! Tree height in the street (m)
+    T tree_height_;
+
+    //! Tree Leaf Area Index (m2 leaves/m2 soil projected area)
+    T tree_LAI_;
+
     //! Street angle (rad). 
     T street_angle_;
 
@@ -170,6 +176,10 @@ namespace Polyphemus
     T GetLength() const;
     T GetWidth() const;
     T GetHeight() const;
+    T GetTreeHeight() const;
+    void SetTreeHeight(T tree_height);
+    T GetTreeLAI() const;
+    void SetTreeLAI(T tree_LAI);
     T GetStreetAngle() const;
     void SetStreetAngle(T street_angle);
     T GetStreetAngleIntersection() const;

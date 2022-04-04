@@ -163,6 +163,14 @@ namespace Polyphemus
     //! Street list.
     vector<Street<T>*> StreetVector, StreetVectorInter;
 
+    /*** Tree data ***/
+
+    string file_tree;
+    int total_ntree_street;
+    Array<int, 1> id_street_tree;
+    Array<T, 1> tree_height, tree_LAI;
+    T Cdt;
+
     /*** Background concentration data ***/
 
     int Nt_background;
@@ -383,6 +391,7 @@ namespace Polyphemus
 
     void ReadConfiguration();
     void ReadStreetData();
+    void ReadTreeData();
     void CheckConfiguration();
     void DisplayConfiguration();
     
@@ -391,6 +400,7 @@ namespace Polyphemus
     void InitStep();
 
     void InitStreet();
+    void InitTree();
     void EraseStreet();
     void ClearStreetVector();
 

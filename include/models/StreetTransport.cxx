@@ -82,6 +82,7 @@ namespace Polyphemus
     street_scavenging_coefficient_ = 0.0;
     street_scavenging_flux_.resize(ns_local_);
     street_scavenging_flux_ = 0.0;
+
   }
 
   //! Destructor
@@ -189,6 +190,46 @@ namespace Polyphemus
   inline T Street<T>::GetHeight() const
   {
     return height_;
+  }
+
+  //! Returns the tree crown height.
+  /*!
+    \return the tree height in the street (m).
+  */
+  template<class T>
+  inline T Street<T>::GetTreeHeight() const
+  {
+    return tree_height_;
+  }
+
+  //! Returns the tree Leaf Area Index.
+  /*!
+    \return the tree LAI in the street (m2 leaves/m2 soil).
+  */
+  template<class T>
+  inline T Street<T>::GetTreeLAI() const
+  {
+    return tree_LAI_;
+  }
+
+  //! Sets the tree crown height.
+  /*!
+    \param tree_height the tree height in the street.
+  */
+  template<class T>
+  inline void Street<T>::SetTreeHeight(T tree_height)
+  {
+    tree_height_ = tree_height;
+  }
+
+  //! Sets the tree Leaf Area Index.
+  /*!
+    \param tree_LAI the tree LAI in the street.
+  */
+  template<class T>
+  inline void Street<T>::SetTreeLAI(T tree_LAI)
+  {
+    tree_LAI_ = tree_LAI;
   }
 
   //! Returns the building height.

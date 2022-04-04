@@ -634,6 +634,9 @@ namespace Polyphemus
     if (this->option_process["with_chemistry"])
       InitChemistry();
 
+    if (this->option_process["with_trees"])
+      this->InitTree();
+
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI
     // Initialize the number of sources to parallelize.
     BaseModuleParallel::InitSource(this->GetNStreet());
