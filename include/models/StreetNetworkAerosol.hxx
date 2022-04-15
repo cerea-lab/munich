@@ -103,10 +103,14 @@ namespace Polyphemus
     Data<T, 2> StreetDryDepositionFlux_aer;
     //! Dry wall deposition fluxes at current date.
     Data<T, 2> WallDryDepositionFlux_aer;
+    //! Dry tree leaves deposition fluxes at current date.
+    Data<T, 2> TreeDryDepositionFlux_aer;
     //! Dry deposition rate at current date.
     Data<T, 2> StreetDryDepositionRate_aer;
     //! Dry wall deposition rate at current date.
     Data<T, 2> WallDryDepositionRate_aer;
+    //! Dry tree leaves deposition rate at current date.
+    Data<T, 2> TreeDryDepositionRate_aer;
     //! List of species with deposition.
     vector<pair<string, vector<int> > > species_list_dep_aer;
     //! List of aerosol bins with deposition.
@@ -382,10 +386,12 @@ namespace Polyphemus
     void SetStreetOutput_aer();
     void SetStreetDryDepositionFlux_aer();
     void SetWallDryDepositionFlux_aer();
+    void SetTreeDryDepositionFlux_aer();
     void SetStreetDryDepositionRate_aer();
+    void SetWallDryDepositionRate_aer();
+    void SetTreeDryDepositionRate_aer();
     void SetStreetScavengingFlux_aer();
     void SetStreetScavengingRate_aer();
-    void SetWallDryDepositionRate_aer();
     void SetTotalDryDepositionRate_aer();
     void SetStreetScavengingFluxOverCanopy_aer(int street_index, T scavenging_flux_overcanopy, int b);
     T GetStreetScavengingFlux_aer(int street_index, int b);

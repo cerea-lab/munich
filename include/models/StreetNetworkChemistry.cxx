@@ -151,7 +151,7 @@ namespace Polyphemus
     if (this->option_process["with_chemistry"])
       InitChemistry();
 
-    if (this->option_process["with_trees"])
+    if (this->option_process["with_tree_aerodynamic"] or this->option_process["with_tree_deposition"])
       this->InitTree();
    
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI

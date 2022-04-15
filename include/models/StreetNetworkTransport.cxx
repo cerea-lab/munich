@@ -199,17 +199,34 @@ namespace Polyphemus
           sub_delta_t_min = 1.0;
       }
 
-    this->config.PeekValue("With_tree_aero",
-                           this->option_process["with_trees"]);
-    //! Aerodynamic effect of trees must be computed with Wang parametrization
-    if (this->option_process["with_trees"] and (option_transfer != "Wang" or option_ustreet != "Wang"))
-      throw ("Choose option Wang for Mean_wind_speed_parameterization and Transfer_parameterization if option with_trees is activated");
-    if (this->option_process["with_trees"])
+    this->config.PeekValue("With_tree_aerodynamic",
+                           this->option_process["with_tree_aerodynamic"]);
+    //! Aerodynamic effect of trees must be computed with Wang parameterization
+    if (this->option_process["with_tree_aerodynamic"] and (option_transfer != "Wang" or option_ustreet != "Wang"))
+      throw ("Choose option Wang for Mean_wind_speed_parameterization and Transfer_parameterization if option with_tree_aerodynamic is activated");
+
+    this->config.PeekValue("With_tree_deposition",
+                           this->option_process["with_tree_deposition"]);
+    if (this->option_process["with_tree_deposition"] and !this->option_process["with_deposition"])
+      throw ("Option With_deposition has to be activated to compute dry deposition on tree leaves.");
+
+    if (this->option_process["with_tree_deposition"])
+      this->config.PeekValue("Cuticular_resistance_option",
+                             "zhang | wesely", option_Rcut);
+
+    if (this->option_process["with_tree_aerodynamic"] or this->option_process["with_tree_deposition"])
       {
         if (this->config.Check("Tree_drag_coefficient"))
           this->config.PeekValue("Tree_drag_coefficient", "> 0", Cdt);
         else
           Cdt = 0.2;
+      }
+
+    // Tree type (LUC) to compute deposition on tree leaves
+    if (this->option_process["with_tree_deposition"])
+      {
+        this->config.PeekValue("Tree_LUC", tree_LUC);
+        file_tree_deposition = "tree_deposition_param.dat";
       }
 
     /*** Input files ***/
@@ -277,8 +294,8 @@ namespace Polyphemus
 	 i != this->input_files["deposition"].End(); i++)
       species_list_dep.push_back(i->first);
     Ns_dep = int(species_list_dep.size());
-    
-    // Scavenging.
+
+   // Scavenging.
     this->input_files["scavenging_coefficient"].Empty(); 
     if (this->option_process["with_scavenging"])
       {
@@ -351,7 +368,7 @@ namespace Polyphemus
 
     ReadStreetData();
 
-    if (this->option_process["with_trees"])
+    if (this->option_process["with_tree_aerodynamic"] or this->option_process["with_tree_deposition"])
       ReadTreeData();
 
     CheckConfiguration();
@@ -389,8 +406,10 @@ namespace Polyphemus
     if(this->option_process["with_scavenging"])
       cout<<"With wet deposition of gas-phase pollutants in streets."<<endl;
 
-    if(this->option_process["with_trees"])
+    if(this->option_process["with_tree_aerodynamic"])
       cout<<"With tree aerodynamic effect in streets."<<endl;
+    if(this->option_process["with_tree_deposition"])
+      cout<<"With dry deposition of gas-phase pollutants and aerosols on tree leaves."<<endl;
   }
   
   //! Allocates memory.
@@ -549,6 +568,17 @@ namespace Polyphemus
 	FileSpecificHumidity_i.SetZero();
 	FileSpecificHumidity_f.SetZero();
 
+        // New meteo for gas deposition on tree leaves
+        SolarRadiation_i.Resize(GridST2D);
+        SolarRadiation_f.Resize(GridST2D);
+        FileSolarRadiation_i.Resize(GridST2D);
+        FileSolarRadiation_f.Resize(GridST2D);
+
+        SolarRadiation_i.SetZero();
+        SolarRadiation_f.SetZero();
+        FileSolarRadiation_i.SetZero();
+        FileSolarRadiation_f.SetZero();
+
 	//----------------------------------
 
 	/*** Background concentrations ***/
@@ -624,8 +654,10 @@ namespace Polyphemus
     InitIntersection();
     Allocate();
     ComputeStreetAngle();
-    if (this->option_process["with_trees"])
+    if (this->option_process["with_tree_aerodynamic"] or this->option_process["with_tree_deposition"])
       InitTree();
+    if (this->option_process["with_tree_deposition"])
+      ReadTreeParamDeposition();
   }
 
   //! Returns the name of a species with deposition velocities.
@@ -727,7 +759,18 @@ namespace Polyphemus
                        FileSpecificHumidity_f,
                        this->current_date,
                        SpecificHumidity_f);
-        
+
+        // New meteo for gas deposition on tree leaves
+        if (this->option_process["with_tree_deposition"])
+          {
+            this->InitData("meteo",
+                           "SolarRadiation",
+                           FileSolarRadiation_i,
+                           FileSolarRadiation_f,
+                           this->current_date,
+                           SolarRadiation_f);
+          }
+
         //---------------------------------------
 
         //  *** Meteo for the intersections ***/
@@ -957,6 +1000,7 @@ namespace Polyphemus
     //! Get the tree data.
     id_street_tree.resize(total_nstreet);
     tree_height.resize(total_nstreet);
+    trunk_height.resize(total_nstreet);
     tree_LAI.resize(total_nstreet);
     for (int i = 0; i < total_nstreet; ++i)
       {
@@ -964,8 +1008,9 @@ namespace Polyphemus
         v = split(line, ";");
         id_street_tree(i) = to_num<T>(v[0]);
         tree_height(i) = to_num<T>(v[1]);
-        tree_LAI(i) = to_num<T>(v[2]);
-      }
+        trunk_height(i) = to_num<T>(v[2]);
+        tree_LAI(i) = to_num<T>(v[3]);
+     }
   }
 
   //! Init tree data
@@ -977,10 +1022,63 @@ namespace Polyphemus
       {
         Street<T>* street = *iter;
         street->SetTreeHeight(tree_height(ist));
+        street->SetTrunkHeight(trunk_height(ist));
         street->SetTreeLAI(tree_LAI(ist));
+        if (tree_height(ist) > street->GetHeight())
+          cout << "Tree crown height exceeds the building height in street number " << id_street_tree(ist) << "." << endl;
         ++ist;
       }
   }
+
+  // Read the parameter file to get model parameters for dry deposition on tree leaves
+  template<class T>
+  void StreetNetworkTransport<T>::ReadTreeParamDeposition()
+  {
+    string line;
+    vector<string> v;
+
+    ExtStream NlucTreeDep(file_tree_deposition);
+    NlucTreeDep.GetLine(line);
+    v = split(line, "\t ");
+    Nluc = v.size();
+
+    Data<T, 1> LUC(Nluc);
+    Data<T, 1> RcutSO2_d(Nluc);
+    Data<T, 1> RcutO3_d(Nluc);
+    Data<T, 1> Rsmin(Nluc);
+    Data<T, 1> Radius(Nluc);
+    Data<T, 1> Alpha(Nluc);
+    Data<T, 1> Gamma(Nluc);
+
+    ifstream ParamTreeDep;
+    ParamTreeDep.open(file_tree_deposition.c_str());
+    FormatText InputParam;
+
+    InputParam.Read(ParamTreeDep, LUC);
+    InputParam.Read(ParamTreeDep, RcutSO2_d);
+    InputParam.Read(ParamTreeDep, RcutO3_d);
+    InputParam.Read(ParamTreeDep, Rsmin);
+    InputParam.Read(ParamTreeDep, Radius);
+    InputParam.Read(ParamTreeDep, Alpha);
+    InputParam.Read(ParamTreeDep, Gamma);
+
+    ParamTreeDep.close();
+
+    for (int i = 0; i < Nluc; i++)
+      {
+        if (tree_LUC == int(LUC(i)))
+          {
+            // Get the model parameters for gas deposition on tree leaves
+            RcutSO2_d0 = RcutSO2_d(i);
+            RcutO3_d0 = RcutO3_d(i);
+            Rsmin_tree = Rsmin(i);
+            // Get the Zhang model parameters Radius, Alpha and Gamma for aerosol deposition on tree leaves
+            Radius_tree = Radius(i);
+            alpha_tree = Alpha(i);
+            gamma_tree = Gamma(i);
+          }
+      }
+ }
 
   //! Streets initialization.
   /*!
@@ -1100,6 +1198,15 @@ namespace Polyphemus
                          FileSpecificHumidity_i,
                          FileSpecificHumidity_f,
                          SpecificHumidity_f);
+
+        if (this->option_process["with_tree_deposition"])
+          {
+            this->UpdateData("meteo",
+                             "SolarRadiation",
+                             FileSolarRadiation_i,
+                             FileSolarRadiation_f,
+                             SolarRadiation_f);
+          }
 	
      	//--------------------------------------------
 
@@ -1168,7 +1275,9 @@ namespace Polyphemus
 	    			      Pressure_f(st),
 	    			      Temperature_f(st),
 	    			      Rain_f(st),
-				      SpecificHumidity_f(st));
+				      SpecificHumidity_f(st),
+                                      // New meteo for gas deposition on tree leaves
+                                      SolarRadiation_f(st));
 
 	    //relative humidity
 	    T relative_humidity_ = 0.0;
@@ -1995,6 +2104,7 @@ namespace Polyphemus
         T H = street->GetHeight();
         T W = street->GetWidth();
         T temperature_ = street->GetTemperature();
+        T temperature_celsius = temperature_ - 273.15;
 
         // Compute wall and ground surface friction velocity
         T z1 = z0s; // altitude above the surface to compute the friction velocty (m)
@@ -2003,6 +2113,7 @@ namespace Polyphemus
  
         /*** Input data for Rb (Quasi-laminar sublayer resistance or diffusion resistance) ***/ 
         Array<T, 1> gas_phase_diffusivity_(Ns_dep), Sc(Ns_dep);
+        Array<T, 1> alpha_(Ns_dep), beta_(Ns_dep);
         Array<T, 1> Rb(Ns_dep);
 
         for (int s = 0; s < Ns_dep; s++)
@@ -2016,26 +2127,25 @@ namespace Polyphemus
             Sc(s) = ComputeSchmidtNumber(nu, gas_phase_diffusivity_(s));
             Rb(s) = ComputeBoundaryLayerResistance(ustar_surface, Sc(s));
  
-            /*** Rc ***/ 
+            /*** Rg ***/
             // Surface resistance (ground resistance)
-            T alpha_ = alpha[DepositionVelocityName(s)];
-            T beta_ = beta[DepositionVelocityName(s)];
+            alpha_(s) = alpha[DepositionVelocityName(s)];
+            beta_(s) = beta[DepositionVelocityName(s)];
             T Rg_O3 = 500.; // values for dry surfaces
             T Rg_SO2 = 300.;
             T Rg;
-            T temperature_celsius = temperature_ - 273.15;
             if (DepositionVelocityName(s) == "O3")
               Rg = Rg_O3;
             else if (DepositionVelocityName(s) == "SO2")
               Rg = Rg_SO2;
             else
-              Rg = ComputeGroundResistance(Rg_SO2, Rg_O3, alpha_, beta_, temperature_celsius);
+              Rg = ComputeGroundResistance(Rg_SO2, Rg_O3, alpha_(s), beta_(s), temperature_celsius);
             Cut(Rg);
 	    
             T Req = Rb(s) + Rg;
 	    
             if (Req <= 0.0)
-              throw string("Error in deposistion, R_street: ")
+              throw string("Error in deposition, R_street: ")
                 + to_str(Req);
             // Walls and street ground have the same roughness length and surface friction velocity
             // so the dry deposition velocity is equal on both surfaces.
@@ -2044,7 +2154,76 @@ namespace Polyphemus
                                                    DepositionVelocityGlobalIndex(s));
             street->SetWallDryDepositionVelocity(street_dry_deposition_velocity, 
                                                  DepositionVelocityGlobalIndex(s));
+          }
 
+          // Compute gas dry deposition on tree leaves
+        T tree_dry_deposition_velocity = 0.0;
+        T LAI, hmax, htrunk = 0.0;
+        if (this->option_process["with_tree_deposition"])
+          {
+            hmax = street->GetTreeHeight();
+            htrunk = street->GetTrunkHeight();
+            LAI = street->GetTreeLAI();
+            if (LAI != 0.0 and hmax != 0.0 and htrunk != 0.0)
+              {
+                // Compute friction velocity in the tree crown
+                T sH = ComputeWangsH(H, W, hmax, LAI, Cdt);
+                T hm = htrunk + (hmax - htrunk) / 2; // height of the middle of the tree crown
+                T ustar_htree = ComputeWangUstarProfile(hm, H, W, z0s, sH, ustar_city, LAI, Cdt);
+                Array<T, 1> henry_constant_(Ns_dep), reactivity_(Ns_dep);
+
+                for (int s = 0; s < Ns_dep; s++)
+                  {
+                    /*** Rb_tree ***/
+                    // Quasi-laminar sublayer resistance (diffusion resistance)
+                    T Rb_tree = ComputeBoundaryLayerResistance(ustar_htree, Sc(s));
+
+                    /*** Rmes ***/
+                    // Compute mesophyll resistance
+                    henry_constant_(s) = henry_constant[DepositionVelocityName(s)];
+                    reactivity_(s) = reactivity[DepositionVelocityName(s)];
+                    T Rmes = ComputeMesophyllResistance(henry_constant_(s), reactivity_(s));
+                    Cut(Rmes);
+
+                    /*** Rcut ***/
+                    // Compute cuticular resistance
+                    T Rcut;
+                    if (option_Rcut == "zhang")
+                      {
+                        T RH = street->GetRelativeHumidity();
+                        Rcut = ComputeZhangCuticularResistance(RcutSO2_d0, RcutO3_d0, alpha_(s), beta_(s), temperature_celsius, RH, ustar_htree, LAI);
+                      }
+                    else if (option_Rcut == "wesely")
+                      Rcut = ComputeWeselyCuticularResistance(henry_constant_(s), reactivity_(s), temperature_celsius, LAI);
+                    else
+                      throw("Wrong cuticular resistance option given. Choose 'zhang' or 'wesely'.");
+                    Cut(Rcut);
+
+                    /*** Rsto ***/
+                    // Compute stomatal resistance
+                    T DmH2O = 0.260; // Diffusion coefficient of water vapor in air (cm2/s)
+                    T Ts = temperature_celsius; // hypothesis T leaf surface = T air
+                    T G = street->GetSolarRadiation();
+                    T Rsto = ComputeWeselyStomatalResistance(gas_phase_diffusivity_(s), DmH2O, Rsmin_tree, G, Ts);
+                    Cut(Rsto);
+
+                    // Compute tree leaves surface resistance
+                    T Rs_tree = 1. / ((1. / (Rmes + Rsto)) + (1. / Rcut));
+                    Cut(Rs_tree);
+                    // Compute dry deposition velocity on tree leaves
+                    tree_dry_deposition_velocity = 1. / (Rb_tree + Rs_tree);
+                    street->SetTreeDryDepositionVelocity(tree_dry_deposition_velocity,
+                                                     DepositionVelocityGlobalIndex(s));
+                  }
+              }
+            else // if the Tree option is activated but the street does not contain any tree
+              {
+                for (int s = 0; s < Ns_dep; s++)
+                  {
+                    street->SetTreeDryDepositionVelocity(0.0,
+                                                         DepositionVelocityGlobalIndex(s));
+                  }
+              }
           }
       }
   }
@@ -2339,8 +2518,15 @@ namespace Polyphemus
 	    	  street->GetStreetDryDepositionVelocity(s); // m3/s
 	    	T wall_dry_deposition_rate = wall_area * 
 	    	  street->GetWallDryDepositionVelocity(s); // m3/s
+
+                T tree_dry_deposition_rate = 0.0;
+                if (this->option_process["with_tree_deposition"])
+                  {
+                    tree_dry_deposition_rate = street->GetTreeLAI() * street_area *
+                      street->GetTreeDryDepositionVelocity(s); // m3/s
+                  }
                 deposition_rate = street_dry_deposition_rate +
-                  wall_dry_deposition_rate; // m3/s
+                  wall_dry_deposition_rate + tree_dry_deposition_rate; // m3/s
 	      }
 
 	    if (this->option_process["with_scavenging"])
@@ -2463,16 +2649,27 @@ namespace Polyphemus
 	    background_concentration_array(s) = street->GetBackgroundConcentration(s);
 	    emission_rate_array(s) = street->GetEmission(s);
 	    inflow_rate_array(s) = street->GetInflowRate(s);
-	    if(this->option_process["with_deposition"])
+	    if (this->option_process["with_deposition"])
 	      {
+                // Deposition flux on the street ground
 		street_deposition_rate_array(s) = street_area * 
 	    	  street->GetStreetDryDepositionVelocity(s); // m3/s
+
 	    	T wall_dry_deposition_rate = wall_area * 
 	    	  street->GetWallDryDepositionVelocity(s); // m3/s
+
+                T tree_dry_deposition_rate = 0.0;
+                if (this->option_process["with_tree_deposition"])
+                  {
+                    tree_dry_deposition_rate = street->GetTreeLAI() * street_area *
+                      street->GetTreeDryDepositionVelocity(s); // m3/s
+                  }
+
+                // Total deposition flux on the ground, walls and tree leaves of the street
 	    	deposition_rate_array(s) = street_deposition_rate_array(s) +
-	    	  wall_dry_deposition_rate; // m3/s
+                  wall_dry_deposition_rate + tree_dry_deposition_rate; // m3/s
 	      }
-	    if(this->option_process["with_scavenging"])
+	    if (this->option_process["with_scavenging"])
 	      {
 		T rain = street->GetRain();
 		if (rain > 0.0)
@@ -3039,7 +3236,7 @@ namespace Polyphemus
          else if (option_transfer == "Wang")
           {
             T sH;
-            if (this->option_process["with_trees"])
+            if (this->option_process["with_tree_aerodynamic"])
               sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
             else
               sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
@@ -3134,7 +3331,7 @@ namespace Polyphemus
               {
                 T sH;
                 Uh = Um * Uh_Um_factor;
-                if (this->option_process["with_trees"])
+                if (this->option_process["with_tree_aerodynamic"])
                   {
                     sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
                     Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, street->GetTreeLAI(), Cdt);
@@ -3171,7 +3368,7 @@ namespace Polyphemus
             else if (option_ustreet == "Wang")
               {
                 T sH;
-                if (this->option_process["with_trees"])
+                if (this->option_process["with_tree_aerodynamic"])
                   {
                     sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
                     Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, street->GetTreeLAI(), Cdt);

@@ -61,6 +61,7 @@ namespace Polyphemus
     cloud_height_ = 0.0;
     relative_humidity_ = 0.0;
     specific_humidity_ = 0.0;
+    solar_radiation_ = 0.0;
     pH_ = 4.5;
 
     /*** Dry deposition ***/
@@ -74,6 +75,8 @@ namespace Polyphemus
     wall_dry_deposition_flux_ = 0.0;
     roof_dry_deposition_velocity_.resize(ns_local_);
     roof_dry_deposition_velocity_ = 0.0;
+    tree_dry_deposition_velocity_.resize(ns_local_);
+    tree_dry_deposition_velocity_ = 0.0;
 
     /*** Scavenging ***/
     street_scavenging_flux_overcanopy_.resize(ns_local_);
@@ -202,6 +205,16 @@ namespace Polyphemus
     return tree_height_;
   }
 
+ //! Returns the trunk height.
+  /*!
+    \return the trunk height in the street (m).
+  */
+  template<class T>
+  inline T Street<T>::GetTrunkHeight() const
+  {
+    return trunk_height_;
+  }
+
   //! Returns the tree Leaf Area Index.
   /*!
     \return the tree LAI in the street (m2 leaves/m2 soil).
@@ -220,6 +233,16 @@ namespace Polyphemus
   inline void Street<T>::SetTreeHeight(T tree_height)
   {
     tree_height_ = tree_height;
+  }
+
+  //! Sets the trunk height.
+  /*!
+    \param trunk_height the tree height in the street.
+  */
+  template<class T>
+  inline void Street<T>::SetTrunkHeight(T trunk_height)
+  {
+    trunk_height_ = trunk_height;
   }
 
   //! Sets the tree Leaf Area Index.
@@ -514,7 +537,9 @@ namespace Polyphemus
                                            T pressure,
 					   T temperature,
 					   T rain,
-					   T specific_humidity)
+					   T specific_humidity,
+                                           // New meteo for gas deposition on tree leaves
+                                           T solar_radiation)
   {
     wind_direction_ = wind_direction;
     wind_speed_ = wind_speed;
@@ -525,6 +550,8 @@ namespace Polyphemus
     temperature_ = temperature;
     rain_ = rain;
     specific_humidity_ = specific_humidity;
+    // New meteo for gas deposition on tree leaves
+    solar_radiation_ = solar_radiation;
   }
 
   //! Returns the attenuation
@@ -545,6 +572,16 @@ namespace Polyphemus
   inline T Street<T>::GetSpecificHumidity() const
   {
     return specific_humidity_;
+  }
+
+  //! Returns the solar radiation.
+  /*!
+    \return The solar radiation.
+  */
+  template<class T>
+  inline T Street<T>::GetSolarRadiation() const
+  {
+    return solar_radiation_;
   }
 
   //! Returns the pressure
@@ -762,18 +799,30 @@ namespace Polyphemus
     deposition_rate_ = deposition_rate;
   }
 
-  
   template<class T>
   inline T Street<T>::GetStreetDryDepositionVelocity(int s) const
   {
     return street_dry_deposition_velocity_(s);
   }
 
-    template<class T>
+  template<class T>
   inline void Street<T>::SetStreetDryDepositionVelocity(T street_dry_deposition_velocity,
                                                         int s)
   {
     street_dry_deposition_velocity_(s) = street_dry_deposition_velocity;
+  }
+
+  template<class T>
+  inline T Street<T>::GetTreeDryDepositionVelocity(int s) const
+  {
+    return tree_dry_deposition_velocity_(s);
+  }
+
+  template<class T>
+  inline void Street<T>::SetTreeDryDepositionVelocity(T tree_dry_deposition_velocity,
+                                                      int s)
+  {
+    tree_dry_deposition_velocity_(s) = tree_dry_deposition_velocity;
   }
 
   //! Sets the concentration.
@@ -787,7 +836,7 @@ namespace Polyphemus
   }
 
   
-  //! 
+  //!
   /*!
     \return (m3/s)
   */
@@ -797,7 +846,7 @@ namespace Polyphemus
     return wall_dry_deposition_velocity_(s);
   }
 
-    //! 
+    //!
   /*!
     \param 
   */
@@ -1109,7 +1158,7 @@ namespace Polyphemus
     return typo_;
   }
 
-  //! 
+  //!
   /*!
     \param 
   */
@@ -1121,7 +1170,7 @@ namespace Polyphemus
   }
 
   
-  //! 
+  //!
   /*!
     \param 
   */
@@ -1132,8 +1181,20 @@ namespace Polyphemus
       + " is not defined.";
   }
 
+
+  //!
+  /*!
+    \param
+  */
+  template<class T>
+  inline void Street<T>::SetTreeDryDepositionVelocity_aer(T tree_dry_deposition_velocity, int b)
+  {
+    throw string("\"Street<T>::SetTreeDryDepositionVelocity_aer(T tree_dry_deposition_velocity, int b)\"")
+      + " is not defined.";
+  }
+
   
-  //! 
+  //!
   /*!
     \param 
   */
@@ -1145,7 +1206,7 @@ namespace Polyphemus
   }
 
   
-  //! 
+  //!
   /*!
     \param 
   */
@@ -1196,7 +1257,16 @@ namespace Polyphemus
     return 1;
   }
 
-  
+  //!
+  /*!
+    \return (m3/s)
+  */
+  template<class T>
+  inline T Street<T>::GetTreeDryDepositionVelocity_aer(int b) const
+  {
+    return 1;
+  }
+
   //! 
   /*!
     \return (1/s)
@@ -1219,7 +1289,6 @@ namespace Polyphemus
       + " is not defined.";
   }
 
-  
   //! Sets the concentration.
   /*!
     \param concentration the concentration.
@@ -1231,6 +1300,16 @@ namespace Polyphemus
       + " is not defined.";
   }
 
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetTreeDryDepositionFlux_aer(T tree_dry_deposition_flux, int b)
+  {
+    throw string("\"Street<T>::SetTreeDryDepositionFlux_aer(T tree_dry_deposition_flux, int b)\"")
+      + " is not defined.";
+  }
   
   //! Returns the street dry deposition flux.
   /*!
@@ -1276,6 +1355,17 @@ namespace Polyphemus
       + " is not defined.";
   }
 
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void Street<T>::SetTreeNumberDryDepositionFlux(T tree_number_dry_deposition_flux, int b)
+  {
+    throw string("\"Street<T>SetTreeNumberDryDepositionFlux(T tree_number_dry_deposition_flux, int b)\"")
+      + " is not defined.";
+  }
+
   //! Returns the street dry deposition flux.
   /*!
     \return The street dry deposition flux in the street (ug/m2/s).
@@ -1307,7 +1397,6 @@ namespace Polyphemus
   {
     return 1;
   }
-
   
   //! Returns the street dry deposition flux.
   /*!
@@ -1315,6 +1404,16 @@ namespace Polyphemus
   */
   template<class T>
   inline T Street<T>::GetWallDryDepositionFlux_aer(int b) const
+  {
+    return 1;
+  }
+
+  //! Returns the tree dry deposition flux.
+  /*!
+    \return The tree dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T Street<T>::GetTreeDryDepositionFlux_aer(int b) const
   {
     return 1;
   }

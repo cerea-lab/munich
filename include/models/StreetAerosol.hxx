@@ -130,10 +130,13 @@ namespace Polyphemus
     Array<T, 1> street_surface_deposited_number_;
     Array<T, 1> street_dry_deposition_flux_aer_;
     Array<T, 1> wall_dry_deposition_flux_aer_;
+    Array<T, 1> tree_dry_deposition_flux_aer_;
     Array<T, 1> street_dry_deposition_velocity_aer_;
     Array<T, 1> wall_dry_deposition_velocity_aer_;
+    Array<T, 1> tree_dry_deposition_velocity_aer_;
     Array<T, 1> street_number_dry_deposition_flux_;
     Array<T, 1> wall_number_dry_deposition_flux_;
+    Array<T, 1> tree_number_dry_deposition_flux_;
 
     T relative_humidity_;
     T street_surface_water_;
@@ -226,13 +229,18 @@ namespace Polyphemus
     void SetStreetSurfaceDepositedNumber(T street_surface_deposited_number, int b);
     T GetStreetDryDepositionFlux_aer(int b) const;
     T GetWallDryDepositionFlux_aer(int b) const;
+    T GetTreeDryDepositionFlux_aer(int b) const;
     void SetStreetDryDepositionVelocity_aer(T street_dry_deposition_velocity, int b);
     void SetWallDryDepositionVelocity_aer(T wall_dry_deposition_velocity, int b);
     T GetWallDryDepositionVelocity_aer(int b) const;
+    void SetTreeDryDepositionVelocity_aer(T tree_dry_deposition_velocity, int b);
+    T GetTreeDryDepositionVelocity_aer(int b) const;
     void SetStreetDryDepositionFlux_aer(T street_dry_deposition_flux, int b);
     void SetWallDryDepositionFlux_aer(T wall_dry_deposition_flux, int b);
+    void SetTreeDryDepositionFlux_aer(T street_dry_deposition_flux, int b);
     void SetStreetNumberDryDepositionFlux(T street_number_dry_deposition_flux, int b);
     void SetWallNumberDryDepositionFlux(T wall_number_dry_deposition_flux, int b);
+    void SetTreeNumberDryDepositionFlux(T tree_number_dry_deposition_flux, int b);
     void SetStreetWashoffFactor(T washoff_factor, int s);
     T GetStreetWashoffFactor(int s) const;
     

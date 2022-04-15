@@ -65,7 +65,8 @@ namespace Polyphemus
     //int id_tunnel;
     string option_transfer, option_ustreet, option_method;
     string option_uH, option_uH_macdonald;
-    
+    string option_Rcut;
+
     T sub_delta_t_min;
     bool is_stationary;
     //! Output configuration.
@@ -114,7 +115,6 @@ namespace Polyphemus
     
     /*** Deposition ***/
 
-    string option_wind_profile;
     //! List of species with deposition velocities.
     vector<string> species_list_dep;
     //! Number of species with deposition velocities.
@@ -168,8 +168,17 @@ namespace Polyphemus
     string file_tree;
     int total_ntree_street;
     Array<int, 1> id_street_tree;
-    Array<T, 1> tree_height, tree_LAI;
+    Array<T, 1> tree_height, trunk_height, tree_LAI;
     T Cdt;
+    string file_tree_deposition;
+    int Nluc;
+    int tree_LUC;
+    T RcutSO2_d0;
+    T RcutO3_d0;
+    T Rsmin_tree;
+    T Radius_tree;
+    T alpha_tree;
+    T gamma_tree;
 
     /*** Background concentration data ***/
 
@@ -282,6 +291,15 @@ namespace Polyphemus
     Data<T, 1> FileSpecificHumidity_i;
     //! SpecificHumidity buffer.
     Data<T, 1> FileSpecificHumidity_f;
+
+    //! SolarRadiation at current date.
+    Data<T, 1> SolarRadiation_i;
+    //! SolarRadiation at next date.
+    Data<T, 1> SolarRadiation_f;
+    //! SolarRadiation buffer.
+    Data<T, 1> FileSolarRadiation_i;
+    //! SolarRadiation buffer.
+    Data<T, 1> FileSolarRadiation_f;
 
     //! WindDirectionInt at current date.
     Data<T, 1> WindDirectionInter_i;
@@ -401,6 +419,7 @@ namespace Polyphemus
 
     void InitStreet();
     void InitTree();
+    void ReadTreeParamDeposition();
     void EraseStreet();
     void ClearStreetVector();
 

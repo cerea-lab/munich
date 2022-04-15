@@ -1,0 +1,14 @@
+1	2	3	4	5
+2000.0	2500.0	2000.0	2500.0	2500.0
+4000.0	6000.0	4000.0	6000.0	6000.0
+250.0	150.0	250.0	150.0	250.0
+2.0	5.0	2.0	5.0	5.0
+1.00	0.60	1.10	0.80	0.80
+0.56	0.58	0.56	0.56	0.56
+
+# Legend:
+# 1st line: LUC number (Zhang et al., 2003):
+# 1: evergreen needleleaf trees, 2: evergreen broadleaf trees, 3: deciduous needleleaf trees, 4: deciduous broadleaf trees, 5: mixed broadleaf and needleleaf trees
+# Model parameters:
+# lines 2-4: RcutSO2_d0 (s/m); RcutO3_d0 (s/m); Rsmin (s/m), for gas-phase pollutant deposition (Zhang et al., 2003)
+# lines 5-7: characteristic radius (mm); parameter alpha (-); parameter gamma (-), for aerosol deposition (Zhang et al., 2001)

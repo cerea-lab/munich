@@ -94,14 +94,20 @@ namespace Polyphemus
     street_dry_deposition_velocity_aer_ = 0.0;
     wall_dry_deposition_velocity_aer_.resize(nsize_local_);
     wall_dry_deposition_velocity_aer_ = 0.0;
+    tree_dry_deposition_velocity_aer_.resize(nsize_local_);
+    tree_dry_deposition_velocity_aer_ = 0.0;
     street_dry_deposition_flux_aer_.resize(nsize_local_);
     street_dry_deposition_flux_aer_ = 0.0;
     wall_dry_deposition_flux_aer_.resize(nsize_local_);
     wall_dry_deposition_flux_aer_ = 0.0;
+    tree_dry_deposition_flux_aer_.resize(nsize_local_);
+    tree_dry_deposition_flux_aer_ = 0.0;
     street_number_dry_deposition_flux_.resize(nsize_local_);
     street_number_dry_deposition_flux_ = 0.0;
     wall_number_dry_deposition_flux_.resize(nsize_local_);
     wall_number_dry_deposition_flux_ = 0.0;
+    tree_number_dry_deposition_flux_.resize(nsize_local_);
+    tree_number_dry_deposition_flux_ = 0.0;
     street_number_scavenging_flux_overcanopy_.resize(nsize_local_);
     street_number_scavenging_flux_overcanopy_ = 0.0;
     street_number_scavenging_flux_.resize(nsize_local_);
@@ -834,6 +840,16 @@ namespace Polyphemus
     return wall_dry_deposition_flux_aer_(b);
   }
 
+  //! Returns the street dry deposition flux.
+  /*!
+    \return The street dry deposition flux in the street (ug/m2/s).
+  */
+  template<class T>
+  inline T StreetAerosol<T>::GetTreeDryDepositionFlux_aer(int b) const
+  {
+    return tree_dry_deposition_flux_aer_(b);
+  }
+
   //! 
   /*!
     \return (m3/s)
@@ -844,6 +860,15 @@ namespace Polyphemus
     return wall_dry_deposition_velocity_aer_(b);
   }
 
+  //!
+  /*!
+    \return (m3/s)
+  */
+  template<class T>
+  inline T StreetAerosol<T>::GetTreeDryDepositionVelocity_aer(int b) const
+  {
+    return tree_dry_deposition_velocity_aer_(b);
+  }
 
   //! 
   /*!
@@ -890,9 +915,29 @@ namespace Polyphemus
     \param concentration the concentration.
   */
   template<class T>
+  inline void StreetAerosol<T>::SetTreeNumberDryDepositionFlux(T tree_number_dry_deposition_flux, int b)
+  {
+    tree_number_dry_deposition_flux_(b) = tree_number_dry_deposition_flux;
+  }
+
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
   inline void StreetAerosol<T>::SetWallDryDepositionFlux_aer(T wall_dry_deposition_flux, int b)
   {
     wall_dry_deposition_flux_aer_(b) = wall_dry_deposition_flux;
+  }
+
+  //! Sets the concentration.
+  /*!
+    \param concentration the concentration.
+  */
+  template<class T>
+  inline void StreetAerosol<T>::SetTreeDryDepositionFlux_aer(T tree_dry_deposition_flux, int b)
+  {
+    tree_dry_deposition_flux_aer_(b) = tree_dry_deposition_flux;
   }
 
   //! 
@@ -914,6 +959,17 @@ namespace Polyphemus
   {
     wall_dry_deposition_velocity_aer_(b) = wall_dry_deposition_velocity;
   }
+
+  //!
+  /*!
+    \param
+  */
+  template<class T>
+  inline void StreetAerosol<T>::SetTreeDryDepositionVelocity_aer(T tree_dry_deposition_velocity, int b)
+  {
+    tree_dry_deposition_velocity_aer_(b) = tree_dry_deposition_velocity;
+  }
+
 
 } // namespace Polyphemus.
 

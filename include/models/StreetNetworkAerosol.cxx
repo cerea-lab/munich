@@ -634,8 +634,14 @@ namespace Polyphemus
     if (this->option_process["with_chemistry"])
       InitChemistry();
 
-    if (this->option_process["with_trees"])
+    if (this->option_process["with_tree_deposition"] and
+      (!this->option_process["with_deposition_aer"]))
+      throw string("Please activate the with_deposition_aer option to compute particles deposition on tree leaves.");
+
+    if (this->option_process["with_tree_aerodynamic"] or this->option_process["with_tree_deposition"])
       this->InitTree();
+    if (this->option_process["with_tree_deposition"])
+      this->ReadTreeParamDeposition();
 
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI
     // Initialize the number of sources to parallelize.
@@ -729,6 +735,7 @@ namespace Polyphemus
 	&& (!this->option_process["with_scavenging_aer"]))
       throw string("Aerosol wet deposition fluxes cannot be collected") +
 	" without scavenging.";
+
   }
 
   
@@ -888,13 +895,17 @@ namespace Polyphemus
 
     StreetDryDepositionFlux_aer.Resize(GridB_dep_aer, this->GridST2D);
     WallDryDepositionFlux_aer.Resize(GridB_dep_aer, this->GridST2D);
+    TreeDryDepositionFlux_aer.Resize(GridB_dep_aer, this->GridST2D);
     StreetDryDepositionRate_aer.Resize(GridB_dep_aer, this->GridST2D); // ug/s
     WallDryDepositionRate_aer.Resize(GridB_dep_aer, this->GridST2D);; // ug/s
+    TreeDryDepositionRate_aer.Resize(GridB_dep_aer, this->GridST2D); // ug/s
        
     StreetDryDepositionFlux_aer.SetZero();
-    WallDryDepositionRate_aer.SetZero();
     WallDryDepositionFlux_aer.SetZero();
+    TreeDryDepositionFlux_aer.SetZero();
     StreetDryDepositionRate_aer.SetZero();
+    WallDryDepositionRate_aer.SetZero();
+    TreeDryDepositionRate_aer.SetZero();
 
     /*** Scavenging ***/
 
@@ -1330,8 +1341,10 @@ namespace Polyphemus
       {
 	SetStreetDryDepositionFlux_aer();
         SetWallDryDepositionFlux_aer();
+        SetTreeDryDepositionFlux_aer();
 	SetStreetDryDepositionRate_aer(); // ug/s
 	SetWallDryDepositionRate_aer(); // ug/s
+	SetTreeDryDepositionRate_aer(); // ug/s
       }
     if(this->option_process["with_scavenging_aer"])
       {
@@ -1378,6 +1391,26 @@ namespace Polyphemus
       }
   }
 
+  //! Sets the tree leaves dry deposition flux for all species at the whole street-network.
+  template<class T, class ClassChemistry>
+  void StreetNetworkAerosol<T, ClassChemistry>::SetTreeDryDepositionFlux_aer()
+  {
+    int ist = 0;
+    for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
+         iter != this->StreetVector.end(); iter++)
+      {
+        Street<T>* street = *iter;
+	for(int b = 0; b < this->Nbin_aer; ++b)
+	  for (int j = 0; j < Nbin_dep_aer; ++j)
+	    if (b == j)
+	      {
+		TreeDryDepositionFlux_aer(j, ist) =
+                  street->GetTreeDryDepositionFlux_aer(b);
+	      }
+        ++ist;
+      }
+  }
+
 
   //! Sets the dry deposition rate for the whole street-network.
   template<class T, class ClassChemistry>
@@ -1400,7 +1433,6 @@ namespace Polyphemus
       }
   }
   
-
   //! Sets the wall dry deposition rate for all species at the whole street-network
   template<class T, class ClassChemistry>
   void StreetNetworkAerosol<T, ClassChemistry>::SetWallDryDepositionRate_aer()
@@ -1421,6 +1453,29 @@ namespace Polyphemus
         ++ist;
       }
   }
+
+  //! Sets the tree leaves dry deposition rate for all species at the whole street-network
+  template<class T, class ClassChemistry>
+  void StreetNetworkAerosol<T, ClassChemistry>::SetTreeDryDepositionRate_aer()
+  {
+    int ist = 0;
+    for (typename vector<Street<T>* >::iterator iter = this->StreetVector.begin();
+         iter != this->StreetVector.end(); iter++)
+      {
+        Street<T>* street = *iter;
+	for(int b = 0; b < this->Nbin_aer; ++b)
+	  for (int j = 0; j < Nbin_dep_aer; ++j)
+	    if (b == j)
+	      {
+		TreeDryDepositionRate_aer(j, ist) =
+                  street->GetTreeDryDepositionFlux_aer(b) *
+                  street->GetTreeLAI() *
+                  street->GetWidth() * street->GetLength();
+	      }
+        ++ist;
+      }
+  }
+
 
  //! Returns the index of a species with deposition velocities.
   /*!
@@ -1468,7 +1523,6 @@ namespace Polyphemus
          iter != this->StreetVector.end(); iter++)
       {
         Street<T>* street = *iter;
-	  
 	//Particles density in each size bound
 	Rho_bin.resize(Nbin_dep_aer); //unity kg/m3
 	Rho_bin = 0.0;
@@ -1515,19 +1569,39 @@ namespace Polyphemus
 	    for(int id=0; id< this->Ncomposition_aer; id++)
 	      WetDiameter_dep_aer(b*this->Ncomposition_aer + id) = street->GetStreetWetDiameter_aer(pos_bin*this->Ncomposition_aer + id);
 	  }
-	
+
+	// Deposition on tree leaves
+        // The parameterization used to compute aerosol deposition on tree leaves is the same as
+        // the one used for deposition on street ground and walls (zhang or giardina).
+        T LAI, hmax, htrunk = 0.0;
+        T ustar_htree = 0.0;
+        T tree_dry_deposition_velocity = 0.0;
+        T Rs_tree;
+        if (this->option_process["with_tree_deposition"])
+          {
+            hmax = street->GetTreeHeight();
+            htrunk = street->GetTrunkHeight();
+            LAI = street->GetTreeLAI();
+            if (LAI != 0.0 and hmax != 0.0 and htrunk != 0.0)
+              {
+                T sH = ComputeWangsH(H, W, hmax, LAI, this->Cdt);
+                T hm = htrunk + (hmax - htrunk) / 2; // middle height of the tree crown
+                ustar_htree = ComputeWangUstarProfile(hm, H, W, this->z0s, sH, ustar_city, LAI, this->Cdt);
+              }
+          }
+
+	T Ts = temperature_;
+	T Ps = pressure_;
+        T DynamicViscosity = (pow(Ts,3.)*8.8848e-15) - (pow(Ts,2.)*3.2398e-11)
+	  + (pow(Ts,1.)*6.2657e-08) + (pow(Ts,0.)*2.3543e-06);
+	// Compute AirDensity = f(Temperature)
+        T AirDensity = 1.293 * (273.15 / Ts);
+        T KinematicViscosity = DynamicViscosity / AirDensity;
+
 	for(int b = 0; b < Nbin_dep_aer; b++)
 	  {
 	    T wet_diameter = WetDiameter_dep_aer(b);
-	    T Ts = temperature_;
-	    T Ps = pressure_;
 	    T ParticleDensity = Rho_bin(b);
-     	    T DynamicViscosity = (pow(Ts,3.)*8.8848e-15) - (pow(Ts,2.)*3.2398e-11)
-	      + (pow(Ts,1.)*6.2657e-08) + (pow(Ts,0.)*2.3543e-06);
-
-	    // compute AirDensity = f(Temperature)
-	    T AirDensity = 1.293 * (273.15 / Ts);
-            T KinematicViscosity = DynamicViscosity / AirDensity;
 
             // Compute sedimentation velocity
             T L = ComputeMeanFreePath(Ts, Ps, KinematicViscosity);
@@ -1543,14 +1617,14 @@ namespace Polyphemus
             T Dm = ComputeMolecularDiffusivity(wet_diameter, Cu, Ts, DynamicViscosity);
             T Sc = ComputeSchmidtNumber(KinematicViscosity, Dm);
             
-	    T Radius = 10.e-3;
+	    T Beta = 2.0; // Zhang model constant for all LUC
+	    T Radius = 10.e-3; // for urban LUC
             T Rs;
             // Compute surface resistance according to Zhang et al., (2001)
             if (particles_dry_velocity_option == "zhang")
             {
-              T Alpha = 1.5; // model constants for urban LUC
-	      T Beta = 2.0;
-	      T Gamma = 0.56;
+              T Alpha = 1.5; // Zhang model constant for urban LUC
+	      T Gamma = 0.56; // Zhang model constant for urban LUC
               T St = ComputeStokesNumber(ustar_surface, Radius, Vs, KinematicViscosity);
               T Rr = ComputeReboundCoefficient(St);
               T Eim = ComputeZhangImpactionEfficiency(St, Alpha, Beta);
@@ -1561,8 +1635,23 @@ namespace Polyphemus
               else if (brownian_diffusion_resistence_option == "seigneur")
                 Eb = ComputeSeigneurBrownianEfficiency(Sc);
               else
-                throw string("Error in brownian_diffusion_resistence_option");
+                throw string("Error in brownian_diffusion_resistence_option, choose 'zhang' or 'seigneur'");
               Rs = ComputeZhangSurfaceResistance(ustar_surface, Eim, Ein, Eb, Rr);
+
+              if (this->option_process["with_tree_deposition"] and (LAI != 0.0 and hmax != 0.0 and htrunk != 0.0))
+              {
+                T St_tree = ComputeStokesNumber(ustar_htree, this->Radius_tree, Vs, KinematicViscosity);
+                T Rr_tree = ComputeReboundCoefficient(St_tree);
+                T Eim_tree = ComputeZhangImpactionEfficiency(St_tree, this->alpha_tree, Beta);
+                T Ein_tree = ComputeZhangInterceptionEfficiency(wet_diameter, this->Radius_tree);
+                T Eb_tree;
+                if (brownian_diffusion_resistence_option == "zhang")
+                  Eb_tree = ComputeZhangBrownianEfficiency(Sc, this->gamma_tree);
+                else
+                  throw string("Use the option 'zhang' for brownian_diffusion_resistance_option for deposition on tree leaves");
+                Rs_tree = ComputeZhangSurfaceResistance(ustar_htree, Eim_tree, Ein_tree, Eb_tree, Rr_tree);
+                tree_dry_deposition_velocity = ComputeVenkatranDepositionVelocity(Vs, Rs_tree);
+              }
             }
 
             // Compute surface resistance according to Giardina and Buffa, (2018)
@@ -1580,21 +1669,39 @@ namespace Polyphemus
               else if (brownian_diffusion_resistence_option == "chamberlain")
                 Rdb = ComputeChamberlainBrownianEfficiency(Sc, ustar_surface, Re_star);
               else
-                throw string("Error in brownian_diffusion_resistence_option");
+                throw string("Error in brownian_diffusion_resistence_option, choose 'giardina' or 'chamberlain'");
               Rs = ComputeGiardinaSurfaceResistance(Rii, Rti, Rdb, Rr);
+
+              if (this->option_process["with_tree_deposition"] and (LAI != 0.0 and hmax != 0.0 and htrunk != 0.0))
+              {
+                T St_tree = ComputeStokesNumber(ustar_htree, 0., Vs, KinematicViscosity); // In Giardina and Buffa, (2018) St number calculated with equation for smooth surfaces
+                T Rr_tree = ComputeReboundCoefficient(St_tree);
+                T Rii_tree = ComputeGiardinaInertialImpactResistance(St_tree, ustar_htree, this->Radius_tree);
+                T Rti_tree = ComputeGiardinaTurbulentImpactResistance(ustar_htree, tau, KinematicViscosity);
+                T Rdb_tree;
+                if (brownian_diffusion_resistence_option == "giardina")
+                  Rdb_tree = ComputeGiardinaBrownianDiffusionResistance(Sc, ustar_htree);
+                else
+                  throw string("Use the option 'giardina' for brownian_diffusion_resistance_option for deposition on tree leaves");
+                Rs_tree = ComputeGiardinaSurfaceResistance(Rii, Rti, Rdb, Rr);
+                tree_dry_deposition_velocity = ComputeVenkatranDepositionVelocity(Vs, Rs_tree);
+              }
             }
             else
-              throw string("Error in particle dry deposition velocity option");
+              throw string("Error in particle dry deposition velocity option, choose 'zhang' or 'giardina'");
             
             if (Rs <= 0.0)
               throw string("Error in deposistion, Rs: ") + to_str(Rs);
+
             T street_dry_deposition_velocity = ComputeVenkatranDepositionVelocity(Vs, Rs);
             street->SetStreetDryDepositionVelocity_aer(street_dry_deposition_velocity, b);
 
 	    // Sedimentation velocity does not impact deposition on walls
 	    T wall_dry_deposition_velocity = 1. / Rs;
             street->SetWallDryDepositionVelocity_aer(wall_dry_deposition_velocity, b);
-	  }
+
+            street->SetTreeDryDepositionVelocity_aer(tree_dry_deposition_velocity, b);
+          }
 	st += 1;
       }
   }
@@ -2082,8 +2189,10 @@ namespace Polyphemus
 		    street->GetStreetDryDepositionVelocity_aer(b); // m3/s
 		  T wall_dry_deposition_flow_rate_aer = wall_area * 
 		    street->GetWallDryDepositionVelocity_aer(b); // m3/s
+                  T tree_dry_deposition_flow_rate_aer = street->GetTreeLAI() * street_area * 
+		    street->GetTreeDryDepositionVelocity_aer(b); // m3/s
 		  deposition_flow_rate_aer = street_dry_deposition_flow_rate_aer +
-		    wall_dry_deposition_flow_rate_aer; // m3/s
+		    wall_dry_deposition_flow_rate_aer + tree_dry_deposition_flow_rate_aer; // m3/s
 		  if(this->option_process["with_resuspension"])
 		    resuspension_rate = street->GetStreetResuspensionFactor() *
                       street->GetStreetSurfaceDepositedMass_aer(s, b);		    
@@ -2142,6 +2251,10 @@ namespace Polyphemus
                 (street_conc_new_aer * 
                  street->GetWallDryDepositionVelocity_aer(b), b); // ug/m2/s
 
+	      street->SetTreeDryDepositionFlux_aer
+                (street_conc_new_aer *
+                 street->GetTreeDryDepositionVelocity_aer(b),b); // ug/m2/s
+
 	      T street_scavenging_flux_incanopy_aer = street_conc_new_aer * 
 		street->GetStreetScavengingCoefficient_aer(b) *
 		street->GetHeight();
@@ -2178,8 +2291,10 @@ namespace Polyphemus
 			  street->GetStreetDryDepositionVelocity_aer(b); // m3/s
 			T wall_number_dry_deposition_flow_rate = wall_area * 
 			  street->GetWallDryDepositionVelocity_aer(b); // m3/s
+                        T tree_number_dry_deposition_flow_rate = street->GetTreeLAI() * street_area * 
+			  street->GetTreeDryDepositionVelocity_aer(b); // m3/s
 			number_deposition_flow_rate = street_number_dry_deposition_flow_rate +
-			  wall_number_dry_deposition_flow_rate; // m3/s
+			  wall_number_dry_deposition_flow_rate + tree_number_dry_deposition_flow_rate; // m3/s
 
 			if(this->option_process["with_resuspension"])
 			  number_resuspension_rate = street->GetStreetResuspensionFactor() * street->GetStreetSurfaceDepositedNumber(b);
@@ -2254,6 +2369,9 @@ namespace Polyphemus
             
 		street->SetWallNumberDryDepositionFlux(street_number_conc_new * 
 						       street->GetWallDryDepositionVelocity_aer(b), b); // ug/m2/s
+
+		street->SetTreeNumberDryDepositionFlux(street_number_conc_new * 
+							 street->GetTreeDryDepositionVelocity_aer(b), b); // ug/m2/s
 
 		T street_number_scavenging_flux_incanopy = street_number_conc_new * 
 		  street->GetStreetScavengingCoefficient_aer(b) *
@@ -2409,8 +2527,10 @@ namespace Polyphemus
 		  street->GetStreetDryDepositionVelocity(s); // m3/s
 		T wall_dry_deposition_flow_rate = wall_area * 
 		  street->GetWallDryDepositionVelocity(s); // m3/s
+                T tree_dry_deposition_flow_rate = street->GetTreeLAI() * street_area * 
+		  street->GetTreeDryDepositionVelocity(s); // m3/s
 		deposition_flow_rate_array(s) = street_deposition_flow_rate_array(s) +
-		  wall_dry_deposition_flow_rate; // m3/s
+		  wall_dry_deposition_flow_rate + tree_dry_deposition_flow_rate; // m3/s
 	      }
 	    
 	    if(this->option_process["with_scavenging"])
@@ -2521,8 +2641,11 @@ namespace Polyphemus
 		T wall_dry_deposition_flow_rate_aer = wall_area * 
 		  street->GetWallDryDepositionVelocity_aer(b); // m3/s
 
+                T tree_dry_deposition_flow_rate_aer = street->GetTreeLAI() * street_area * 
+		  street->GetTreeDryDepositionVelocity_aer(b); // m3/s
+
 		deposition_flow_rate_array_aer(b) = street_deposition_flow_rate_array_aer(b) +
-		  wall_dry_deposition_flow_rate_aer; // m3/s
+		  wall_dry_deposition_flow_rate_aer + tree_dry_deposition_flow_rate_aer; // m3/s
 	      }
 	    if(this->option_process["with_scavenging_aer"])
 	      if(rain > 0.0)

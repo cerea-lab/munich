@@ -53,6 +53,9 @@ namespace Polyphemus
     //! Tree height in the street (m)
     T tree_height_;
 
+    //! Trunk height in the street (m)
+    T trunk_height_;
+
     //! Tree Leaf Area Index (m2 leaves/m2 soil projected area)
     T tree_LAI_;
 
@@ -133,13 +136,15 @@ namespace Polyphemus
     T temperature_;
     T relative_humidity_;
     T specific_humidity_;
-    
+    T solar_radiation_;
+
     /*** Dry deposition ***/
     Array<T, 1> street_dry_deposition_velocity_;
     Array<T, 1> street_dry_deposition_flux_;
     Array<T, 1> wall_dry_deposition_velocity_;
     Array<T, 1> wall_dry_deposition_flux_;
     Array<T, 1> roof_dry_deposition_velocity_;
+    Array<T, 1> tree_dry_deposition_velocity_;
 
     /*** Scavenging ***/
     Array<T, 1> street_scavenging_flux_overcanopy_;
@@ -178,6 +183,8 @@ namespace Polyphemus
     T GetHeight() const;
     T GetTreeHeight() const;
     void SetTreeHeight(T tree_height);
+    T GetTrunkHeight() const;
+    void SetTrunkHeight(T trunk_height);
     T GetTreeLAI() const;
     void SetTreeLAI(T tree_LAI);
     T GetStreetAngle() const;
@@ -211,7 +218,9 @@ namespace Polyphemus
 			   T pressure,
 			   T temperature,
 			   T rain,
-                           T specific_humidity);
+                           T specific_humidity,
+                           // New meteo for gas deposition on tree leaves
+                           T solar_radiation);
     T GetPressure() const;
     T GetTemperature() const;
     T GetWindSpeed() const;
@@ -251,6 +260,8 @@ namespace Polyphemus
     T GetStreetScavengingCoefficient(int s) const;
     T GetDepositionRate() const;
     void SetDepositionRate(T deposition_rate);
+    void SetTreeDryDepositionVelocity(T tree_dry_deposition_velocity, int s);
+    T GetTreeDryDepositionVelocity(int s) const;
     
     //
     T GetTransferVelocity() const;
@@ -262,6 +273,7 @@ namespace Polyphemus
 
     T GetRelativeHumidity() const;
     T GetSpecificHumidity() const;
+    T GetSolarRadiation() const;
     void SetRelativeHumidity(T relative_humidity);
     //aerosol------------------------------------------
 
@@ -283,6 +295,7 @@ namespace Polyphemus
     void SetLiquidWaterContent(T liquidwatercontent);
     virtual void SetStreetDryDepositionVelocity_aer(T street_dry_deposition_velocity, int b);
     virtual void SetWallDryDepositionVelocity_aer(T wall_dry_deposition_velocity, int b);
+    virtual void SetTreeDryDepositionVelocity_aer(T tree_dry_deposition_velocity, int b);
     virtual void SetStreetSurfaceDepositedMass_aer(T street_surface_deposited_mass_aer, int s, int b);
     virtual T GetStreetSurfaceDepositedNumber(int b) const;
     virtual void SetStreetSurfaceDepositedNumber(T street_surface_deposited_number, int b);
@@ -290,17 +303,21 @@ namespace Polyphemus
     virtual void SetStreetScavengingCoefficient_aer(T street_scavenging_coefficient, int b);
     virtual T GetStreetDryDepositionVelocity_aer(int b) const;
     virtual T GetWallDryDepositionVelocity_aer(int b) const;
+    virtual T GetTreeDryDepositionVelocity_aer(int b) const;
     virtual T GetStreetScavengingCoefficient_aer(int b) const;
     virtual void SetStreetDryDepositionFlux_aer(T street_dry_deposition_flux, int b);
     virtual void SetWallDryDepositionFlux_aer(T wall_dry_deposition_flux, int b);
+    virtual void SetTreeDryDepositionFlux_aer(T wall_dry_deposition_flux, int b);
     virtual T GetStreetScavengingFluxOverCanopy_aer(int b) const;
     virtual void SetStreetScavengingFlux_aer(T street_scavenging_flux, int b);
     virtual void SetStreetNumberDryDepositionFlux(T street_number_dry_deposition_flux, int b);
     virtual void SetWallNumberDryDepositionFlux(T wall_number_dry_deposition_flux, int b);
+    virtual void SetTreeNumberDryDepositionFlux(T wall_number_dry_deposition_flux, int b);
     virtual T GetStreetNumberScavengingFluxOverCanopy(int b) const;
     virtual void SetStreetNumberScavengingFlux(T street_number_scavenging_flux, int b);
     virtual T GetStreetDryDepositionFlux_aer(int b) const;
     virtual T GetWallDryDepositionFlux_aer(int b) const;
+    virtual T GetTreeDryDepositionFlux_aer(int b) const;
     virtual T GetStreetScavengingFlux_aer(int b) const;
     virtual T GetMassfluxFromBackground_aer(int s, int t) const;
     virtual T GetInflowRate_aer(int s, int b) const;
