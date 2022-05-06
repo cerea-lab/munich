@@ -474,7 +474,7 @@ namespace Polyphemus
 
     void ComputeIntersection(T wind_dir_inter, Intersection<T>* intersection);
     void ComputeIntersectionFlux(Array<T, 2>& extended_matrix,
-                                 T wind_dir_inter);
+                                 T wind_dir_inter, int inter_id);
     void ComputeGaussianFluxMatrix(T gaussian_factor, Intersection<T>* intersection);
     void CreateExtendedMatrix(Array<int, 1> ind_street_in,
                               Array<int, 1> ind_street_out,
@@ -488,6 +488,14 @@ namespace Polyphemus
     void ComputeMacdonaldProfile();
     void ComputeUstreet();
     void ComputeWindDirectionFluctuation();
+
+
+    void CheckFluxStreet();
+    
+    
+    
+    
+
     void GetMin(Array<T, 1> arr, int length, T& minimum, int& index);
     void ComputeTransferVelocity();
     void ComputeAlpha(int nstreet_in, int nstreet_out, 

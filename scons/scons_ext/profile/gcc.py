@@ -63,7 +63,8 @@ def fast_portable(utils):
     If compatibility with older computers is not needed, use 'fast' instead.
     """
     p = _warning(utils)
-    p.flag_compiler += " -O2 -g3"
+    #p.flag_compiler += " -O2 -g3"
+    p.flag_compiler += " -Ofast -g3" #from thibaud about speed computation
     return p
 
 
@@ -140,9 +141,9 @@ def debug(utils):
 
         # Polyphemus related macros.
         "TALOS_DEBUG",
-        "SELDONDATA_DEBUG_LEVEL_4",
-        "SELDON_DEBUG_LEVEL_4",
-        "VERDANDI_DEBUG_LEVEL_4",
+        "SELDONDATA_DEBUG_LEVEL_2",
+        "SELDON_DEBUG_LEVEL_2",
+        "VERDANDI_DEBUG_LEVEL_2",
         "SELDON_WITH_ABORT",
         "VERDANDI_WITH_ABORT",
         "OPS_WITH_ABORT"

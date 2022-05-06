@@ -1861,6 +1861,7 @@ namespace Polyphemus
                the street the street angle should be corrected by 
                addtion or subtraction by pi.
             */
+	    
             Street<T>* street = StreetVectorInter[j];
             if (intersection->GetID() == street->GetEndIntersectionID())
               {
@@ -1876,12 +1877,14 @@ namespace Polyphemus
               throw string("Error: unknown ID") + to_str(intersection->GetID());
           } // nstreet_inter
 
-        ComputeIntersectionFlux(extended_matrix, wind_dir_inter);
-
+        ComputeIntersectionFlux(extended_matrix, wind_dir_inter, intersection->GetID());
+	
         intersection->SetFluxMatrix(extended_matrix);
 
-        //! Clear the street vector for the intersection. 
+	    
+        //! Clear the +street vector for the intersection. 
         StreetVectorInter.clear();
+
       } // IsVirtual: false
     else // End-node case
       {
@@ -2503,6 +2506,7 @@ namespace Polyphemus
         bool is_stationary_local = true;
         for (int s = 0; s < this->Ns; ++s)
           {
+	    
             T street_conc = street->GetStreetConcentration(s); // ug/m3
             
             T init_street_conc = street->GetInitialStreetConcentration(s); // ug/m3
@@ -2549,11 +2553,11 @@ namespace Polyphemus
                 //! because the total incoming flux should be equal to zero.
                 street_conc_new = (emission_rate * this->Delta_t) / street_volume
                   + init_street_conc;
+		
               }
-            else
+            else	      
               street_conc_new = (emission_rate + inflow_rate + temp * conc_bg) /
                 (temp + outgoing_flux + deposition_rate + scavenging_rate);
-
             //! Set the minimum possible concentrations.
             street_conc_new = max(street_conc_new, 0.0);
 
@@ -2645,6 +2649,8 @@ namespace Polyphemus
 	for (int s = 0; s < this->Ns; ++s)
           {
 	    concentration_array(s) = street->GetStreetConcentration(s);
+
+	    
 	    init_concentration_array(s) = street->GetStreetConcentration(s);
 	    background_concentration_array(s) = street->GetBackgroundConcentration(s);
 	    emission_rate_array(s) = street->GetEmission(s);
@@ -2816,7 +2822,7 @@ namespace Polyphemus
   //! Compute the entering/outgoing flow rate for the intersection.
   template<class T>
   void StreetNetworkTransport<T>::ComputeIntersectionFlux(Array<T, 2>& extended_matrix,
-                                                          T wind_dir_inter)
+                                                          T wind_dir_inter, int inter_id)
   {
     int i, j;
 
@@ -2831,11 +2837,21 @@ namespace Polyphemus
     int nstreet_out = 0; // Number of outgoing streets
     Array<int, 1> ind_wind(nstreet_inter);
 
+    
     for (int i = 0; i < nstreet_inter; i++)
       {
         Street<T>* street = StreetVectorInter[i];
         flux(i) = street->GetStreetWindSpeed() * street->GetWidth() * street->GetHeight();
         temp(i) = street->GetStreetAngleIntersection() * 180. / pi;
+	
+	
+	if (this->option_process["with_horizontal_fluctuation"]==0)
+		 {
+		   if(street->GetSituationFlux()==false)
+		     {
+		       wind_dir_inter = street->GetWindDirection();
+		     }
+		 }
 
         T dangle = abs(street->GetStreetAngleIntersection() - wind_dir_inter);
         
@@ -2957,6 +2973,8 @@ namespace Polyphemus
       sum_P_out += P_out(i);
     P0 = sum_P_in - sum_P_out;
 
+    
+    
     //! Distribution of P0
     Array<T, 2> flux_matrix(nstreet_in + 1, nstreet_out + 1); 
     flux_matrix = 0.0;
@@ -2979,7 +2997,7 @@ namespace Polyphemus
             P_out(i) = (1 - alpha0) * P_out(i);
           }
       }
-
+    
     sum_P_in = 0.0;
     sum_P_out = 0.0;
     for (i = 0; i < nstreet_in; i++)
@@ -2987,6 +3005,7 @@ namespace Polyphemus
     for (i = 0; i < nstreet_out; i++)
       sum_P_out += P_out(i);
 
+    
     //! Compute flux among the streets.
     ComputeAlpha(nstreet_in, nstreet_out, P_in, P_out, alpha, flux_matrix);
 
@@ -3315,10 +3334,12 @@ namespace Polyphemus
         T H = street->GetHeight();
         T W = street->GetWidth();       
         T ang = street->GetStreetAngle();
+
         T wind_direction = street->GetWindDirection();
         T phi = abs(wind_direction - ang);
         T ustar = street->GetStreetUstar();
         int nz = int(10 * H);
+
         if (option_uH == "Sirane")
           {
             T delta = min(H, W / 2);
@@ -3387,11 +3408,117 @@ namespace Polyphemus
         else
           throw("Wrong option given. Choose Sirane or Macdonald.");
 
+
         Ustreet_y = Ustreet * abs(cos(phi));
         street->SetStreetWindSpeed(max(Ustreet_y, ustreet_min));
+
+
       }
   }
 
+
+//! Do a check on a street about his fluctuation
+  template<class T>
+  void StreetNetworkTransport<T>::CheckFluxStreet()
+  {
+    for (typename vector<Street<T>* >::iterator iter = StreetVector.begin(); iter != StreetVector.end(); iter++)
+      {
+	
+	Street<T>* street = *iter; //StreetVectorInter[j];
+	int begin_node, end_node;
+	T wind_dir_inter_begin, wind_dir_inter_end;
+	T StreetAngleIntersectionBegin, StreetAngleIntersectionEnd;
+
+	/*
+	  To have a better manipulation of the nodes of each street, 
+	  we set in the class street a "begin node" and a "end node".
+	  There are no reason why a node of a street is "begin" or "end", 
+	  it is only more convenient for the manipulation.
+	  We defined "end node" or "begin node" in relation of the network file (street.dat)
+	*/
+
+	begin_node = street->GetBeginIntersectionID();
+	end_node = street->GetEndIntersectionID();
+
+
+	/* When the street angle was calculated, the begining intersection of 
+	   the street was considered as the origin point.
+	   Therefore if the intersection is the ending intersection of 
+	   the street the street angle should be corrected by 
+	   addtion or subtraction by pi.
+	*/
+
+	StreetAngleIntersectionBegin =  street->GetStreetAngle();
+
+        if (street->GetStreetAngle() >= pi)
+	  StreetAngleIntersectionEnd = street->GetStreetAngle() - pi ;
+	else
+	  StreetAngleIntersectionEnd = street->GetStreetAngle() + pi ;
+
+	
+	for (typename vector<Intersection<T>* >::iterator iter2 = IntersectionVector.begin(); iter2 != IntersectionVector.end(); iter2++)
+	  {
+	    Intersection<T>* intersection = *iter2;
+	    if(begin_node == intersection->GetID())
+	      wind_dir_inter_begin = intersection->GetWindDirection();
+	    if(end_node == intersection->GetID())
+	      wind_dir_inter_end = intersection->GetWindDirection();
+	  }
+
+	/*
+	  Now we have the street angle and the wind direction for each node of a street,
+	  we can check if, for every node, if his flux is incoming or outcoming.
+	  If the two nodes of a street are outcoming or incoming, there is a problem.
+	  One must be outcoming and the other incoming.
+
+	  To do the check we set a variable "dangle"
+	  dangle = abs (Street_Angle_Node - Wind_Direction_Node)
+
+	  if (dangle2 > (pi / 2.0) and dangle < (pi * 3.0 / 2.0))
+	      --> the node is an incoming
+	  else
+	      --> the node is an outcoming
+	 */
+
+	
+	T dangle1 = abs(StreetAngleIntersectionBegin - wind_dir_inter_begin);
+	T dangle2 = abs(StreetAngleIntersectionEnd - wind_dir_inter_end);
+		
+	if (dangle1 > (pi / 2.0) and dangle1 < (pi * 3.0 / 2.0)) //incoming flow
+          {
+	    if (dangle2 > (pi / 2.0) and dangle2 < (pi * 3.0 / 2.0)) //incoming flow
+	      {
+		
+		street->SetSituationFlux(false); // two incoming
+	      }
+	    else
+	      street->SetSituationFlux(true);
+		
+          }
+        else if(dangle2 > (pi / 2.0) and dangle2 < (pi * 3.0 / 2.0))
+	  {
+	    street->SetSituationFlux(true);
+	  }
+	else
+	  {
+	    street->SetSituationFlux(false); // two outcoming
+	  }
+
+
+	if(street->GetSituationFlux()==false)
+	  {
+	    cout << "Warning - two outcoming or two incoming detected in the same street" << endl;
+	    cout << "street concerned : " << street->GetStreetID() << endl;
+	    cout << "=====" << endl;
+	  }
+	
+      }
+   
+  }
+
+
+  
+  
   //! Compute the horizontal fluctuation of the wind direction.
   template<class T>
   void StreetNetworkTransport<T>::ComputeWindDirectionFluctuation()
@@ -3401,10 +3528,15 @@ namespace Polyphemus
     //! in radian
     const double max_sigma_theta(pi / 18.); 
 
+    //This function check if a street has not two incoming flux or two outcoming flux.
+    CheckFluxStreet();
+
+    
     for (typename vector<Intersection<T>* >::iterator iter = IntersectionVector.begin(); iter != IntersectionVector.end(); iter++)
       {
         //! Get the intersection class object.
         Intersection<T>* intersection = *iter;
+	
         T theta0 = intersection->GetWindDirection();        
 
         if (this->option_process["with_horizontal_fluctuation"])
@@ -3440,8 +3572,7 @@ namespace Polyphemus
               ComputeIntersection(theta0, intersection);
           }
         else
-          ComputeIntersection(theta0, intersection);
-
+	    ComputeIntersection(theta0, intersection);
       }
   }
 

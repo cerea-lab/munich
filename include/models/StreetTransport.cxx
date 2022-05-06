@@ -264,6 +264,14 @@ namespace Polyphemus
   // {
   //   return is_tunnel_;
   // }
+
+
+  template<class T>
+  inline T Street<T>::GetSituationFlux() const
+  {
+    return situation_flux_;
+  }
+  
   
   //! Returns the street angle.
   /*!
@@ -285,6 +293,16 @@ namespace Polyphemus
     return street_angle_inter_;
   }
 
+
+
+
+  template<class T>
+  inline void Street<T>::SetSituationFlux(T situation_flux)
+  {
+    situation_flux_ = situation_flux;
+  }
+
+
   //! Sets the street angle.
   /*!
     \param street_angle the street angle.
@@ -305,6 +323,7 @@ namespace Polyphemus
     street_angle_inter_ = street_angle;
   }
 
+  
   //! Returns the wind speed in the street.
   /*!
     \return The wind speed in the street (m/s).
