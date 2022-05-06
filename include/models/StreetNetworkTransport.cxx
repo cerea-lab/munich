@@ -3528,8 +3528,8 @@ namespace Polyphemus
     //! in radian
     const double max_sigma_theta(pi / 18.); 
 
-    //This function check if a street has not two incoming flux or two outcoming flux.
-    CheckFluxStreet();
+    //This function check if a street has two incoming flux or two outcoming flux.
+    //CheckFluxStreet();
 
     
     for (typename vector<Intersection<T>* >::iterator iter = IntersectionVector.begin(); iter != IntersectionVector.end(); iter++)
