@@ -2844,14 +2844,6 @@ namespace Polyphemus
         flux(i) = street->GetStreetWindSpeed() * street->GetWidth() * street->GetHeight();
         temp(i) = street->GetStreetAngleIntersection() * 180. / pi;
 	
-	
-	if (this->option_process["with_horizontal_fluctuation"]==0)
-		 {
-		   if(street->GetSituationFlux()==false)
-		     {
-		       wind_dir_inter = street->GetWindDirection();
-		     }
-		 }
 
         T dangle = abs(street->GetStreetAngleIntersection() - wind_dir_inter);
         
