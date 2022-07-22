@@ -60,10 +60,12 @@ namespace Polyphemus
     //! Tree Leaf Area Index (m2 leaves/m2 soil projected area)
     T tree_LAI_;
 
+    //! Number of trees par street segment (-)
+    T tree_nb_;
+
     //! a booleen to know if we have an outcoming
     //! and an incoming flux in the same street
     T situation_flux_;
-
 
     //! Street angle (rad). 
     T street_angle_;
@@ -194,6 +196,8 @@ namespace Polyphemus
     void SetTrunkHeight(T trunk_height);
     T GetTreeLAI() const;
     void SetTreeLAI(T tree_LAI);
+    int GetTreeNumber() const;
+    void SetTreeNumber(int tree_nb);
 
     T GetSituationFlux() const;
     void SetSituationFlux(T situation_flux);

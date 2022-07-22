@@ -225,6 +225,16 @@ namespace Polyphemus
     return tree_LAI_;
   }
 
+  //! Returns the number of trees in the street segment.
+  /*!
+    \return the tree number in the street (-).
+  */
+  template<class T>
+  inline int Street<T>::GetTreeNumber() const
+  {
+    return tree_nb_;
+  }
+
   //! Sets the tree crown height.
   /*!
     \param tree_height the tree height in the street.
@@ -253,6 +263,16 @@ namespace Polyphemus
   inline void Street<T>::SetTreeLAI(T tree_LAI)
   {
     tree_LAI_ = tree_LAI;
+  }
+
+  //! Sets the number of trees in the street segment.
+  /*!
+    \param tree_nb the tree number in the street.
+  */
+  template<class T>
+  inline void Street<T>::SetTreeNumber(int tree_nb)
+  {
+    tree_nb_ = tree_nb;
   }
 
   //! Returns the building height.

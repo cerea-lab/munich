@@ -154,7 +154,7 @@ namespace Polyphemus
     else
       zref = 30.0;
 
-      if (this->config.Check("z0_surface"))
+    if (this->config.Check("z0_surface"))
       this->config.PeekValue("z0_surface", "> 0", z0s);
     else
       z0s = 0.05;
@@ -1002,6 +1002,7 @@ namespace Polyphemus
     tree_height.resize(total_nstreet);
     trunk_height.resize(total_nstreet);
     tree_LAI.resize(total_nstreet);
+    tree_nb.resize(total_nstreet);
     for (int i = 0; i < total_nstreet; ++i)
       {
         TreeStream.GetLine(line);
@@ -1010,6 +1011,7 @@ namespace Polyphemus
         tree_height(i) = to_num<T>(v[1]);
         trunk_height(i) = to_num<T>(v[2]);
         tree_LAI(i) = to_num<T>(v[3]);
+        tree_nb(i) = to_num<T>(v[4]);
      }
   }
 
@@ -1024,6 +1026,7 @@ namespace Polyphemus
         street->SetTreeHeight(tree_height(ist));
         street->SetTrunkHeight(trunk_height(ist));
         street->SetTreeLAI(tree_LAI(ist));
+        street->SetTreeNumber(tree_nb(ist));
         if (tree_height(ist) > street->GetHeight())
           cout << "Tree crown height exceeds the building height in street number " << id_street_tree(ist) << "." << endl;
         ++ist;
@@ -2056,8 +2059,8 @@ namespace Polyphemus
           ustar_z1 = ComputeSiraneUstarProfile(z1, H, C, delta, Um);
         else if (option_ustreet == "Wang")
           {
-            T sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
-            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city, 0.0, 0.0);
+            T sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0, 0.0, 0, 0.0);
+            ustar_z1 = ComputeWangUstarProfile(z1, H, W, 0.0, z0s, sH, ustar_city, 0.0, 0.0, 0.0, 0, 0.0);
           }
         else if (option_ustreet == "Exponential")
           {
@@ -2083,8 +2086,8 @@ namespace Polyphemus
           }
         else if (option_ustreet == "Wang")
           {
-            T sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
-            ustar_z1 = ComputeWangUstarProfile(z1, H, W, z0s, sH, ustar_city, 0.0, 0.0);
+            T sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0, 0.0, 0, 0.0);
+            ustar_z1 = ComputeWangUstarProfile(z1, H, W, 0.0, z0s, sH, ustar_city, 0.0, 0.0, 0.0, 0, 0.0);
           }
         else if (option_ustreet == "Exponential")
           ustar_z1 = ComputeExpUstarProfile(z1, H, W, ustar_city);
@@ -2106,6 +2109,7 @@ namespace Polyphemus
 
         T H = street->GetHeight();
         T W = street->GetWidth();
+        T L = street->GetLength();
         T temperature_ = street->GetTemperature();
         T temperature_celsius = temperature_ - 273.15;
 
@@ -2162,17 +2166,19 @@ namespace Polyphemus
           // Compute gas dry deposition on tree leaves
         T tree_dry_deposition_velocity = 0.0;
         T LAI, hmax, htrunk = 0.0;
+        int nbtree = 0;
         if (this->option_process["with_tree_deposition"])
           {
             hmax = street->GetTreeHeight();
             htrunk = street->GetTrunkHeight();
             LAI = street->GetTreeLAI();
+            nbtree = street->GetTreeNumber();
             if (LAI != 0.0 and hmax != 0.0 and htrunk != 0.0)
               {
                 // Compute friction velocity in the tree crown
-                T sH = ComputeWangsH(H, W, hmax, LAI, Cdt);
+                T sH = ComputeWangsH(H, W, L, hmax, htrunk, LAI, nbtree, Cdt);
                 T hm = htrunk + (hmax - htrunk) / 2; // height of the middle of the tree crown
-                T ustar_htree = ComputeWangUstarProfile(hm, H, W, z0s, sH, ustar_city, LAI, Cdt);
+                T ustar_htree = ComputeWangUstarProfile(hm, H, W, L, z0s, sH, ustar_city, hmax, htrunk, LAI, nbtree, Cdt);
                 Array<T, 1> henry_constant_(Ns_dep), reactivity_(Ns_dep);
 
                 for (int s = 0; s < Ns_dep; s++)
@@ -2526,7 +2532,9 @@ namespace Polyphemus
                 T tree_dry_deposition_rate = 0.0;
                 if (this->option_process["with_tree_deposition"])
                   {
-                    tree_dry_deposition_rate = street->GetTreeLAI() * street_area *
+                    T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
+                    T leaf_surface = street->GetTreeLAI() * street->GetTreeNumber() * pi * pow(tree_radius, 2.); // m2
+                    tree_dry_deposition_rate = leaf_surface *
                       street->GetTreeDryDepositionVelocity(s); // m3/s
                   }
                 deposition_rate = street_dry_deposition_rate +
@@ -2667,7 +2675,9 @@ namespace Polyphemus
                 T tree_dry_deposition_rate = 0.0;
                 if (this->option_process["with_tree_deposition"])
                   {
-                    tree_dry_deposition_rate = street->GetTreeLAI() * street_area *
+                    T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
+                    T leaf_surface = street->GetTreeLAI() * street->GetTreeNumber() * pi * pow(tree_radius, 2.); // m2
+                    tree_dry_deposition_rate = leaf_surface *
                       street->GetTreeDryDepositionVelocity(s); // m3/s
                   }
 
@@ -3234,6 +3244,7 @@ namespace Polyphemus
         Street<T>* street = *iter;
         T H = street->GetHeight();
         T W = street->GetWidth();
+        T L = street->GetLength();
         T sigma_w = street->GetSigmaW();
         T min_velocity = 0.001;
         T velocity = 0.0;
@@ -3248,9 +3259,15 @@ namespace Polyphemus
           {
             T sH;
             if (this->option_process["with_tree_aerodynamic"])
-              sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
+              {
+                T hmax = street->GetTreeHeight();
+                T htrunk = street->GetTrunkHeight();
+                T LAI = street->GetTreeLAI();
+                int nbtree = street->GetTreeNumber();
+                sH = ComputeWangsH(H, W, L, hmax, htrunk, LAI, nbtree, Cdt);
+              }
             else
-              sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
+              sH = ComputeWangsH(H, W, L, 0.0, 0.0, 0.0, 0, 0.0);
             velocity = sigma_w * karman * sH;
           }
         street->SetTransferVelocity(max(velocity, min_velocity));
@@ -3325,6 +3342,7 @@ namespace Polyphemus
         Street<T>* street = *iter;
         T H = street->GetHeight();
         T W = street->GetWidth();       
+        T L = street->GetLength();
         T ang = street->GetStreetAngle();
 
         T wind_direction = street->GetWindDirection();
@@ -3346,13 +3364,17 @@ namespace Polyphemus
                 Uh = Um * Uh_Um_factor;
                 if (this->option_process["with_tree_aerodynamic"])
                   {
-                    sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
-                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, street->GetTreeLAI(), Cdt);
+                    T hmax = street->GetTreeHeight();
+                    T htrunk = street->GetTrunkHeight();
+                    T LAI = street->GetTreeLAI();
+                    int nbtree = street->GetTreeNumber();
+                    sH = ComputeWangsH(H, W, L, hmax, htrunk, LAI, nbtree, Cdt);
+                    Ustreet = ComputeWangUstreet(H, W, L, phi, z0s, sH, nz, Uh, hmax, htrunk, LAI, nbtree, Cdt);
                   }
                 else
                   {
-                    sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
-                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, 0.0, 0.0);
+                    sH = ComputeWangsH(H, W, L, 0.0, 0.0, 0.0, 0, 0.0);
+                    Ustreet = ComputeWangUstreet(H, W, L, phi, z0s, sH, nz, Uh, 0.0, 0.0, 0.0, 0, 0.0);
                   }
               }
             else if (option_ustreet == "Exponential")
@@ -3383,13 +3405,17 @@ namespace Polyphemus
                 T sH;
                 if (this->option_process["with_tree_aerodynamic"])
                   {
-                    sH = ComputeWangsH(H, W, street->GetTreeHeight(), street->GetTreeLAI(), Cdt);
-                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, street->GetTreeLAI(), Cdt);
+                    T hmax = street->GetTreeHeight();
+                    T htrunk = street->GetTrunkHeight();
+                    T LAI = street->GetTreeLAI();
+                    int nbtree = street->GetTreeNumber();
+                    sH = ComputeWangsH(H, W, L, hmax, htrunk, LAI, nbtree, Cdt);
+                    Ustreet = ComputeWangUstreet(H, W, L, phi, z0s, sH, nz, Uh, hmax, htrunk, LAI, nbtree, Cdt);
                   }
                 else
                   {
-                    sH = ComputeWangsH(H, W, 0.0, 0.0, 0.0);
-                    Ustreet = ComputeWangUstreet(H, W, phi, z0s, sH, nz, Uh, 0.0, 0.0);
+                    sH = ComputeWangsH(H, W, L, 0.0, 0.0, 0.0, 0, 0.0);
+                    Ustreet = ComputeWangUstreet(H, W, L, phi, z0s, sH, nz, Uh, 0.0, 0.0, 0.0, 0, 0.0);
                   }
               }
             else if (option_ustreet == "Exponential")
