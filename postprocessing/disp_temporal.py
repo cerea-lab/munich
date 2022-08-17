@@ -97,7 +97,7 @@ ax.set_title(species)
 print("******* average : ", np.mean(disp_conc))
 
 # Formats the date axis.
-locator = HourLocator(interval = 6)
+locator = HourLocator(interval = 48)
 ax.xaxis.set_major_locator(locator)
 
 import matplotlib.dates as mdates
