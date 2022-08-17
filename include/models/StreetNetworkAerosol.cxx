@@ -120,8 +120,11 @@ namespace Polyphemus
     
     if (this->option_process["with_deposition_aer"])
       {
-	this->config.PeekValue("Collect_dry_flux_aerosol",
-			       this->option_process["collect_dry_flux_aer"]);
+        if (this->config.Check("Collect_dry_flux_aerosol"))
+          this->config.PeekValue("Collect_dry_flux_aerosol",
+                                 this->option_process["collect_dry_flux_aer"]);
+        else
+          this->option_process["collect_dry_flux_aer"] = false;
         this->config.PeekValue("Particles_dry_velocity_option",
 			       "zhang|giardina",
 			       particles_dry_velocity_option);
@@ -135,8 +138,13 @@ namespace Polyphemus
 			   this->option_process["with_scavenging_aer"]);
     
     if (this->option_process["with_scavenging_aer"])
-      this->config.PeekValue("Collect_wet_flux_aerosol",
-                             this->option_process["collect_wet_flux_aer"]);
+      {
+        if (this->config.Check("Collect_wet_flux_aerosol"))
+          this->config.PeekValue("Collect_wet_flux_aerosol",
+                                 this->option_process["collect_wet_flux_aer"]);
+        else
+          this->option_process["collect_wet_flux_aer"] = false;
+      }
     
     this->config.PeekValue("With_resuspension",
                            this->option_process["with_resuspension"]);
