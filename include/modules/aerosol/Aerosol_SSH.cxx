@@ -292,10 +292,18 @@ namespace Polyphemus
     else
       // Default option is false
       option_process_aer["with_in_cloud_scavenging"] = false;  
-    config.PeekValue("Collect_wet_flux_aerosol",
-		     option_process_aer["collect_wet_flux_aer"]);
-    config.PeekValue("Collect_wet_flux",
-		     option_process_aer["collect_wet_flux"]);
+    if (config.Check("Collect_wet_flux_aerosol"))
+        config.PeekValue("Collect_wet_flux_aerosol",
+                         option_process_aer["collect_wet_flux_aer"]);
+    else
+      // Default option is false      
+      option_process_aer["collect_wet_flux_aer"] = false;
+    if (config.Check("Collect_wet_flux"))
+      config.PeekValue("Collect_wet_flux",
+                       option_process_aer["collect_wet_flux"]);
+    else
+      // Default option is false      
+      option_process_aer["collect_wet_flux"] = false;
     config.PeekValue("aqueous_module",aqueous_module);
     aqueous_module = lower_case(aqueous_module);
     config.PeekValue("With_number_concentration",
