@@ -2840,7 +2840,6 @@ namespace Polyphemus
 
     // Compute wind speed and flux in the streets
     Array<double, 1> flux(nstreet_inter); // Volume flux in m3/s
-    Array<double, 1> temp(nstreet_inter);
 
     // Define wind directions in the streets: upwind or downwind
     int nstreet_in = 0; // Number of incoming streets
@@ -2852,8 +2851,6 @@ namespace Polyphemus
       {
         Street<T>* street = StreetVectorInter[i];
         flux(i) = street->GetStreetWindSpeed() * street->GetWidth() * street->GetHeight();
-        temp(i) = street->GetStreetAngleIntersection() * 180. / pi;
-	
 
         T dangle = abs(street->GetStreetAngleIntersection() - wind_dir_inter);
         
@@ -2872,7 +2869,9 @@ namespace Polyphemus
     //! Additional arrays
     Array<T, 2> alpha(nstreet_in, nstreet_out); // Flux ratio 
     alpha = 0.0;
-    Array<T, 1> P_in(nstreet_in), P_out(nstreet_out); // Flux 
+    Array<T, 1> P_in(nstreet_in), P_out(nstreet_out); // Flux
+    P_in = 0.0;
+    P_out = 0.0;
 
     //! Set the reference incoming street: first upwind(incoming) street in the counterclockwise.
     Array<int, 1> ind_street_in(nstreet_in);
