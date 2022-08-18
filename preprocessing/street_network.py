@@ -1063,6 +1063,12 @@ def get_polair_ind(polair_lon, polair_lat, street):
     return indx, indy
 
 def get_polair_ind_v2(lon, lat, x_min, Delta_x, y_min, Delta_y, Nx, Ny):
+    # Get cell indices (X, Y) in the Polair3D grid
+    # Xid = (street_list[i].lon_cen - x_min) / delta_x
+    # Yid = (street_list[i].lat_cen - y_min) / delta_y
+    # Xid = int(Xid)-1 if Xid%1 < 0.5 else int(Xid)
+    # Yid = int(Yid)-1 if Yid%1 < 0.5 else int(Yid)
+
     index_x = max(int((lon - x_min + Delta_x / 2.) / Delta_x), 0)
     index_x = min(index_x, Nx - 1)
     index_y = max(int((lat - y_min + Delta_y / 2.) / Delta_y), 0)
@@ -1122,3 +1128,41 @@ def utc_to_local(utc, zone = 'Europe/Paris'):
 #     import pyproj
 #     wgs84 = pyproj.Proj('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
 #     lambert93 = pyproj.Proj('+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
+
+
+# Read background binary files from Polair3D output
+def read_bkgd_bin(bkgd_species, indir, Nt, Nx, Ny, Nz):
+    # Put data in a dict
+    bkgd_data = {}
+    for species in bkgd_species:
+        infile = indir + species + '.bin'
+        bkgd_data[species] = np.memmap(infile, dtype='float32', mode='r',
+                                       shape=(Nt, Nz, Ny, Nx))[:, 0, :, :]
+
+    return bkgd_data
+
+
+# def get_polair_id(lon, lat, x_min, y_min, dx, dy, Nx, Ny):
+#     Xid = max(int((lon - x_min + dx / 2.) / dx), 0)
+#     Xid = min(Xid, Nx - 1)
+#     Yid = max(int((lat - y_min + dy / 2.) / dy), 0)
+#     Yid = min(Yid, Ny - 1)
+
+# Set background for streets
+def set_bkgd_bin(street_list, bkgd_data, current_date, date_min, delta_t,
+                  Nt, x_min, y_min, delta_x, delta_y, Nx, Ny):
+    # Get index of current date
+    c_id = int((current_date - date_min).total_seconds() / delta_t)
+    if c_id < 0 or c_id >= Nt:
+        sys.exit('ERROR: background data not available for this date.')
+
+    for i in range(len(street_list)):
+
+        Xid, Yid = get_polair_ind_v2(street_list[i].lon_cen, street_list[i].lat_cen,
+                                     x_min, y_min, delta_x, delta_y, Nx, Ny)
+        for key, value in bkgd_data.items():
+            street_list[i].background[key] = value[c_id, Yid, Xid]
+
+
+
+        

@@ -23,7 +23,7 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("time_zone", "[input]", "String"), \
            ("emission_species", "[input]", "StringList"), \
            ("geog_info", "[input]", "String"), \
-           ("background_concentration", "[input]", "String"), \
+           ("background_concentration", "[background]", "String"), \
            ("meteo_dir", "[input]", "String"), \
            ("wrfout_prefix", "[input]", "String"),\
            ("Output_dir", "[output]", "String"), \
@@ -42,11 +42,25 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ("Size_dist_ec_om_emis", "[option]", "FloatList"), \
            ("Size_dist_dust_emis", "[option]", "FloatList"), \
            ("om_redist", "[option]", "String"), \
-           ("chimere_bg","[background]","Bool"), \
-           ("chimout_dir", "[background]", "String"), \
+           ("option_background","[background]","Int"), \
+           # background from Chimere           
+           ("chimere_dir", "[background]", "String"), \
            ("chimout_lab", "[background]", "String"), \
-           ("Species","[background]","StringList"), \
+           ("chimere_species","[background]","StringList"), \
            ("melch2molmass_file","[background]","String"), \
+           # background from Polair3d
+           ('polair3d_dir', '[background]', 'String'),
+           ("polair3d_species","[background]","StringList"), \
+           ('date_min_bkgd', '[background]', 'DateTime'),
+           ('delta_t_bkgd', '[background]', 'Float'),
+           ('Nt_bkgd', '[background]', 'Int'),
+           ('x_min_bkgd', '[background]', 'Float'),
+           ('y_min_bkgd', '[background]', 'Float'),
+           ('delta_x_bkgd', '[background]', 'Float'),
+           ('delta_y_bkgd', '[background]', 'Float'),
+           ('Nx_bkgd', '[background]', 'Int'),
+           ('Ny_bkgd', '[background]', 'Int'),
+           ('Nz_bkgd', '[background]', 'Int')
 ]
 config = talos.Config(sys.argv[1], content)
 
@@ -144,8 +158,6 @@ if config.is_isvoc_speciated:
                 sys.exit()                
 #---------
 
-is_chimere=config.chimere_bg
-
 background_all={}
 
 # Make input files for SinG simulations.
@@ -166,18 +178,30 @@ earth_radius_2 = 6371229. * 6371229.
 pi = 3.14159265358979323846264
 
 
+##################################
+#                                #
+#    IF BACKGROUND FROM Polair3d #
+#                                #
+##################################
+if (config.option_background == 2):
+
+    # Output binary files to append to for streets
+    bkgd_files = {x: background_dir + x + '.bin' for x in config.polair3d_species}    
+
+    # Load files using memmap and return a dict
+    bkgd_data = read_bkgd_bin(config.polair3d_species, config.polair3d_dir, config.Nt_bkgd,
+                              config.Nx_bkgd, config.Ny_bkgd, config.Nz_bkgd)
+
+
 #################################
 #                               #
 #    IF BACKGROUND FROM CHIMERE #
 #                               #
 #################################
+elif (config.option_background == 3):
 
-
-if is_chimere :
-
-
-    melchior_spec_list=config.Species
-    chimout_dir=config.chimout_dir
+    melchior_spec_list=config.chimere_species
+    chimout_dir=config.chimere_dir
     chimout_lab=config.chimout_lab
     
     molar_mass_melchior2={}
@@ -342,19 +366,30 @@ for t in range(nt):
                     + str(street.eff_end) + '\n')
     get_meteo_data(config.meteo_dir, current_date, \
                    street_list_eff, node_list_eff, config.wrfout_prefix)
-    
-    background_concentration_file = config.background_concentration
 
+    ### Backgrond concentration ###
 
-    if is_chimere :
-        get_chimere_background_concentration(current_date, street_list_eff, \
-                             melchior_spec_list,molar_mass_melchior2, \
-                             chimout_dir,chimout_lab)
-
-
-    else :
+    # Text
+    if (config.option_background == 1):
+        background_concentration_file = config.background_concentration
         get_background_concentration(background_concentration_file, \
                                          current_date, street_list_eff)
+    # From Polair3d output
+    elif (config.option_background == 2):
+        set_bkgd_bin(street_list_eff, bkgd_data, current_date, config.date_min_bkgd,
+                     config.delta_t_bkgd, config.Nt_bkgd, config.x_min_bkgd,
+                     config.y_min_bkgd, config.delta_x_bkgd, config.delta_y_bkgd,
+                     config.Nx_bkgd, config.Ny_bkgd)
+        
+        
+    # From Chimere output
+    elif (config.option_background == 3):
+        get_chimere_background_concentration(current_date, street_list_eff, \
+                                             melchior_spec_list, \
+                                             molar_mass_melchior2, \
+                                             chimere_dir,chimout_lab)
+
+    
     # Compute emissions in grid cells.
     emission.fill(0.0)
     for st in street_list_eff:
@@ -397,8 +432,9 @@ for t in range(nt):
             append_binary(emission_array[:,i], file_emission)
 
     for spec in list(background.keys()):
-            filename = output_dir + "/background/" + spec + ".bin"
-            append_binary(background[spec], filename)            
+        filename = output_dir + "/background/" + spec + ".bin"
+        append_binary(background[spec], filename)
+
         
     # Write grid-averaged emissions.
     for i, species in enumerate(emis_species_list):
