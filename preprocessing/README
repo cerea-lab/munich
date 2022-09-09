@@ -9,7 +9,6 @@ The input data consist of
  - Overlying background concentration
  - Meteoroloigcal data (from WRF) 
 
-
 1. Traffic emission
 The script needs emission data for both the weekday and the weekend.
 For each type of data, hourly data are necessary. For example, the input file input/data-newref/EL.traf.2014032500 includes emission data for March 25 2014 at midnight.
@@ -33,6 +32,14 @@ stations.
 4. Meteoroloigcal data (see input/meteo/wrfout_d04_***)
 Hourly saved WRF output data are used. The prefix of the WRF data should be
 informed in sing_preproc.cfg file.
+
+
+Requirement
+-----------
+
+- numpy
+- python3-netcdf4
+
 
 Configuration file (sing_preproc.cfg)
 -------------------------------------
