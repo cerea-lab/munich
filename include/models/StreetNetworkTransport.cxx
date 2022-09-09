@@ -3280,7 +3280,7 @@ namespace Polyphemus
   {
 
     T LambdaP = this->building_density; // plan area density of obstacles
-    T building_width = 0.5 * LambdaP / (1.0 - LambdaP) * Mean_width;
+    T building_width = LambdaP / (1.0 - LambdaP) * Mean_width;
     T Af = Mean_length * Mean_height; // frontal area of obstacles
     T At = Mean_length * (Mean_width + building_width); // lot area of obstacles
     T LambdaF = Af / At; // frontal area density of obstacles
