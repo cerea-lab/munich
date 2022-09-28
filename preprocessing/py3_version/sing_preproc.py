@@ -233,7 +233,7 @@ if config.generate_emission:
 if config.generate_meteo:
     # Meteo variables
     # WARNING: order is important
-    meteo_var_street = ['Attenuation', 'LiquiWaterContent', 'LMO', 'PARdb', 'PARdiff',
+    meteo_var_street = ['Attenuation', 'LiquidWaterContent', 'LMO', 'PARdb', 'PARdiff',
                         'PBLH', 'Rain', 'SoilWater', 'SolarRadiation', 'SpecificHumidity',
                         'SurfacePressure', 'SurfaceRichardson', 'SurfaceTemperature',
                         'UST', 'WindDirection', 'WindSpeed']
