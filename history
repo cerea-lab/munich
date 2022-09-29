@@ -3,7 +3,34 @@ o----------------o
 o----------------o
 
 
+# MUNICH version 2.1 release (2022-09-29)
+-----------------------------------------
+
+## Model
+
+- Added the dry deposition on tree leaves.
+- Added the aerodynamic effect of trees in the street.
+- Added the possibility to compute particulate concentration with Melchior2.
+
+## Preprocessing
+
+- Added a reader to use Polair3D output as the background concentrations.
+
+## Environment
+
+- Improved the compatibility with Intel compiler
+- Depends
+
+  SSH-aerosol v1.3
+  AtmoData v1.6
+  SeldonData v1.8
+  Talos v1.4.2
+  AtmoPy v1.8.2
+
+
+
 # MUNICH version 2.0.1 release (2022-01-05)
+-------------------------------------------
 
 ## Model
 
