@@ -192,8 +192,8 @@ namespace Polyphemus
 	
         this->config.PeekValue("Numerical_method_parameterization",
                                "ETR | Rosenbrock", option_method);
-        if (this->config.Check("sub_delta_t_min"))
-          this->config.PeekValue("sub_delta_t_min", ">= 0.1",
+        if (this->config.Check("Sub_delta_t_min"))
+          this->config.PeekValue("Sub_delta_t_min", ">= 0.1",
                                  sub_delta_t_min);
         else
           sub_delta_t_min = 1.0;
