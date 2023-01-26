@@ -157,7 +157,7 @@ namespace Polyphemus
     if (this->config.Check("z0_surface"))
       this->config.PeekValue("z0_surface", "> 0", z0s);
     else
-      z0s = 0.05;
+      z0s = 0.01;
    
     this->config.PeekValue("With_horizontal_fluctuation",
 			   this->option_process["with_horizontal_fluctuation"]);
