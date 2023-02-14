@@ -857,6 +857,7 @@ def read_traffic_data(input_file, emis_species_list, epsg_code):
     street_id = 0
     input_street = open(input_file)
     header = input_street.readline()
+    header = header.strip("\n")
     header_info = [x for x in re.split('\t| ', header) if x.strip() != '']
 
     species_ind = []
