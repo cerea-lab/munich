@@ -1094,6 +1094,13 @@ namespace Polyphemus
     init_conc = 0.0;
     for (int i = 0; i < total_nstreet; ++i)
       {
+        if (length(i) < 1.0)
+          throw string("Error: too short street length: ")
+            + to_str(length(i));
+        if (width(i) < 1.0)
+          throw string("Error: too narrow street width: ")
+            + to_str(width(i));
+        
         Street<T>* street = 
           new Street<T>(id_street(i),
 			begin_inter(i),
@@ -2789,7 +2796,8 @@ namespace Polyphemus
 			  sub_delta_t_init,
 			  sub_delta_t_min,
 			  sub_delta_t_max,
-			  sub_delta_t);
+			  sub_delta_t,
+                          street);
 
 	    //! Actualises current_time_tmp
 	    current_date_tmp.AddSeconds(sub_delta_t_init);
@@ -4181,7 +4189,8 @@ namespace Polyphemus
 		  const T sub_delta_t_init,
 		  const T sub_delta_t_min,
 		  const T sub_delta_t_max,
-		  T& sub_delta_t)
+		  T& sub_delta_t,
+                  Street<T>*& street)
   {
     T tmp, R;
     T EPSER = 0.01; //relative error precision
@@ -4208,9 +4217,22 @@ namespace Polyphemus
     n2err = min(n2err, EPSER*tmp);
     n2err = max(EPSER/tmp, n2err);
 
+    // CFL condition for horizontal advection and vertical transfer.
+    T sub_delta_t_cfl = 0.0;
+
+    T advection = street->GetStreetWindSpeed() / street->GetLength();
+    T dz = street->GetHeight();
+    T surface = street->GetWidth() * street->GetLength();
+    T transfer_coefficient = street->GetTransferVelocity() * surface;
+    T vertical_transfer = transfer_coefficient / (dz * surface);
+
+    sub_delta_t_cfl = 1.0 / (advection + vertical_transfer);
+    
+    
     //formula to compute new time step
     sub_delta_t = sub_delta_t_init*sqrt(EPSER/n2err);
     sub_delta_t = min(sub_delta_t, sub_delta_t_max);
+    sub_delta_t = min(sub_delta_t, sub_delta_t_cfl);
     sub_delta_t = max(sub_delta_t, sub_delta_t_min);
   }
 

@@ -575,7 +575,8 @@ namespace Polyphemus
 		       const T sub_delta_t_init,
 		       const T sub_delta_t_min,
 		       const T sub_delta_t_max,
-		       T& sub_delta_t);
+		       T& sub_delta_t,
+                       Street<T>*& street);
 
     void CalculDCDT(const T transfer_velocity,
 		    const T temp,

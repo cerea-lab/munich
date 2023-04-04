@@ -639,7 +639,8 @@ namespace Polyphemus
 			    sub_delta_t_init,
 			    this->sub_delta_t_min,
 			    sub_delta_t_max,
-			    sub_delta_t);
+			    sub_delta_t,
+                            street);
 
 	    //! Chemical reactions
 	    if (this->option_process["with_chemistry"])
