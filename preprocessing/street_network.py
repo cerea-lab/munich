@@ -311,7 +311,23 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
     from scipy.io import netcdf
     str_date = current_date.strftime("%Y-%m-%d")
     input_file = input_dir + wrfout_prefix + "_" + str_date + "_00:00:00"
-    f = netcdf.netcdf_file(input_file, 'r')
+
+    try:
+        f = netcdf.netcdf_file(input_file, 'r')
+        print(input_file + " is found.")
+    except IOError:
+        print(input_file + " is not found.")
+        try:
+            input_file = input_dir + wrfout_prefix + "_" + str_date
+            f = netcdf.netcdf_file(input_file, 'r')
+            print(input_file + " is found.")
+        except IOError:
+            print(input_file + " is not found.")
+                
+
+
+
+
 
     start_date = f.__getattribute__("SIMULATION_START_DATE")
     print(str_date, start_date)
@@ -438,7 +454,7 @@ def get_meteo_data(input_dir, current_date, street_list, node_list, wrfout_prefi
             temp2 = math.pi / 2.0 - temp
         else:
             temp2 = (math.pi / 2.0 - temp) + 2.0 * math.pi
-        street.wind_dir = temp2 # in radian, 0 for the wind to north, pi to south.
+        street.wind_dir = temp2 # in radian, 0 for the wind to north, pi/2 to east, pi to south.
 
         # Compute heights
         terrain_cell = Terrain[ind_t, ind_j, ind_i]
