@@ -31,7 +31,6 @@ extern "C"
 #include <sys/ipc.h>
 }
 
-#include <netcdfcpp.h>
 #include <vector>
 #include <map>
 #include "AtmoData.hxx"
