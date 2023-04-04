@@ -453,6 +453,7 @@ namespace Polyphemus
                  count_slice_x_.data(), offset_slice_x_.data(), TypeSlice_x,
                  &A3_out(first_slice_index_x_(rank_), 0, 0),
                  dim_slice_x_, TypeSlice_x, 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_x);
   }
 
 
@@ -480,6 +481,7 @@ namespace Polyphemus
                  count_slice_x_.data(), offset_slice_x_.data(), TypeSlice_x,
                  &A4_out(first_slice_index_x_(rank_), 0, 0, 0),
                  dim_slice_x_, TypeSlice_x, 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_x);
   }
 
 
@@ -507,6 +509,7 @@ namespace Polyphemus
                  count_slice_x_.data(), offset_slice_x_.data(), TypeSlice_x,
                  &A5_out(first_slice_index_x_(rank_), 0, 0, 0, 0),
                  dim_slice_x_, TypeSlice_x, 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_x);
   }
 
 
@@ -565,6 +568,7 @@ namespace Polyphemus
                  count_slice_s_.data(), offset_slice_s_.data(), TypeSlice_s,
                  &A4(first_slice_index_s_(rank_), 0, 0, 0),
                  dim_slice_s_, TypeSlice_s, 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_s);
   }
 
 
@@ -586,6 +590,7 @@ namespace Polyphemus
                  TypeSlice_s_aer,
                  &A5(first_slice_index_s_aer_(rank_), 0, 0, 0, 0),
                  dim_slice_s_aer_, TypeSlice_s_aer, 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_s_aer);
   }
 
 
@@ -612,6 +617,7 @@ namespace Polyphemus
                  count_slice_y_.data(), offset_slice_y_.data(), TypeSlice_y,
                  &A3_out(first_slice_index_y_(rank_), 0, 0),
                  dim_slice_y_, TypeSlice_y, 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_y);
   }
 
   // Scatter buffers for Street-type arrays to all processes.
@@ -625,6 +631,7 @@ namespace Polyphemus
                  offset_slice_source_.data(), TypeSlice_source,
                  &(A2(first_slice_index_source_(rank_), 0)),
                  dim_slice_source_, TypeSlice_source, 0, MPI_COMM_WORLD);    
+    MPI_Type_free(&TypeSlice_source);
   }
 
   // Scatter buffers for Street-type arrays to all processes.
@@ -639,6 +646,7 @@ namespace Polyphemus
                  offset_slice_source_.data(), TypeSlice_source,
                  &(A3(first_slice_index_source_(rank_), 0, 0)),
                  dim_slice_source_, TypeSlice_source, 0, MPI_COMM_WORLD);    
+    MPI_Type_free(&TypeSlice_source);
   }
   
 
@@ -701,7 +709,8 @@ namespace Polyphemus
                 &A3_in(0, 0, 0),
                 count_slice_x_.data(), offset_slice_x_.data(), TypeSlice_x,
                 0, MPI_COMM_WORLD);
-
+    MPI_Type_free(&TypeSlice_x);
+    
     if (rank_ == 0)
       CopyAndPermute_321(A3_in, A3_out);
   }
@@ -724,6 +733,7 @@ namespace Polyphemus
                 &A4_in(0, 0, 0, 0),
                 count_slice_x_.data(), offset_slice_x_.data(), TypeSlice_x,
                 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_x);
 
     if (rank_ == 0)
       CopyAndPermute_4231(A4_in, A4_out);
@@ -748,6 +758,7 @@ namespace Polyphemus
                 &A5_in(0, 0, 0, 0, 0),
                 count_slice_x_.data(), offset_slice_x_.data(), TypeSlice_x,
                 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_x);
 
     if (rank_ == 0)
       CopyAndPermute_52341(A5_in, A5_out);
@@ -812,6 +823,7 @@ namespace Polyphemus
                 &A4(0, 0, 0, 0),
                 count_slice_s_.data(), offset_slice_s_.data(), TypeSlice_s,
                 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_s);
   }
 
 
@@ -834,6 +846,7 @@ namespace Polyphemus
                 count_slice_s_aer_.data(), offset_slice_s_aer_.data(),
                 TypeSlice_s_aer,
                 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_s_aer);
   }
 
 
@@ -855,6 +868,7 @@ namespace Polyphemus
                 &A3_in(0, 0, 0),
                 count_slice_y_.data(), offset_slice_y_.data(), TypeSlice_y,
                 0, MPI_COMM_WORLD);
+    MPI_Type_free(&TypeSlice_y);
 
     if (rank_ == 0)
       CopyAndPermute_213(A3_in, A3_out);
