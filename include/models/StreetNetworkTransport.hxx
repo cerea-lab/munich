@@ -168,7 +168,7 @@ namespace Polyphemus
     string file_tree;
     int total_ntree_street;
     Array<int, 1> id_street_tree;
-    Array<T, 1> tree_height, trunk_height, tree_LAI, tree_nb;
+    Array<T, 1> tree_height, trunk_height, street_LAI;
     T Cdt;
     string file_tree_deposition;
     int Nluc;

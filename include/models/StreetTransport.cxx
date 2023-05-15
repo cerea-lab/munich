@@ -217,22 +217,12 @@ namespace Polyphemus
 
   //! Returns the tree Leaf Area Index.
   /*!
-    \return the tree LAI in the street (m2 leaves/m2 soil).
+    \return the total tree cover LAI in the street (m2 leaves/m2 street).
   */
   template<class T>
   inline T Street<T>::GetTreeLAI() const
   {
     return tree_LAI_;
-  }
-
-  //! Returns the number of trees in the street segment.
-  /*!
-    \return the tree number in the street (-).
-  */
-  template<class T>
-  inline int Street<T>::GetTreeNumber() const
-  {
-    return tree_nb_;
   }
 
   //! Sets the tree crown height.
@@ -257,22 +247,12 @@ namespace Polyphemus
 
   //! Sets the tree Leaf Area Index.
   /*!
-    \param tree_LAI the tree LAI in the street.
+    \param tree_LAI the total tree cover LAI in the street.
   */
   template<class T>
   inline void Street<T>::SetTreeLAI(T tree_LAI)
   {
     tree_LAI_ = tree_LAI;
-  }
-
-  //! Sets the number of trees in the street segment.
-  /*!
-    \param tree_nb the tree number in the street.
-  */
-  template<class T>
-  inline void Street<T>::SetTreeNumber(int tree_nb)
-  {
-    tree_nb_ = tree_nb;
   }
 
   //! Returns the building height.

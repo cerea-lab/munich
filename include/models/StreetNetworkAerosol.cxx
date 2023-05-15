@@ -1583,7 +1583,6 @@ namespace Polyphemus
         // The parameterization used to compute aerosol deposition on tree leaves is the same as
         // the one used for deposition on street ground and walls (zhang or giardina).
         T LAI, hmax, htrunk = 0.0;
-        int nbtree = 0;
         T ustar_htree = 0.0;
         T tree_dry_deposition_velocity = 0.0;
         T Rs_tree;
@@ -1592,12 +1591,11 @@ namespace Polyphemus
             hmax = street->GetTreeHeight();
             htrunk = street->GetTrunkHeight();
             LAI = street->GetTreeLAI();
-            nbtree = street->GetTreeNumber();
             if (LAI != 0.0 and hmax != 0.0 and htrunk != 0.0)
               {
-                T sH = ComputeWangsH(H, W, L, hmax, htrunk, LAI, nbtree, this->Cdt);
+                T sH = ComputeWangsH(H, W, hmax, htrunk, LAI, this->Cdt);
                 T hm = htrunk + (hmax - htrunk) / 2; // middle height of the tree crown
-                ustar_htree = ComputeWangUstarProfile(hm, H, W, L, this->z0s, sH, ustar_city, hmax, htrunk, LAI, nbtree, this->Cdt);
+                ustar_htree = ComputeWangUstarProfile(hm, H, W, this->z0s, sH, ustar_city, hmax, htrunk, LAI, this->Cdt);
               }
           }
 
@@ -2200,8 +2198,7 @@ namespace Polyphemus
 		    street->GetStreetDryDepositionVelocity_aer(b); // m3/s
 		  T wall_dry_deposition_flow_rate_aer = wall_area * 
 		    street->GetWallDryDepositionVelocity_aer(b); // m3/s
-                  T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.;
-                  T leaf_surface = street->GetTreeLAI() * street->GetTreeNumber() * pi * pow(tree_radius, 2.); // m2
+                  T leaf_surface = street->GetTreeLAI() * street_area; // m2
                   T tree_dry_deposition_flow_rate_aer = leaf_surface *
 		    street->GetTreeDryDepositionVelocity_aer(b); // m3/s
 		  deposition_flow_rate_aer = street_dry_deposition_flow_rate_aer +
@@ -2541,7 +2538,7 @@ namespace Polyphemus
 		T wall_dry_deposition_flow_rate = wall_area * 
 		  street->GetWallDryDepositionVelocity(s); // m3/s
                 T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
-                T leaf_surface = street->GetTreeLAI() * street->GetTreeNumber() * pi * pow(tree_radius, 2.); // m2
+                T leaf_surface = street->GetTreeLAI() * street_area; // m2
                 T tree_dry_deposition_flow_rate = leaf_surface *
 		  street->GetTreeDryDepositionVelocity(s); // m3/s
 		deposition_flow_rate_array(s) = street_deposition_flow_rate_array(s) +
@@ -2657,7 +2654,7 @@ namespace Polyphemus
 		  street->GetWallDryDepositionVelocity_aer(b); // m3/s
 
                 T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
-                T leaf_surface = street->GetTreeLAI() * street->GetTreeNumber() * pi * pow(tree_radius, 2.); // m2
+                T leaf_surface = street->GetTreeLAI() * street_area; // m2
                 T tree_dry_deposition_flow_rate_aer = leaf_surface *
 		  street->GetTreeDryDepositionVelocity_aer(b); // m3/s
 

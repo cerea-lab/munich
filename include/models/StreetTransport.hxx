@@ -57,7 +57,7 @@ namespace Polyphemus
     //! Trunk height in the street (m)
     T trunk_height_;
 
-    //! Tree Leaf Area Index (m2 leaves/m2 soil projected area)
+    //! Tree Leaf Area Index (m2 leaves/m2 street)
     T tree_LAI_;
 
     //! Number of trees par street segment (-)
