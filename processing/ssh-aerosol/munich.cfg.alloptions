@@ -1,0 +1,166 @@
+[display]
+
+Show_iterations: yes
+Show_date: yes
+Show_configuration: yes
+
+[domain]
+
+Date_min = 2014-03-15-00  Delta_t = 600.0  Nt = 144
+
+Bin_bounds:
+0.01 0.0398 0.1585 0.4 1.0 2.5115 10.
+
+# File containing the species data.
+Species: species-cb05.dat
+
+[data]
+
+# File describing the input data.
+Data_description: munich-data.cfg
+
+[output]
+
+# File describing which concentrations are saved.
+Configuration_file:  munich-saver.cfg
+
+[options]
+
+With_initial_condition: yes # yes or no
+With_initial_condition_aerosol: no # yes or no
+With_initial_condition_number_aerosol: no # yes or no
+
+With_transport: yes # yes or no
+
+#### Deposition
+With_deposition: yes # yes or no
+Collect_dry_flux: yes # yes or no
+
+# Options for aerosol deposition
+With_deposition_aerosol: yes # yes or no
+Collect_dry_flux_aerosol: yes # yes or no
+
+# Parametrization to compute surface resistance: "zhang" or "giardina".
+Particles_dry_velocity_option: zhang
+# Parametrisation to compute Brownian diffusion resistance:
+# if Particles_dry_velocity_option = "zhang", choose "zhang" or "seigneur"
+# if Particles_dry_velocity_option = giardina, choose "giardina" or "chamberlain".
+Brownian_diffusion_resistence_option: seigneur
+
+# Options for scavenging
+With_scavenging: no # yes or no
+With_scavenging_aerosol: no # yes or no
+Collect_wet_flux_aerosol: no # yes or no
+
+### Options for resuspension
+With_resuspension: no # yes or no
+
+# Options for drainage
+With_drainage_aerosol: no # yes or no
+# Precipitation that indicates a complete drainage in streets
+Max_rain = 0.254 # in mm/h
+Min_water_drainage: 0.5 # in mm, nortrip uses 0.5 mm 
+
+# With chemistry module (yes or no)
+With_chemistry: yes # no
+
+# Options for number concentration
+With_number_concentration: no # yes or no
+# Options for number concentration: based_on_mass or based_on_transport
+Number_computation_option: based_on_mass 
+# if yes the model reads the background number concentration,
+# if no these concentration is calculated using aerosol mass and size data.
+With_bg_number_concentration_data: no # yes or no
+
+With_emission_number_data: no # yes or no
+
+# Redistribution method of lagrangian bins: 
+# moving-diameter, siream, siream-euler-coupled, siream-moving-diameter). 
+Redistribution_method: moving-diameter
+
+# Aqueous module: 'No', 'VSRM' or 'simple'.
+aqueous_module: simple
+
+# Is the density assumed to be constant in all cells and all bins?
+With_fixed_density: no # yes or no
+
+# Fixed aerosol density (kg / m^3).
+Fixed_aerosol_density: 1400.
+
+# Wet diameter option used in StreetNetworkAerosol.
+#Option gerber uses Gerber formulation to compute wet diameter,
+#Option chemistry uses the same wet diameter computed in chemical module
+#Option none use dry diameter
+Wet_diameter_option: chemistry # gerber, chemistry or none
+
+[street]
+
+# Stationary hypothesis or not
+With_stationary_hypothesis: no # yes or no
+# Numerical solver
+Numerical_method_parameterization: ETR # ETR or Rosenbrock
+sub_delta_t_min: 1.0
+
+# Parameterization to compute turbulent transfer velocity: "Sirane", "Schulte" or "Wang".
+Transfer_parameterization: Wang
+
+# Parameterization to compute mean wind speed within the street-canyon:
+# "Exponential", "Sirane" or "Wang".
+Mean_wind_speed_parameterization: Wang
+
+# Parameterization to compute wind speed at the roof level: "Sirane" or "Macdonald".
+Building_height_wind_speed_parameterization: Macdonald
+# Method to compute UH in Macdonald profile, choose "Uref" if Zref is known,
+# otherwise choose "Ustar".
+Compute_Macdonald_from: Ustar # Uref/Ustar
+Zref = 30. # reference altitude for wind speed (m) for "Uref" option
+
+z0_surface: 0.01
+
+# Minimum vertical transfer velocity
+Minimum_transfer_velocity: 0.001 # in m/s
+
+# If the horizontal fluctuation is taken into account.
+With_horizontal_fluctuation: yes # yes or no
+
+# File containing the input data for intersections.
+Intersection: intersection.dat
+
+# File containing the input data for streets.
+Street: street.dat
+
+# Minimum wind speed within the streets.
+Minimum_Street_Wind_Speed: 0.1 # in m/s
+
+# Building density used for transport and dry deposition:
+# - 0.2 for sparse suburban area
+# - 0.4 for suburban area
+# - 0.6 for downtown area.
+Building_density: 0.4
+
+# Roughness length of the walls and street ground
+z0_surface = 0.05 # in m
+
+### Trees
+# With parametrization of tree aerodynamical effect (yes or no)
+With_tree_aerodynamic: no
+# If the tree parameterization is activated, choose Mean_wind_speed_parameterization
+# and Transfer_parameterization = Wang
+
+# With parametrization of gas and aerosol deposition on tree leaves (yes or no)
+With_tree_deposition: no
+# Parameterization to compute tree leaf cuticular resistance: "zhang" or "wesely"
+Cuticular_resistance_option: zhang
+
+# File containing the input data for trees (crown and trunk heights, LAI and tree number)
+Tree: tree.dat
+
+# Drag coefficient of the tree crown
+Tree_drag_coefficient = 0.2 # (-)
+
+# Type of vegetation based on Land Use Category (LUC) to compute model parameters for deposition
+# listed in tree_deposition_param.dat (Wesely, 1989; Walmsley and Wesely 1996; Zhang et al., 2001; 2002; 2003)
+# 1: evergreen needleleaf trees, 2: evergreen broadleaf trees, 3: deciduous needleleaf trees, 4: deciduous broadleaf trees, 5: mixed broadleaf and needleleaf trees
+Tree_LUC = 4
+
+With_local_data: yes
