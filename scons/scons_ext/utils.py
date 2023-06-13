@@ -222,7 +222,7 @@ class Utils:
         return env
 
 
-    def create_programs(self):
+    def create_programs(self, generate_program = True): # YK sharedlib
         """Creates the SCons program targets."""
 
         #############
@@ -627,13 +627,18 @@ to highly recommended debugging and optimization options.
             program_name = '.'.join(os.path.splitext(target)[:-1])
             program_dependencies = [self.rebase_dir(build_dir, target)] \
                                     + src_dependencies + dir_dependencies
-            program = env.Program(program_name, program_dependencies)
-            if program_name in self.command_line_target:
-                BUILD_TARGETS.append(program_name + env["PROGSUFFIX"])
 
-            # In case another SConstruct wants to depend on this source
-            # directory:
-            # (It is used to build Spack as needed)
-            Depends(Dir(self.src_dir), program)
+            if generate_program:
+                program = env.Program(program_name, program_dependencies)
+                if program_name in self.command_line_target:
+                    BUILD_TARGETS.append(program_name + env["PROGSUFFIX"])
 
+                # In case another SConstruct wants to depend on this source
+                # directory:
+                # (It is used to build Spack as needed)
+                Depends(Dir(self.src_dir), program)
+            else:
+                if 'munich-ssh.cpp' in target:
+                    env.SharedLibrary('munich-ssh.so', program_dependencies)
+                    
         return env
