@@ -68,6 +68,8 @@ namespace Polyphemus
     string option_Rcut;
 
     T sub_delta_t_min;
+    //! Minimum transfer velocity (m/s).
+    T min_velocity;
     bool is_stationary;
     //! Output configuration.
     string output_config;

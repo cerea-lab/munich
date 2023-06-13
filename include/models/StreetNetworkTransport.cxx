@@ -199,6 +199,12 @@ namespace Polyphemus
           sub_delta_t_min = 1.0;
       }
 
+    if  (this->config.Check("Minimum_transfer_velocity"))
+      this->config.PeekValue("Minimum_transfer_velocity", ">= 0.0",
+                             min_velocity);
+    else
+      min_velocity = 0.001;
+
     this->config.PeekValue("With_tree_aerodynamic",
                            this->option_process["with_tree_aerodynamic"]);
     //! Aerodynamic effect of trees must be computed with Wang parameterization
@@ -3246,7 +3252,7 @@ namespace Polyphemus
         T W = street->GetWidth();
         T L = street->GetLength();
         T sigma_w = street->GetSigmaW();
-        T min_velocity = 0.001;
+        //        T min_velocity = 0.001;
         T velocity = 0.0;
         if (option_transfer == "Sirane")
           velocity = sigma_w / (sqrt(2.0) * pi);
