@@ -11,6 +11,7 @@
 #include "Aerosol_SSH.cxx"
 #include <time.h>
 
+
 using namespace Polyphemus;
 
 // INCLUDES //
@@ -34,10 +35,19 @@ int main(int argc, char** argv)
   typedef double real;
   typedef StreetNetworkAerosol<real, Aerosol_SSH<real> > ClassModel;
 
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    MPI_Init(&argc, &argv);    
+#endif
+  
   StreetDriver<real, ClassModel, BaseOutputSaver<real, ClassModel> >
     Driver(argv[1]);
 
   Driver.Run();
+
+#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
+    MPI_Finalize();    
+#endif
+  
   tEnd = clock();
   tPassed_time = ((tEnd - tBegin) / (CLOCKS_PER_SEC / 1000));
   // cout<<"Passed time: "<<tPassed_time<<endl;

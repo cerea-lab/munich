@@ -59,6 +59,8 @@ preprocessor_defines = ["POLYPHEMUS_WITH_AEROSOL_MODULE"]
 if ARGUMENTS["ssh-output"] == 'yes':
     preprocessor_defines.append("WRITE_SSH_OUTPUT")
 
+preprocessor_defines.append("POLYPHEMUS_WITH_SSH_AEROSOL")
+
 # Default: no shared library
 if 'sharedlib' not in ARGUMENTS:
     ARGUMENTS["sharedlib"] = 'no'
@@ -68,7 +70,6 @@ if ARGUMENTS["sharedlib"] == "no":
 elif ARGUMENTS["sharedlib"] == "yes":
     utils.create_programs(False)
 
-preprocessor_defines.append("POLYPHEMUS_WITH_SSH_AEROSOL")
 
 # Avoids displaying the libraries checking next time since libraries
 # does not change in this case.

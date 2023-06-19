@@ -62,11 +62,6 @@ namespace Polyphemus
   {
 
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI
-    int argc; 
-    char **argv; 
-
-    // YK    MPI::Init();
-    MPI_Init(&argc, &argv);    
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #else
     rank = 0;
@@ -107,10 +102,6 @@ namespace Polyphemus
 	    Model.OutputSaver();
 	  }
       }
-#ifdef POLYPHEMUS_PARALLEL_WITH_MPI
-    // YK    MPI::Finalize();
-    MPI_Finalize();    
-#endif
   }
 
 } // namespace Polyphemus.
