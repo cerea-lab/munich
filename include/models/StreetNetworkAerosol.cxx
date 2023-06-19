@@ -2198,11 +2198,20 @@ namespace Polyphemus
 		    street->GetStreetDryDepositionVelocity_aer(b); // m3/s
 		  T wall_dry_deposition_flow_rate_aer = wall_area * 
 		    street->GetWallDryDepositionVelocity_aer(b); // m3/s
-                  T leaf_surface = street->GetTreeLAI() * street_area; // m2
-                  T tree_dry_deposition_flow_rate_aer = leaf_surface *
-		    street->GetTreeDryDepositionVelocity_aer(b); // m3/s
-		  deposition_flow_rate_aer = street_dry_deposition_flow_rate_aer +
-		    wall_dry_deposition_flow_rate_aer + tree_dry_deposition_flow_rate_aer; // m3/s
+
+                  if (this->option_process["with_tree_deposition"])
+                    {
+                      T leaf_surface = street->GetTreeLAI() * street_area; // m2
+                      T tree_dry_deposition_flow_rate_aer = leaf_surface *
+                        street->GetTreeDryDepositionVelocity_aer(b); // m3/s
+                      deposition_flow_rate_aer = street_dry_deposition_flow_rate_aer +
+                        wall_dry_deposition_flow_rate_aer + tree_dry_deposition_flow_rate_aer; // m3/s
+                    }
+                  else
+                    deposition_flow_rate_aer = street_dry_deposition_flow_rate_aer +
+                      wall_dry_deposition_flow_rate_aer; // m3/s
+
+                  
 		  if(this->option_process["with_resuspension"])
 		    resuspension_rate = street->GetStreetResuspensionFactor() *
                       street->GetStreetSurfaceDepositedMass_aer(s, b);		    
@@ -2301,10 +2310,17 @@ namespace Polyphemus
 			  street->GetStreetDryDepositionVelocity_aer(b); // m3/s
 			T wall_number_dry_deposition_flow_rate = wall_area * 
 			  street->GetWallDryDepositionVelocity_aer(b); // m3/s
-                        T tree_number_dry_deposition_flow_rate = street->GetTreeLAI() * street_area * 
-			  street->GetTreeDryDepositionVelocity_aer(b); // m3/s
-			number_deposition_flow_rate = street_number_dry_deposition_flow_rate +
-			  wall_number_dry_deposition_flow_rate + tree_number_dry_deposition_flow_rate; // m3/s
+
+                        if (this->option_process["with_tree_deposition"])
+                          {
+                            T tree_number_dry_deposition_flow_rate = street->GetTreeLAI() * street_area * 
+                              street->GetTreeDryDepositionVelocity_aer(b); // m3/s
+                            number_deposition_flow_rate = street_number_dry_deposition_flow_rate +
+                              wall_number_dry_deposition_flow_rate + tree_number_dry_deposition_flow_rate; // m3/s
+                          }
+                        else
+                          number_deposition_flow_rate = street_number_dry_deposition_flow_rate +
+                            wall_number_dry_deposition_flow_rate; // m3/s
 
 			if(this->option_process["with_resuspension"])
 			  number_resuspension_rate = street->GetStreetResuspensionFactor() * street->GetStreetSurfaceDepositedNumber(b);
@@ -2537,12 +2553,20 @@ namespace Polyphemus
 		  street->GetStreetDryDepositionVelocity(s); // m3/s
 		T wall_dry_deposition_flow_rate = wall_area * 
 		  street->GetWallDryDepositionVelocity(s); // m3/s
-                T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
-                T leaf_surface = street->GetTreeLAI() * street_area; // m2
-                T tree_dry_deposition_flow_rate = leaf_surface *
-		  street->GetTreeDryDepositionVelocity(s); // m3/s
-		deposition_flow_rate_array(s) = street_deposition_flow_rate_array(s) +
-		  wall_dry_deposition_flow_rate + tree_dry_deposition_flow_rate; // m3/s
+
+                if (this->option_process["with_tree_deposition"])
+                  {
+                    T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
+                    T leaf_surface = street->GetTreeLAI() * street_area; // m2
+                    T tree_dry_deposition_flow_rate = leaf_surface *
+                      street->GetTreeDryDepositionVelocity(s); // m3/s
+                    deposition_flow_rate_array(s) = street_deposition_flow_rate_array(s) +
+                      wall_dry_deposition_flow_rate + tree_dry_deposition_flow_rate; // m3/s
+                  }
+                else
+                  deposition_flow_rate_array(s) = street_deposition_flow_rate_array(s) +
+                      wall_dry_deposition_flow_rate; // m3/s
+                  
 	      }
 	    
 	    if(this->option_process["with_scavenging"])
@@ -2653,13 +2677,19 @@ namespace Polyphemus
 		T wall_dry_deposition_flow_rate_aer = wall_area * 
 		  street->GetWallDryDepositionVelocity_aer(b); // m3/s
 
-                T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
-                T leaf_surface = street->GetTreeLAI() * street_area; // m2
-                T tree_dry_deposition_flow_rate_aer = leaf_surface *
-		  street->GetTreeDryDepositionVelocity_aer(b); // m3/s
+                if (this->option_process["with_tree_deposition"])
+                  {
+                    T tree_radius = (street->GetTreeHeight() - street->GetTrunkHeight())/2.; // m
+                    T leaf_surface = street->GetTreeLAI() * street_area; // m2
+                    T tree_dry_deposition_flow_rate_aer = leaf_surface *
+                      street->GetTreeDryDepositionVelocity_aer(b); // m3/s
 
-		deposition_flow_rate_array_aer(b) = street_deposition_flow_rate_array_aer(b) +
-		  wall_dry_deposition_flow_rate_aer + tree_dry_deposition_flow_rate_aer; // m3/s
+                    deposition_flow_rate_array_aer(b) = street_deposition_flow_rate_array_aer(b) +
+                      wall_dry_deposition_flow_rate_aer + tree_dry_deposition_flow_rate_aer; // m3/s
+                  }
+                else
+                  deposition_flow_rate_array_aer(b) = street_deposition_flow_rate_array_aer(b) +
+                    wall_dry_deposition_flow_rate_aer; // m3/s                  
 	      }
 	    if(this->option_process["with_scavenging_aer"])
 	      if(rain > 0.0)
