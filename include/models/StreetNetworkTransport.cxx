@@ -3078,6 +3078,7 @@ namespace Polyphemus
   void StreetNetworkTransport<T>::ComputeStreetAngle()
   {
     T x1, x2, y1, y2;
+    //! Coordinates are latitude (y) and longitude (x) in decimal degree.
     x1 = 0.0;
     x2 = 0.0;
     y1 = 0.0;
@@ -3111,10 +3112,10 @@ namespace Polyphemus
         street->SetCoordinate((x1 + x2) * 0.5, (y1 + y2) * 0.5);
 
         T dx = x2 - x1;
-        T x_distance = abs(earth_radius * dx * pi / 180.);
+        T x_distance = abs(earth_radius * cos( (y1+y2)/2. * pi / 180.) * dx * pi / 180.);
         T dy = y2 - y1;
-        T y_distance = abs(earth_radius * (sin(y2 * pi / 180.) - 
-                                                sin(y1 * pi / 180.)));
+        T y_distance = abs(earth_radius * dy * pi / 180.);
+
         T dl = sqrt(pow(x_distance, 2) + pow(y_distance, 2));
         if (dl == 0.0)
           throw string("Distance between the intersections is zero.");
