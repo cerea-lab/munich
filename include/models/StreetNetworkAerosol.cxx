@@ -2356,12 +2356,17 @@ namespace Polyphemus
 		    T TotalMass, Rho_aer;
 		    T MeanDiameter = 1.e6 * sqrt(BinBound_aer(b + 1) * BinBound_aer(b)); // um
 		    TotalMass = 0.0;
-		    for (int s = 0; s < this->Ns_aer; s++)
+		    for (int s = 0; s < this->Ns_aer - 1; s++)
 		      {
 			concentration_aer_bin(s) = street->GetStreetConcentration_aer(s, b);
 			TotalMass += concentration_aer_bin(s);
 		      }
-                    Rho_aer = ComputeDensity(concentration_aer_bin, Rho_species, TotalMass, this->Ns_aer);
+
+                    if (this->option_process["with_fixed_density"])
+                      // conversion from kg/m3 to µg/µm3
+                      Rho_aer = fixed_density_aer * 1.e-9;
+                    else
+                      Rho_aer = ComputeDensity(concentration_aer_bin, Rho_species, TotalMass, this->Ns_aer);
 		    street_number_conc_new = TotalMass/Rho_aer/pi*6./
                       (MeanDiameter*MeanDiameter*MeanDiameter);
 		  }
@@ -2885,6 +2890,14 @@ namespace Polyphemus
                 //aerosol number
                 if (this->option_process["with_number_concentration"])
                   {
+
+                    // Update the number concentration from SSH-aerosol
+                    for (int b = 0; b < this->Nbin_aer; ++b)
+                      {
+                        number_concentration_array(b) =
+                          street->GetStreetNumberConcentration(b);
+                      }
+                    
                     if(number_computation_option == "based_on_transport")
                       {
                         for (int b = 0; b < this->Nbin_aer; ++b)
@@ -2958,17 +2971,24 @@ namespace Polyphemus
                             T TotalMass, Rho_aer;
                             T MeanDiameter = 1.e6 * sqrt(BinBound_aer(b + 1) * BinBound_aer(b)); // um
                             TotalMass = 0.0;
-                            for (int s = 0; s < this->Ns_aer; s++)
+                            for (int s = 0; s < this->Ns_aer - 1; s++)
                               {
                                 concentration_aer_bin(s) = street->GetStreetConcentration_aer(s, b);
                                 TotalMass += concentration_aer_bin(s);
                               }
-                            Rho_aer = ComputeDensity(concentration_aer_bin, Rho_species, TotalMass, this->Ns_aer);
+
+                            // Fixed density or not
+                            if (this->option_process["with_fixed_density"])
+                              // conversion from kg/m3 to µg/µm3
+                              Rho_aer = fixed_density_aer * 1.e-9;
+                            else
+                              Rho_aer = ComputeDensity(concentration_aer_bin, Rho_species, TotalMass, this->Ns_aer);
+                            
                             new_number_concentration_array(b) = TotalMass/Rho_aer/pi*6./(MeanDiameter*MeanDiameter*MeanDiameter);
+
                             street->SetStreetNumberConcentration(new_number_concentration_array(b), b);
                           }
                       }
-		
                   }
 
             
@@ -3026,7 +3046,7 @@ namespace Polyphemus
 		T latitude_ = street->GetLatitude();
 		T rain_ = street->GetRain();
 		T liquidwatercontent_ = street->GetLiquidWaterContent();
-
+                
 		Chemistry(current_date_tmp,
 			  sub_delta_t_init,
 			  attenuation_,
@@ -4210,7 +4230,8 @@ namespace Polyphemus
 	wet_diameter_aer = 0.0;
 	for (int b = 0; b < this->Nbin_aer; ++b)
 	  wet_diameter_aer(b) = street->GetStreetWetDiameter_aer(b);
-       
+
+        // Call Forward in Aerosol_SSH.cxx
         Chemistry_.Forward(T(this->current_date.GetNumberOfSeconds()),
         		   attenuation_,
 			   specific_humidity_,
@@ -4234,6 +4255,7 @@ namespace Polyphemus
 			   pH,
 			   number_concentration);
 
+        // Call Forward_aer in Aerosol_SSH.cxx
 	Chemistry_.Forward_aer(T(this->current_date.GetNumberOfSeconds()), 
 			       specific_humidity_,
 			       temperature_,
@@ -4364,7 +4386,7 @@ namespace Polyphemus
     int ninterface = 2;
     Array<T, 1> VerticalInterface(ninterface);
     VerticalInterface = 0.0;
-
+    
     Chemistry_.Forward(T(current_date_tmp.GetNumberOfSeconds()),
 		       attenuation_,
 		       specific_humidity_,
@@ -4387,6 +4409,7 @@ namespace Polyphemus
 		       pH,
 		       number_concentration);
 
+    
     Chemistry_.Forward_aer(T(current_date_tmp.GetNumberOfSeconds()), 
 			   specific_humidity_,
 			   temperature_,
@@ -4406,6 +4429,7 @@ namespace Polyphemus
 			   number_concentration,
 			   incloudwetdepositionfluxnumber,
     			   wet_diameter_aer_loc);
+    
   }
 
   //in the first time step the wet diameter is set equal to dry diameter. The correct wet diameter is calculated in the chemical module
@@ -4593,9 +4617,14 @@ namespace Polyphemus
                   }
 
               }
-            
-            Rho_aer = ComputeDensity(Conc_aer_tmp,
-                                     Rho_species, TotalMass, Ns_emis_aer);
+
+            // Fixed density or not
+            if (this->option_process["with_fixed_density"])
+              // conversion from kg/m3 to µg/µm3
+              Rho_aer = fixed_density_aer * 1.e-9;
+            else
+              Rho_aer = ComputeDensity(Conc_aer_tmp,
+                                       Rho_species, TotalMass, Ns_emis_aer);
             
             this->NumberEmission_aer_f(index_b*Nc+ic,st)=
               TotalMass/Rho_aer/pi*6.
@@ -4673,7 +4702,13 @@ namespace Polyphemus
 
 	    }
 
-	  Rho_aer = ComputeDensity(Conc_aer_tmp, Rho_species, TotalMass, Ns_bg_aer);
+          // Fixed density or not
+          if (this->option_process["with_fixed_density"])
+            // conversion from kg/m3 to µg/µm3
+            Rho_aer = fixed_density_aer * 1.e-9;
+          else
+            Rho_aer = ComputeDensity(Conc_aer_tmp, Rho_species, TotalMass, Ns_bg_aer);
+          
 	  this->NumberBackground_aer_f(index_b*Nc+ic,st)=
 	    TotalMass/Rho_aer/pi*6.
 	    /(MeanDiameter*MeanDiameter*MeanDiameter);
