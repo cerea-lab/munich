@@ -63,8 +63,8 @@ def fast_portable(utils):
     If compatibility with older computers is not needed, use 'fast' instead.
     """
     p = _warning(utils)
-    #p.flag_compiler += " -O2 -g3"
-    p.flag_compiler += " -Ofast -g3" #from thibaud about speed computation
+    p.flag_compiler += " -O2 -g3"
+
     return p
 
 
@@ -76,7 +76,7 @@ def fast(utils):
     compatible.
     """
     p = _warning(utils)
-    p.flag_compiler += " -Ofast"
+    p.flag_compiler += " -O2"
 
     # p.flag_compiler += " -march=native"
     # using -march=native leads to a more CPU time in polair3d simulations.
