@@ -1182,4 +1182,49 @@ def set_bkgd_bin(street_list, bkgd_data, current_date, date_min, delta_t,
 
 
 
+def read_street_data(street_file, epsg_code):
+    # For convertion to WGS84
+    transformer = pyproj.Transformer.from_crs(epsg_code, 4326, always_xy=True)
+
+    # Define Geod to compute distance on Earth and midpoint
+    geod = pyproj.Geod(ellps='WGS84')
+
+    # Read input file and create street/node lists
+    node_id = 1
+    node_list = []
+    street_list = []
+    with open(street_file, 'r') as f:
+        header = f.readline()
+        for line in f.readlines():
+            line_info = line.replace('\n', '').split(',')
+            street_id = int(line_info[0])
+            id_begin = node_id
+            node_id += 1
+            x1 = float(line_info[1])
+            y1 = float(line_info[2])
+            lon1, lat1 = transformer.transform(x1, y1)
+            node = Node(id_begin, lon1, lat1)
+            node.connected_street.append(street_id)
+            node_list.append(node)
+            id_end = node_id
+            node_id += 1
+            x2 = float(line_info[3])
+            y2 = float(line_info[4])
+            lon2, lat2 = transformer.transform(x2, y2)
+            node = Node(id_end, lon2, lat2)
+            node.connected_street.append(street_id)
+            node_list.append(node)
+            # Check if nodes are superimposed
+            if lon1 == lon2 and lat1 == lat2:
+                sys.exit('ERROR: nodes of street {} are superimposed.'.format(street_id))
+            # Street morphology
+            _, _, length = geod.inv(lon1, lat1, lon2, lat2) # in meter
+            width = float(line_info[5])
+            height = float(line_info[6])
+            mid_point = geod.npts(lon1, lat1, lon2, lat2, 1)
+            street = Street(street_id, id_begin, id_end, length, width, height,
+                            mid_point[0][0], mid_point[0][1])
+            street_list.append(street)
+
+    return node_list, street_list
         
