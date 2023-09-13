@@ -60,7 +60,7 @@ content = [("emission_dir_weekday", "[input]", "String"), \
            ('delta_y_bkgd', '[background]', 'Float'),
            ('Nx_bkgd', '[background]', 'Int'),
            ('Ny_bkgd', '[background]', 'Int'),
-           ('Nz_bkgd', '[background]', 'Int')
+           ('Nz_bkgd', '[background]', 'Int'))
 ]
 config = talos.Config(sys.argv[1], content)
 
@@ -240,6 +240,7 @@ delta_t = config.Delta_t # in hr
 nt = config.Nt
 read_lut = False
 date_list = []
+
 for t in range(nt):
     current_date = begin_date + datetime.timedelta(hours = (delta_t * t))
     print("\n=====================================================")
