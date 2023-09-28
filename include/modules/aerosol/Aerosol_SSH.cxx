@@ -1488,16 +1488,35 @@ namespace Polyphemus
                 // Estimate number concentration from mass
                 // Call compute_number
                 api.call(_aerosol_so, "api_sshaerosol_compute_number_");
-                
               }
-            
             
             // Call aerosols dynamic
             api.call(_aerosol_so, "api_sshaerosol_aerodyn_");
 
+            // Return new gas-phase concentrations.
+            api.exchange_double_array(_aerosol_so,
+                                      "api_sshaerosol_get_gas_",
+                                      concentration);
+
+            // Return new aerosol mass concentrations.
+            api.exchange_double_array(_aerosol_so,
+                                      "api_sshaerosol_get_aero_",
+                                      concentration_aer);
+
+            // Return new aerosol number concentrations.
+            api.exchange_double_array(_aerosol_so,
+                                      "api_sshaerosol_get_aero_num_",
+                                      number_concentration_aer);
+
+            // Return wet diameter.
+            api.exchange_double_array(_aerosol_so,
+                                      "api_sshaerosol_get_wet_diameter_",
+                                      wet_diameter_aer);
+
           }
       }
     // Low cloud_water
+    // Call ssh-aerosol
     else
       {
         // Send concentration arrays to ssh-aerosol.
@@ -1524,31 +1543,28 @@ namespace Polyphemus
         
         // Call aerosols dynamic
         api.call(_aerosol_so, "api_sshaerosol_aerodyn_");
+
+        // Return new gas-phase concentrations.
+        api.exchange_double_array(_aerosol_so,
+                                  "api_sshaerosol_get_gas_",
+                                  concentration);
+
+        // Return new aerosol mass concentrations.
+        api.exchange_double_array(_aerosol_so,
+                                  "api_sshaerosol_get_aero_",
+                                  concentration_aer);
+
+        // Return new aerosol number concentrations.
+        api.exchange_double_array(_aerosol_so,
+                                  "api_sshaerosol_get_aero_num_",
+                                  number_concentration_aer);
+
+        // Return wet diameter.
+        api.exchange_double_array(_aerosol_so,
+                                  "api_sshaerosol_get_wet_diameter_",
+                                  wet_diameter_aer);
       }
-   
-
-    // Return new gas-phase concentrations.
-    api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_gas_",
-                              concentration);
-
-    // Return new aerosol mass concentrations.
-    api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero_",
-                              concentration_aer);
-
-    // Return new aerosol number concentrations.
-    api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_aero_num_",
-                              number_concentration_aer);
-
-
-    // Return wet diameter.
-    api.exchange_double_array(_aerosol_so,
-                              "api_sshaerosol_get_wet_diameter_",
-                              wet_diameter_aer);
-
-
+    
     // Output from SSH-aerosol.
     // Please use compiling option ssh-output=yes
     // if you run 0-D test cases. 
