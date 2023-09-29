@@ -3519,13 +3519,15 @@ namespace Polyphemus
 		  }
 	      }
 	  }
-        
+
+        //! Get background number concentration.
 	if (this->option_process["with_number_concentration"])
 	  for( j = 0; j < Nb_bg_aer; j++)
 	    {
 	      species_bin = "Number_"  + to_str(bg_bin_list_aer[j]);
               string filename = this->input_files["bg_number_concentration"](species_bin);
-	      if (exists(filename))
+	      if (exists(filename) and
+                  this->option_process["with_bg_number_concentration_data"])
 		{
 		  if(aerosol_bg_format=="Internal"&&Nfraction_aer > 1)
 		    {
