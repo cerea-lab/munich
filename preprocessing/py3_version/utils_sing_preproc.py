@@ -66,6 +66,8 @@ def get_polair_id(lon, lat, x_min, y_min, dx, dy, Nx, Ny):
     Yid = max(int((lat - y_min + dy / 2.) / dy), 0)
     Yid = min(Yid, Ny - 1)
 
+    return Xid, Yid # YK, Majorlaine
+
 def append_binary(arrayToSave, filename, type = 'f'):
     with open(filename, 'ab') as f:
         np.array(arrayToSave, dtype=type).tofile(f)
