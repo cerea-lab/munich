@@ -61,6 +61,14 @@ if ARGUMENTS["ssh-output"] == 'yes':
 
 preprocessor_defines.append("POLYPHEMUS_WITH_SSH_AEROSOL")
 
+# Default profile
+if 'profile' not in ARGUMENTS:
+    ARGUMENTS["profile"] = "fast"
+
+# Debug mode    
+if ARGUMENTS["profile"] == "debug":
+    preprocessor_defines.append("MUNICH_DEBUG")
+
 # Default: no shared library
 if 'sharedlib' not in ARGUMENTS:
     ARGUMENTS["sharedlib"] = 'no'

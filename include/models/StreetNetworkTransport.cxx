@@ -377,6 +377,17 @@ namespace Polyphemus
     if (this->option_process["with_tree_aerodynamic"] or this->option_process["with_tree_deposition"])
       ReadTreeData();
 
+    //! For debug
+#ifdef MUNICH_DEBUG
+    this->config.SetSection("[debug]");
+
+    if (this->config.Check("Backtrace_street_id"))
+      this->config.PeekValue("Backtrace_street_id",
+                             backtrace_street_id);
+    else
+      backtrace_street_id = -9999;
+#endif
+    
     CheckConfiguration();
 
 #ifdef POLYPHEMUS_PARALLEL_WITH_MPI    

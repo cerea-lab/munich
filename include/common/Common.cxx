@@ -1164,6 +1164,57 @@ namespace Polyphemus
   }
 
 
+  //! Write log to a file.
+  void write_logfile(const std::string &text)
+  {
+      std::ofstream log_file(
+              "munich.log", std::ios_base::out | std::ios_base::app);
+      log_file << text << std::endl;
+  }
+
+  template<class T>
+  void write_logfile(Array<T, 1> array)
+  {
+    string str = "";
+    for (int i = 0; i < int(array.size()); i++)
+      {
+        string tmp = to_str(array(i));
+        str += tmp + " ";
+      }
+    write_logfile(str);
+  }
+
+  template<class T>
+  void write_logfile(const std::string &text,
+                     Array<T, 1> array)
+  {
+    string str = "";
+    for (int i = 0; i < int(array.size()); i++)
+      {
+        string tmp = to_str(array(i));
+        str += tmp + " ";
+      }
+    write_logfile(text + " " + str);
+  }
+
+
+  void write_logfile(const std::string &text,
+                     int value)
+  {
+    string str = to_str(value);
+    write_logfile(text + " " + str);
+  }    
+
+  template<class T>
+  void write_logfile(const std::string &text,
+                     T value)
+  {
+    string str = to_str(value);
+    write_logfile(text + " " + str);
+  }
+
+  
+
 } //namespace Polyphemus
 
 #define COMMON_FILE_COMMON_CXX

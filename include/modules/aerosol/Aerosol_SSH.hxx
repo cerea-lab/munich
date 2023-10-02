@@ -416,6 +416,27 @@ namespace Polyphemus
                      Array<T, 1>& incloudwetdepositionfluxnumber_aer,
                      Array<T, 1>& wet_diameter_aer);
 
+    //! With an argument for the debug.
+    void Forward_aer(bool ssh_debug,
+                     T current_time,
+                     T& specifichumidity,
+                     T& temperature,
+                     T& pressure,
+                     T delta_t,
+                     Array<T, 1>& concentration,
+                     T& liquidwatercontent,
+                     T& rain,
+                     Array<T, 1>& CurrentVerticalInterface,
+                     Array<T, 2>& concentration_aer,
+                     Array<T, 1>& incloudwetdepositionflux,
+                     Array<T, 2>& incloudwetdepositionflux_aer,
+                     T& ph,
+                     T& lwc_avg, T& heightfog, int& ifog,
+                     Array<T, 1>& number_concentration_aer,
+                     Array<T, 1>& incloudwetdepositionfluxnumber_aer,
+                     Array<T, 1>& wet_diameter_aer);
+
+    
 
     bool IsRequired(string field);
     bool IsComputed(string field);

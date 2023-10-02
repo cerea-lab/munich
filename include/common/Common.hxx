@@ -114,7 +114,23 @@ namespace Polyphemus
                                   int option_wet_index,
                                   int option_well_mixed_index);
 
+  void write_logfile(const std::string &text);
 
+  template<class T>
+  void write_logfile(Array<T, 1> array);
+
+  template<class T>
+  void write_logfile(const std::string &text,
+                     Array<T, 1> array);
+
+  void write_logfile(const std::string &text,
+                     int value);
+
+  template<class T>
+  void write_logfile(const std::string &text,
+                     T value);
+  
+  
 } //namespace Polyphemus
 
 #define COMMON_FILE_COMMON_HXX

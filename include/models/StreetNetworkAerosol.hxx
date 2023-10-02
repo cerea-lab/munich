@@ -2,6 +2,7 @@
 
 #include "StreetNetworkChemistry.cxx"
 #include "StreetAerosol.cxx"
+#include "Common.cxx"
 
 namespace Polyphemus
 {
@@ -346,7 +347,6 @@ namespace Polyphemus
 
     Array<T, 1> aerosol_type;
     
-    
   public:
 
     /*** Constructors and destructor ***/
@@ -440,7 +440,8 @@ namespace Polyphemus
     /*** Access Methods: Chemistry ***/
     void Chemistry();
 
-    void Chemistry(Date current_date_tmp,
+    void Chemistry(bool ssh_debug,
+                   Date current_date_tmp,
 		   T sub_delta_t,
 		   T attenuation_,
 		   T specific_humidity_,

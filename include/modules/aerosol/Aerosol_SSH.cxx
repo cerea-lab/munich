@@ -1247,8 +1247,57 @@ namespace Polyphemus
   }
   
 
-  template<class T>
+
+
+template<class T>
   void Aerosol_SSH<T>::Forward_aer(T current_time,
+                                   T& specifichumidity,
+                                   T& temperature,
+                                   T& pressure,
+                                   T delta_t,
+                                   Array<T, 1>& concentration,
+                                   T& liquidwatercontent,
+                                   T& rain,
+                                   Array<T, 1>& CurrentVerticalInterface,
+                                   Array<T, 2>& concentration_aer,
+                                   Array<T, 1>& incloudwetdepositionflux,
+                                   Array<T, 2>& incloudwetdepositionflux_aer,
+                                   T& ph,
+                                   T& lwc_avg,
+                                   T& heightfog,
+                                   int& ifog,
+                                   Array<T, 1>& number_concentration_aer,
+                                   Array<T, 1>& incloudwetdepositionfluxnumber_aer,
+                                   Array<T, 1>& wet_diameter_aer)
+  {
+
+    Forward_aer(false,
+                current_time,
+                specifichumidity,
+                temperature,
+                pressure,
+                delta_t,
+                concentration,
+                liquidwatercontent,
+                rain,
+                CurrentVerticalInterface,
+                concentration_aer,
+                incloudwetdepositionflux,
+                incloudwetdepositionflux_aer,
+                ph,
+                lwc_avg,
+                heightfog,
+                ifog,
+                number_concentration_aer,
+                incloudwetdepositionfluxnumber_aer,
+                wet_diameter_aer);
+  }
+  
+
+  
+  template<class T>
+  void Aerosol_SSH<T>::Forward_aer(bool ssh_debug,
+                                   T current_time,
                                    T& specifichumidity,
                                    T& temperature,
                                    T& pressure,
@@ -1308,6 +1357,18 @@ namespace Polyphemus
     // Final time
     T final_time;
 
+    if (ssh_debug)
+      write_logfile("=== Call Forward_aer ===");     
+    
+    if (ssh_debug)
+      api.send_bool(_aerosol_so,
+                    "api_sshaerosol_set_verbose_",
+                    true);
+    else
+      api.send_bool(_aerosol_so,
+                    "api_sshaerosol_set_verbose_",
+                    false);
+    
     // Set final time.
     final_time = current_time + delta_t;
     
@@ -1462,6 +1523,8 @@ namespace Polyphemus
                concentration_index.data(), list_species.data(),
                &Ns_inorganic_aer, &Ns_organic_aer, &section_pass, &iredist,
                &is_fixed_density);
+
+            
           }
         // Call ssh-aerosol
         else

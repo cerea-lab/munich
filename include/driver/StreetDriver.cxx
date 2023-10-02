@@ -44,6 +44,13 @@ namespace Polyphemus
     config.PeekValue("Show_iterations", option_display["show_iterations"]);
     // Should current date be displayed on screen?
     config.PeekValue("Show_date", option_display["show_date"]);
+
+    // Make a log file.
+    std::ofstream log_file("munich.log",
+                           std::ios_base::out);
+
+    log_file << "=== Start a simulation ===" << std::endl;
+    
   }
 
   //! Destructor.

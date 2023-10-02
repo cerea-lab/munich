@@ -399,6 +399,18 @@ namespace Polyphemus
 
     int rank;
 
+
+#ifdef MUNICH_DEBUG
+    //! ### DEBUG ###
+    int backtrace_street_id;
+
+    bool street_exist;
+    
+#endif
+
+    bool ssh_debug;
+
+
   public:
 
     /*** Constructors and destructor ***/
