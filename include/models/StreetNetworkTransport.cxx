@@ -3242,7 +3242,13 @@ namespace Polyphemus
           }
         //! Stable
         else if (lmo >= 0.0 and lmo < pblh)
-          sigma_w_ = 1.3 * ust * pow((1.0 - 0.5 * height / pblh), 3.0 / 4.0);
+          {
+            if (0.5 * height / pblh >= 1.0)
+              sigma_w_ = 0.01;
+            else
+              sigma_w_ = 1.3 * ust *
+                pow((1.0 - 0.5 * height / pblh), 3.0 / 4.0);
+          }
         //! Neutral
         else
           sigma_w_ = 1.3 * ust * (1.0 - 0.8 * height / pblh);
