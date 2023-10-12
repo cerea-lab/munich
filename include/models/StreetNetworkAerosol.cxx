@@ -2524,6 +2524,15 @@ namespace Polyphemus
       {
 
         Street<T>* street = this->StreetVector.at(i);
+
+#ifdef MUNICH_DEBUG
+                if (street->GetStreetID() == this->backtrace_street_id)
+                  this->munich_debug = true;
+                else
+                  this->munich_debug = false;
+#else
+                this->munich_debug = false;
+#endif
         
         T transfer_velocity = street->GetTransferVelocity(); // m/s
         T temp = transfer_velocity * street->GetWidth() * street->GetLength();// m3/s
@@ -2783,7 +2792,8 @@ namespace Polyphemus
                 if (this->option_method == "ETR")
                   {
                     StreetNetworkTransport<T>::
-                      ETRConcentration(transfer_velocity,
+                      ETRConcentration(false,
+                                       transfer_velocity,
                                        temp,
                                        outgoing_flux,
                                        street_volume,
@@ -2840,16 +2850,10 @@ namespace Polyphemus
                 //aerosol mass
                 //Transport is calculated separately for each size bound
 #ifdef MUNICH_DEBUG
-                Array<T, 1> total_bin(this->Nbin_aer);
-                Array<T, 1> total_bin_i(this->Nbin_aer);                
-                Array<T, 1> total_background_mass(this->Nbin_aer);
-                Array<T, 1> total_emission_rate(this->Nbin_aer);                
-                Array<T, 1> total_inflow_rate(this->Nbin_aer);
-                total_bin = 0.0;
-                total_bin_i = 0.0;
-                total_background_mass = 0.0;
-                total_emission_rate = 0.0;
-                total_inflow_rate = 0.0;
+                Array<T, 1> total_bin_in(this->Nbin_aer);
+                Array<T, 1> total_bin_out(this->Nbin_aer);                
+                total_bin_in = 0.0;
+                total_bin_out = 0.0;
 #endif                
                 for (int b = 0; b < this->Nbin_aer; ++b)
                   {
@@ -2868,10 +2872,7 @@ namespace Polyphemus
 #ifdef MUNICH_DEBUG                        
                         if (s < (this->Ns_aer - 1))
                           {
-                            total_bin_i(b) += concentration_array_bin(s);
-                            total_background_mass(b) += background_concentration_array_bin(s);
-                            total_emission_rate(b) += emission_rate_array_bin(s);
-                            total_inflow_rate(b) += inflow_rate_array_bin(s);
+                            total_bin_in(b) += concentration_array_bin(s);
                           }
 #endif
                         
@@ -2882,7 +2883,8 @@ namespace Polyphemus
                     if (this->option_method == "ETR")
                       {
                         StreetNetworkTransport<T>::
-                          ETRConcentration(transfer_velocity,
+                          ETRConcentration(this->munich_debug,
+                                           transfer_velocity,
                                            temp,
                                            outgoing_flux,
                                            street_volume,
@@ -2938,7 +2940,7 @@ namespace Polyphemus
                         new_concentration_array_aer(s, b) = new_concentration_array_bin(s);
 #ifdef MUNICH_DEBUG                        
                         if (s < (this->Ns_aer - 1))
-                          total_bin(b) += new_concentration_array_aer(s, b);
+                          total_bin_out(b) += new_concentration_array_aer(s, b);
 #endif
                       }
                   }
@@ -2946,15 +2948,10 @@ namespace Polyphemus
 #ifdef MUNICH_DEBUG
                 if (street->GetStreetID() == this->backtrace_street_id)
                   {
-                    write_logfile("Street volume", street_volume);
-                    write_logfile("outgoing_flux", outgoing_flux);
-                    write_logfile("vertical exchange in m3/s", temp);
-                    write_logfile("Background total mass",
-                                  total_background_mass);
-                    write_logfile("Emission total mass rate", total_emission_rate);
-                    write_logfile("Inflow total mass rate", total_inflow_rate);
-                    write_logfile("Total mass in each bin before solver", total_bin_i);
-                    write_logfile("Total mass in each bin after solver", total_bin);
+                    write_logfile("Total mass in each bin before solver",
+                                  total_bin_in);
+                    write_logfile("Total mass in each bin after solver",
+                                  total_bin_out);
                   }
 #endif
                 
@@ -2978,21 +2975,12 @@ namespace Polyphemus
                             number_emission_rate_array(b) = street->GetNumberEmission(b); //  #/s
                             number_inflow_rate_array(b) = street->GetNumberInflowRate(b); // #/s
                           }
-
-#ifdef MUNICH_DEBUG
-                        if (street->GetStreetID() == this->backtrace_street_id)
-                          {
-                            write_logfile("Background number",
-                                          background_number_concentration_array);
-                            write_logfile("Emission number", number_emission_rate_array);
-                            write_logfile("Inflow number", number_inflow_rate_array);
-                          }
-#endif
                         
                         if (this->option_method == "ETR")
                           {
                             StreetNetworkTransport<T>::
-                              ETRConcentration(transfer_velocity,
+                              ETRConcentration(this->munich_debug,
+                                               transfer_velocity,
                                                temp,
                                                outgoing_flux,
                                                street_volume,
@@ -3102,31 +3090,6 @@ namespace Polyphemus
                                 sub_delta_t);
 
               }
-
-
-#ifdef MUNICH_DEBUG          
-            if (street->GetStreetID() == this->backtrace_street_id)
-              {
-                Array<T, 1> total_bin(this->Nbin_aer);
-                total_bin = 0.0;
-                Array<T, 1> temp(this->Nbin_aer);
-                temp = 0.0;
-
-                for (int b = 0; b < this->Nbin_aer; ++b)
-                  {
-                    for (int s = 0; s < this->Ns_aer - 1; s++)
-                      total_bin(b) += new_concentration_array_aer(s, b);
-
-                    T Rho_aer = fixed_density_aer * 1.e-9;
-                    T MeanDiameter = 1.e6 * sqrt(BinBound_aer(b + 1) * BinBound_aer(b)); // um                    
-                    temp(b) = total_bin(b) / Rho_aer / pi *6./
-                      (MeanDiameter*MeanDiameter*MeanDiameter);
-                  }
-                write_logfile("Total mass in each bin before chem", total_bin);
-                write_logfile("Number from mass before chem", temp);
-              }
-#endif
-            
             
 	    //! Chemical reactions
 	    if (this->option_process["with_chemistry"])
@@ -3154,17 +3117,8 @@ namespace Polyphemus
 		T rain_ = street->GetRain();
 		T liquidwatercontent_ = street->GetLiquidWaterContent();
                 int street_id = street->GetStreetID();
-
-#ifdef MUNICH_DEBUG
-                if (street->GetStreetID() == this->backtrace_street_id)
-                  this->ssh_debug = true;
-                else
-                  this->ssh_debug = false;
-#else
-                this->ssh_debug = false;
-#endif
                 
-		Chemistry(this->ssh_debug,
+		Chemistry(this->munich_debug,
                           current_date_tmp,
 			  sub_delta_t_init,
 			  attenuation_,
@@ -4482,7 +4436,7 @@ namespace Polyphemus
   }
   
   template<class T, class ClassChemistry>
-  void StreetNetworkAerosol<T, ClassChemistry>::Chemistry(bool ssh_debug,
+  void StreetNetworkAerosol<T, ClassChemistry>::Chemistry(bool munich_debug,
                                                           Date current_date_tmp,
 							  T sub_delta_t,
 							  T attenuation_,
@@ -4540,13 +4494,8 @@ namespace Polyphemus
 		       concentration_aer,
 		       pH,
 		       number_concentration);
-
-    if (ssh_debug)
-      write_logfile("number concentration after Chemistry_.Forward",
-                    number_concentration);
     
-    
-    Chemistry_.Forward_aer(ssh_debug,
+    Chemistry_.Forward_aer(munich_debug,
                            T(current_date_tmp.GetNumberOfSeconds()), 
 			   specific_humidity_,
 			   temperature_,
@@ -4566,10 +4515,6 @@ namespace Polyphemus
 			   number_concentration,
 			   incloudwetdepositionfluxnumber,
     			   wet_diameter_aer_loc);
-
-    if (ssh_debug)
-      write_logfile("number concentration after Chemistry_.Forward_aer",
-                    number_concentration);
     
   }
 

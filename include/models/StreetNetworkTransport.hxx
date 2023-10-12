@@ -2,6 +2,7 @@
 
 #include "BaseModel.cxx"
 #include "StreetTransport.cxx"
+#include "Common.cxx"
 
 namespace Polyphemus
 {
@@ -408,7 +409,7 @@ namespace Polyphemus
     
 #endif
 
-    bool ssh_debug;
+    bool munich_debug;
 
 
   public:
@@ -563,7 +564,8 @@ namespace Polyphemus
 		  const int Nsp,
 		  const int bin);
 
-    void ETRConcentration(const T transfer_velocity,
+    void ETRConcentration(bool munich_debug,
+                          const T transfer_velocity,
 			  const T temp,
 			  const T outgoing_flux,
 			  const T street_volume,

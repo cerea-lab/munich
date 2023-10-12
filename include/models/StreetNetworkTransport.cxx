@@ -379,8 +379,6 @@ namespace Polyphemus
 
     //! For debug
 #ifdef MUNICH_DEBUG
-    this->config.SetSection("[debug]");
-
     if (this->config.Check("Backtrace_street_id"))
       this->config.PeekValue("Backtrace_street_id",
                              backtrace_street_id);
@@ -2745,7 +2743,8 @@ namespace Polyphemus
             //! Use the ETR method to calculates new street concentrations.
 	    if (option_method == "ETR")
 	      {
-		ETRConcentration(transfer_velocity,
+		ETRConcentration(munich_debug,
+                                 transfer_velocity,
 				 temp,
 				 outgoing_flux,
 				 street_volume,
@@ -3878,7 +3877,8 @@ namespace Polyphemus
   */
   template<class T>
   void StreetNetworkTransport<T>
-  ::ETRConcentration(const T transfer_velocity,
+  ::ETRConcentration(bool munich_debug,
+                     const T transfer_velocity,
 		     const T temp,
 		     const T outgoing_flux,
 		     const T street_volume,

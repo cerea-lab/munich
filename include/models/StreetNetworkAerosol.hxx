@@ -2,7 +2,6 @@
 
 #include "StreetNetworkChemistry.cxx"
 #include "StreetAerosol.cxx"
-#include "Common.cxx"
 
 namespace Polyphemus
 {

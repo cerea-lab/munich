@@ -578,7 +578,8 @@ namespace Polyphemus
 	    if (this->option_method == "ETR")
 	      {
 		StreetNetworkTransport<T>::
-		  ETRConcentration(transfer_velocity,
+		  ETRConcentration(false,
+                                   transfer_velocity,
 				   temp,
 				   outgoing_flux,
 				   street_volume,
