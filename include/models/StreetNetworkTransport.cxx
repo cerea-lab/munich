@@ -3230,6 +3230,9 @@ namespace Polyphemus
         T lmo = street->GetLMO();
         T height = street->GetHeight();
 
+        // Correct pblh when it is lower than the building height.
+        pblh = max(height, pblh);
+        
         //! Unstable
         if (lmo < 0.0)
           {
@@ -3242,11 +3245,8 @@ namespace Polyphemus
         //! Stable
         else if (lmo >= 0.0 and lmo < pblh)
           {
-            if (0.5 * height / pblh >= 1.0)
-              sigma_w_ = 0.01;
-            else
-              sigma_w_ = 1.3 * ust *
-                pow((1.0 - 0.5 * height / pblh), 3.0 / 4.0);
+            sigma_w_ = 1.3 * ust *
+              pow((1.0 - 0.5 * height / pblh), 3.0 / 4.0);
           }
         //! Neutral
         else
