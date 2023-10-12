@@ -4235,10 +4235,20 @@ namespace Polyphemus
                         }
                     }
 	    if (this->option_process["with_number_concentration"])
-              for (b = 0; b < Nb_bg_aer; ++b)
-                street->SetBackgroundNumberConcentration(NumberBackground_aer_f(b, st), b);
+              {
+                for (b = 0; b < Nb_bg_aer; ++b)
+                  {
+                    street->SetBackgroundNumberConcentration(NumberBackground_aer_f(b, st), b);
 
-            //! Set the meteo data
+                    if (!this->option_process["with_initial_condition_number_aer"])
+                      {
+                        //Concentration at streets equal to Cbg in first time step
+                        if(this->current_date == this->Date_min)
+                          street->SetStreetNumberConcentration(NumberBackground_aer_f(b, st), b);
+                      }
+                  }  
+              }
+                //! Set the meteo data
 	    street->SetLiquidWaterContent(LiquidWaterContent_f(st));
 	  }	 	
 	++st;	  
