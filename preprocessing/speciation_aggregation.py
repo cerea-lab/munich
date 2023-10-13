@@ -13,19 +13,41 @@ import numpy as np
 # parser = OptionParser(usage = "%prog configuration_file")
 # (options, args) = parser.parse_args()
 
-content = [("Output_dir", "[output]", "String"), \
-           ("speciation_dir", "[input]", "String"), \
-           ("meca","[option]","String"), \
-           ("Nt_polair", "[domain]", "Int")
+content = [("outdir", "[output]", "String"), \
+           ("speciation_dir", "[emission]", "String"), \
+           ("meca","[emission]","String"), \
+           ('generate_grid_emission', '[gridded_emission]', 'Bool'),
+           ("Nt_polair", "[gridded_emission]", "Int")
 ]
 #config = talos.Config("sing_preproc.cfg", content)
+
+
+content_spec = [
+    # [speciation_pm10]
+    ('speciate_pm10', '[speciation_pm10]', 'Bool'),
+    ('infile_pm25', '[speciation_pm10]', 'String'),
+    ('infile_pm10', '[speciation_pm10]', 'String'),
+    ('N_bin', '[speciation_pm10]', 'Int'),
+    ('fraction_pm10_exhaust', '[speciation_pm10]', 'Float'),
+    ('fraction_pm10_brake', '[speciation_pm10]', 'Float'),
+    ('fraction_pm10_tyre', '[speciation_pm10]', 'Float'),
+    ('fraction_pm10_road', '[speciation_pm10]', 'Float'),
+    ('spec_pm10_exhaust_pbc', '[speciation_pm10]', 'Float'),
+    ('spec_pm10_exhaust_pmd', '[speciation_pm10]', 'Float'),
+    ('spec_pm10_exhaust_ppoalp', '[speciation_pm10]', 'Float'),
+    ('spec_pm10_brake', '[speciation_pm10]', 'String'),
+    ('spec_pm10_tyre', '[speciation_pm10]', 'String'),
+    ('spec_pm10_road', '[speciation_pm10]', 'String'),
+]
+
+
 
 def speciation_voc(configuration_file = "sing_preproc.cfg"):
 
     print(configuration_file)
     config = talos.Config(configuration_file, content)
     meca = config.meca
-    home_dir = config.Output_dir
+    home_dir = config.outdir
 
     speciation_file = config.speciation_dir + "/COVNM_"+meca+".dat"
     speciation = open(speciation_file)
@@ -125,13 +147,12 @@ def speciation_voc(configuration_file = "sing_preproc.cfg"):
     # Get array shape of input file and load to an array.
     inputfile_size = io.get_filesize(input_file)
     array_shape = (config.Nt, int(inputfile_size / config.Nt / 4.0))
-    print(array_shape)
     input_array = io.load_binary(input_file, array_shape)
 
     total = 0.0
     # Compute and write to binary files;
     for s_model in range(ns_model):
-        print("species factor: ",model_species[s_model], species_factor[s_model])
+        # print("species factor: ",model_species[s_model], species_factor[s_model])
         # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
         
         output_array = input_array * species_factor[s_model]
@@ -148,29 +169,29 @@ def speciation_voc(configuration_file = "sing_preproc.cfg"):
 
     ### Compute speciated VOC emissions for grided data.
 
-    # Get array shape of input file and load to an array.
-    input_dir = home_dir + "/grid_emission/"
-    input_file = input_dir + "NMHC.bin"
+    if (config.generate_grid_emission == True):
+        # Get array shape of input file and load to an array.
+        input_dir = home_dir + "/grid_emission/"
+        input_file = input_dir + "NMHC.bin"
 
-    inputfile_size = io.get_filesize(input_file)
-    array_shape = (config.Nt_polair, config.Ny, config.Nx)
-    print(array_shape)
-    input_array = io.load_binary(input_file, array_shape)
+        inputfile_size = io.get_filesize(input_file)
+        array_shape = (config.Nt_polair, config.Ny, config.Nx)
+        input_array = io.load_binary(input_file, array_shape)
 
-    # Compute and write to binary files;
-    for s_model in range(ns_model):
-        print("species factor: ",model_species[s_model], species_factor[s_model])
-        # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
-        # print command
-        # os.system(command)
+        # Compute and write to binary files;
+        for s_model in range(ns_model):
+#            print("species factor: ",model_species[s_model], species_factor[s_model])
+            # command = "mult_nb_float " + input_file + " " + str(species_factor[s_model]) + " " + model_species[s_model] + ".bin"
+            # print command
+            # os.system(command)
 
-        output_array = input_array * species_factor[s_model]
-        output_filename = input_dir + model_species[s_model] + ".bin"
-        
-        if (model_species[s_model] == "CH4"):
-            print(model_species[s_model], " is ignored.")
-        else:
-            io.save_binary(output_array, output_filename)
+            output_array = input_array * species_factor[s_model]
+            output_filename = input_dir + model_species[s_model] + ".bin"
+
+            if (model_species[s_model] == "CH4"):
+                print(model_species[s_model], " is ignored.")
+            else:
+                io.save_binary(output_array, output_filename)
 
 
 
@@ -178,7 +199,7 @@ def speciation_nox(configuration_file = "sing_preproc.cfg"):
     
         config = talos.Config(configuration_file, content)
     
-        home_dir = config.Output_dir
+        home_dir = config.outdir
         input_dir = home_dir + "/emission/"
         input_file = input_dir + "NOx.bin"
 
@@ -202,28 +223,181 @@ def speciation_nox(configuration_file = "sing_preproc.cfg"):
 
         ### Compute speciated VOC emissions for grided data.
 
+        if (config.generate_grid_emission == True):
+        
+            # Get array shape of input file and load to an array.
+            input_dir = home_dir + "/grid_emission/"
+            input_file = input_dir + "NOx.bin"
+
+            inputfile_size = io.get_filesize(input_file)
+            array_shape = (config.Nt_polair, config.Ny, config.Nx)
+            nox = io.load_binary(input_file, array_shape)
+
+            # Compute and write to binary files  for NO and NO2 species;
+            # NO2 is assumed to be 20% of NOx.
+            no2 = nox * 0.2;
+            # NOx is given as NO2 equivalent.
+            no = (nox - no2) *30.0 / 46.0
+
+            output_filename = input_dir + "NO2.bin"
+            io.save_binary(no2, output_filename)
+            output_filename = input_dir + "NO.bin"
+            io.save_binary(no, output_filename);
+
+"""
+Author: Thibaud Sarica
+
+"""            
+def speciation_pm10(configuration_file = "sing_preproc.cfg"):
+
+    
+    config_main = talos.Config(configuration_file, content)
+    config = talos.Config("speciation_aggregation.cfg",
+                          content_spec)
+
+    home_dir = config_main.outdir
+    input_dir = home_dir + "/emission/"
+
+    # Get array shape of input file and load to an array.
+    # Read PM10
+    input_file = input_dir + config.infile_pm10
+    inputfile_size = io.get_filesize(input_file)
+    array_shape = (config_main.Nt, int(inputfile_size / config_main.Nt / 4.0))
+    pm10 = io.load_binary(input_file, array_shape)
+
+    # Read PM2.5
+    input_file = input_dir + config.infile_pm25
+    inputfile_size = io.get_filesize(input_file)
+    array_shape = (config_main.Nt, int(inputfile_size / config_main.Nt / 4.0))
+    pm25 = io.load_binary(input_file, array_shape)
+
+        
+    # Split exhaust vs. non-exhaust
+    exhaust_pm10 = config.fraction_pm10_exhaust * pm10
+    brake_pm10 = config.fraction_pm10_brake * pm10
+    tyre_pm10 = config.fraction_pm10_tyre * pm10
+    road_pm10 = config.fraction_pm10_road * pm10
+
+    # Final speciated PM species
+    pm_species = {x: [np.zeros(array_shape) for i in range(config.N_bin)]
+                  for x in ['PBC', 'PMD', 'PPOAlP']}
+        
+    # Exhaust
+    pm_species['PBC'][1] += exhaust_pm10 * config.spec_pm10_exhaust_pbc
+    pm_species['PMD'][1] += exhaust_pm10 * config.spec_pm10_exhaust_pmd
+    pm_species['PPOAlP'][1] += exhaust_pm10 * config.spec_pm10_exhaust_ppoalp
+    
+
+    # Brake wear
+    with open(config.spec_pm10_brake, 'r') as f:
+        header = f.readline().replace('\n', '').split(',')
+        if len(header)-1 != config.N_bin:
+            sys.exit('ERROR: N_bin different in brake_wear.csv.')
+        for line in f.readlines():
+            line_info = line.replace('\n', '').split(',')
+            for i in range(config.N_bin):
+                pm_species[line_info[0]][i] += brake_pm10 * float(line_info[i+1])
+
+    # Tyre wear
+    with open(config.spec_pm10_tyre, 'r') as f:
+        header = f.readline().replace('\n', '').split(',')
+        if len(header)-1 != config.N_bin:
+            sys.exit('ERROR: N_bin different in tyre_wear.csv.')
+        for line in f.readlines():
+            line_info = line.replace('\n', '').split(',')
+            for i in range(config.N_bin):
+                pm_species[line_info[0]][i] += tyre_pm10 * float(line_info[i+1])
+
+    # Road wear
+    with open(config.spec_pm10_road, 'r') as f:
+        header = f.readline().replace('\n', '').split(',')
+        if len(header)-1 != config.N_bin:
+            sys.exit('ERROR: N_bin different in road_wear.csv.')
+        for line in f.readlines():
+            line_info = line.replace('\n', '').split(',')
+            for i in range(config.N_bin):
+                pm_species[line_info[0]][i] += road_pm10 * float(line_info[i+1])
+    
+    # Write files
+    for species, value in pm_species.items():
+        for i in range(config.N_bin):
+            output_filename = input_dir + "/" + species + '_{}.bin'.format(i)
+            io.save_binary(value[i], output_filename)
+        
+
+    ### Compute speciated PM emissions for grided data.
+
+    if (config_main.generate_grid_emission == True):
+        
         # Get array shape of input file and load to an array.
         input_dir = home_dir + "/grid_emission/"
-        input_file = input_dir + "NOx.bin"
 
+        # Get array shape of input file and load to an array.
+        # Read PM10
+        input_file = input_dir + config.infile_pm10
         inputfile_size = io.get_filesize(input_file)
-        print((config.Nt_polair, config.Ny, config.Nx))
-        array_shape = (config.Nt_polair, config.Ny, config.Nx)
-        nox = io.load_binary(input_file, array_shape)
+        array_shape = (config_main.Nt_polair, config_main.Ny, config_main.Nx)
+        pm10 = io.load_binary(input_file, array_shape)
 
-        # Compute and write to binary files  for NO and NO2 species;
-        # NO2 is assumed to be 20% of NOx.
-        no2 = nox * 0.2;
-        # NOx is given as NO2 equivalent.
-        no = (nox - no2) *30.0 / 46.0
-        
-        output_filename = input_dir + "NO2.bin"
-        print(output_filename)
-        io.save_binary(no2, output_filename)
-        output_filename = input_dir + "NO.bin"
-        io.save_binary(no, output_filename);
-        
+        # Read PM2.5
+        input_file = input_dir + config.infile_pm25
+        inputfile_size = io.get_filesize(input_file)
+        array_shape = (config_main.Nt_polair, config_main.Ny, config_main.Nx)
+        pm25 = io.load_binary(input_file, array_shape)
 
+
+        # Split exhaust vs. non-exhaust
+        exhaust_pm10 = config.fraction_pm10_exhaust * pm10
+        brake_pm10 = config.fraction_pm10_brake * pm10
+        tyre_pm10 = config.fraction_pm10_tyre * pm10
+        road_pm10 = config.fraction_pm10_road * pm10
+
+        # Final speciated PM species
+        pm_species = {x: [np.zeros(array_shape) for i in range(config.N_bin)]
+                      for x in ['PBC', 'PMD', 'PPOAlP']}
+
+        # Exhaust
+        pm_species['PBC'][1] += exhaust_pm10 * config.spec_pm10_exhaust_pbc
+        pm_species['PMD'][1] += exhaust_pm10 * config.spec_pm10_exhaust_pmd
+        pm_species['PPOAlP'][1] += exhaust_pm10 * config.spec_pm10_exhaust_ppoalp
+
+
+        # Brake wear
+        with open(config.spec_pm10_brake, 'r') as f:
+            header = f.readline().replace('\n', '').split(',')
+            if len(header)-1 != config.N_bin:
+                sys.exit('ERROR: N_bin different in brake_wear.csv.')
+            for line in f.readlines():
+                line_info = line.replace('\n', '').split(',')
+                for i in range(config.N_bin):
+                    pm_species[line_info[0]][i] += brake_pm10 * float(line_info[i+1])
+
+        # Tyre wear
+        with open(config.spec_pm10_tyre, 'r') as f:
+            header = f.readline().replace('\n', '').split(',')
+            if len(header)-1 != config.N_bin:
+                sys.exit('ERROR: N_bin different in tyre_wear.csv.')
+            for line in f.readlines():
+                line_info = line.replace('\n', '').split(',')
+                for i in range(config.N_bin):
+                    pm_species[line_info[0]][i] += tyre_pm10 * float(line_info[i+1])
+
+        # Road wear
+        with open(config.spec_pm10_road, 'r') as f:
+            header = f.readline().replace('\n', '').split(',')
+            if len(header)-1 != config.N_bin:
+                sys.exit('ERROR: N_bin different in road_wear.csv.')
+            for line in f.readlines():
+                line_info = line.replace('\n', '').split(',')
+                for i in range(config.N_bin):
+                    pm_species[line_info[0]][i] += road_pm10 * float(line_info[i+1])
+
+        # Write files
+        for species, value in pm_species.items():
+            for i in range(config.N_bin):
+                output_filename = input_dir + "/" + species + '_{}.bin'.format(i)
+                io.save_binary(value[i], output_filename)
+        
 def main():
 
     speciation_voc("sing_preproc.cfg")
