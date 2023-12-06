@@ -94,7 +94,7 @@ def are_streets_same(node_list, i, j, min_distance):
 # --------------------
 
 def merging_street(output_file, node_list, street_list,
-                   species_list):
+                   species_list, min_distance):
 
     ntemp = 0
     n_street = len(street_list)
@@ -104,7 +104,7 @@ def merging_street(output_file, node_list, street_list,
         j = i + 1
         while (is_street_found == False and j < n_street):
             # if are_streets_same(node_list, street_list[i], street_list[j]):
-            if are_streets_same(node_list, i, j):                
+            if are_streets_same(node_list, i, j, min_distance):                
                 street_list[j].eff_begin = street_list[i].begin
                 street_list[j].eff_end = street_list[i].end
                 street_list[j].eff_id = street_list[i].id

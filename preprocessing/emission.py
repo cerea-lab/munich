@@ -98,7 +98,8 @@ def read_street_emission(input_file,
                          manual_street_merging_file,
                          is_node_manually_merged,
                          manual_node_merging_file,
-                         output_dir):
+                         output_dir,
+                         min_distance):
 
 
     street_list, node_list = read_traffic_data(input_file,
@@ -126,7 +127,8 @@ def read_street_emission(input_file,
                     ntemp = merging_street(lut_file,
                                            node_list,
                                            street_list,
-                                           emis_species_list)
+                                           emis_species_list,
+                                           min_distance)
             print(" - Number of streets after merging the same streets: %d" % (n_street - ntemp))
 
             # Manual merging for the separated roads.

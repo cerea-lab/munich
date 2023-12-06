@@ -498,7 +498,8 @@ for t in range(nt):
                                      config.manual_street_merging_file,
                                      config.manual_node_merging,
                                      config.manual_node_merging_file,
-                                     config.outdir)
+                                     config.outdir,
+                                     config.min_distance)
 
         # Append data to output files
         append_emission_data(street_list_eff, config.emission_outdir,
