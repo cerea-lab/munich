@@ -1392,9 +1392,12 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; ++b)
 	  for (int j = 0; j < Nbin_dep_aer; ++j)
-	    if (b == j)
-		StreetDryDepositionFlux_aer(j, ist) =
-                  street->GetStreetDryDepositionFlux_aer(b);
+           {
+            int dep_b = dep_bin_list_aer[j] - (this->Nbin_aer - Nbin_dep_aer);
+	     if (b == dep_bin_list_aer[j])
+		StreetDryDepositionFlux_aer(dep_b, ist) =
+                  street->GetStreetDryDepositionFlux_aer(dep_bin_list_aer[j]);
+           }
         ++ist;
       }
   }
@@ -1410,11 +1413,14 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; ++b)
 	  for (int j = 0; j < Nbin_dep_aer; ++j)
-	    if (b == j)
+	   {
+	    if (b == dep_bin_list_aer[j])
 	      {
-		WallDryDepositionFlux_aer(j, ist) =
-                  street->GetWallDryDepositionFlux_aer(b);
+                int dep_b = dep_bin_list_aer[j] - (this->Nbin_aer - Nbin_dep_aer);
+		WallDryDepositionFlux_aer(dep_b, ist) =
+                  street->GetWallDryDepositionFlux_aer(dep_bin_list_aer[j]);
 	      }
+	   }
         ++ist;
       }
   }
@@ -1430,11 +1436,16 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; ++b)
 	  for (int j = 0; j < Nbin_dep_aer; ++j)
-	    if (b == j)
+	   {	  
+            int dep_b = dep_bin_list_aer[j] - (this->Nbin_aer - Nbin_dep_aer);
+
+
+            if (b == dep_bin_list_aer[j])
 	      {
-		TreeDryDepositionFlux_aer(j, ist) =
-                  street->GetTreeDryDepositionFlux_aer(b);
+		TreeDryDepositionFlux_aer(dep_b, ist) =
+                  street->GetTreeDryDepositionFlux_aer(dep_bin_list_aer[j]);
 	      }
+	   }
         ++ist;
       }
   }
@@ -1451,12 +1462,16 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; ++b)
 	  for (int j = 0; j < Nbin_dep_aer; ++j)
-	    if (b == j)
+	   {	  
+		  
+            if (b == dep_bin_list_aer[j])
 	      {
-		StreetDryDepositionRate_aer(j, ist) =
-                  street->GetStreetDryDepositionFlux_aer(b) *
+                int dep_b = dep_bin_list_aer[j] - (this->Nbin_aer - Nbin_dep_aer);
+		StreetDryDepositionRate_aer(dep_b, ist) =
+                  street->GetStreetDryDepositionFlux_aer(dep_bin_list_aer[j]) *
                   street->GetLength() * street->GetWidth();
 	      }
+	   }
         ++ist;
       }
   }
@@ -1472,12 +1487,15 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; ++b)
 	  for (int j = 0; j < Nbin_dep_aer; ++j)
-	    if (b == j)
+	   {	  
+            if (b == dep_bin_list_aer[j])
 	      {
-		WallDryDepositionRate_aer(j, ist) =
-                  street->GetWallDryDepositionFlux_aer(b) *
+                int dep_b = dep_bin_list_aer[j] - (this->Nbin_aer - Nbin_dep_aer);
+		WallDryDepositionRate_aer(dep_b, ist) =
+                  street->GetWallDryDepositionFlux_aer(dep_bin_list_aer[j]) *
                   street->GetHeight() * street->GetLength() * 2.0;
 	      }
+	   }
         ++ist;
       }
   }
@@ -1493,13 +1511,16 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; ++b)
 	  for (int j = 0; j < Nbin_dep_aer; ++j)
-	    if (b == j)
+	   {	  
+            if (b == dep_bin_list_aer[j])
 	      {
-		TreeDryDepositionRate_aer(j, ist) =
-                  street->GetTreeDryDepositionFlux_aer(b) *
+                int dep_b = dep_bin_list_aer[j] - (this->Nbin_aer - Nbin_dep_aer);
+		TreeDryDepositionRate_aer(dep_b, ist) =
+                  street->GetTreeDryDepositionFlux_aer(dep_bin_list_aer[j]) *
                   street->GetTreeLAI() *
                   street->GetWidth() * street->GetLength();
 	      }
+	   }
         ++ist;
       }
   }
@@ -1556,6 +1577,9 @@ namespace Polyphemus
 	Rho_bin = 0.0;
 	dist = 0;
 	for (int b = 0; b < Nb_dep_aer; b++)
+         {
+          int dep_b = dep_bin_list_aer[b] - (this->Nbin_aer - Nbin_dep_aer);
+
 	  for (int ic = 0; ic < Nc; ic++)
 	    {
 	      TotalMass = 0.0;
@@ -1563,20 +1587,26 @@ namespace Polyphemus
 		{
 		  it_begin = bin_dep_list.begin();
 		  it_end = bin_dep_list.end();
-		  pos = find(it_begin,it_end,b);
+		  pos = find(it_begin,it_end,dep_b);
 		  dist = distance(it_begin, pos);
 
 		  if (dist < int(bin_dep_list.size()))
 		    {
 		      TotalMass = TotalMass +
-                        street->GetStreetConcentration_aer(s, dist*Nc+ic);
-		      Conc_aer_tmp(s) = street->GetStreetConcentration_aer(s, dist*Nc+ic);
+                        street->GetStreetConcentration_aer(s, dep_bin_list_aer[b]*Nc+ic);
+		      Conc_aer_tmp(s) = street->GetStreetConcentration_aer(s, dep_bin_list_aer[b]*Nc+ic);
 		    }
 		}
-              Rho_bin(dist*Nc+ic) = 1e9 *
-                ComputeDensity(Conc_aer_tmp, Rho_species_aer,
+
+              if (this->option_process["with_fixed_density"])
+    	          Rho_bin(dep_b*Nc+ic) = fixed_density_aer;
+	      else
+              Rho_bin(dep_b*Nc+ic) = 1e9 *
+                ComputeDensity(Conc_aer_tmp, Rho_species_aer, 
                                TotalMass, this->Ns_aer); // Density per bin in kg/m^3.
 	    }
+	 }
+
 
 	// Street data
         T H = street->GetHeight();
@@ -1595,8 +1625,10 @@ namespace Polyphemus
 	for (int b = 0; b < Nb_dep_aer; b++)
 	  {
 	    int pos_bin = dep_bin_list_aer[b];
+	    int dep_b = pos_bin - (this->Nbin_aer - Nb_dep_aer);
 	    for(int id=0; id< this->Ncomposition_aer; id++)
-	      WetDiameter_dep_aer(b*this->Ncomposition_aer + id) = street->GetStreetWetDiameter_aer(pos_bin*this->Ncomposition_aer + id);
+	      WetDiameter_dep_aer(dep_b*this->Ncomposition_aer + id) =
+                street->GetStreetWetDiameter_aer(pos_bin*this->Ncomposition_aer + id);
 	  }
 
 	// Deposition on tree leaves
@@ -1629,8 +1661,10 @@ namespace Polyphemus
 
 	for(int b = 0; b < Nbin_dep_aer; b++)
 	  {
-	    T wet_diameter = WetDiameter_dep_aer(b);
-	    T ParticleDensity = Rho_bin(b);
+
+            int dep_b = dep_bin_list_aer[b] - (this->Nbin_aer - Nb_dep_aer);
+	    T wet_diameter = WetDiameter_dep_aer(dep_b);
+	    T ParticleDensity = Rho_bin(dep_b);  
 
             // Compute sedimentation velocity
             T L = ComputeMeanFreePath(Ts, Ps, KinematicViscosity);
@@ -1723,13 +1757,13 @@ namespace Polyphemus
               throw string("Error in deposistion, Rs: ") + to_str(Rs);
 
             T street_dry_deposition_velocity = ComputeVenkatranDepositionVelocity(Vs, Rs);
-            street->SetStreetDryDepositionVelocity_aer(street_dry_deposition_velocity, b);
+            street->SetStreetDryDepositionVelocity_aer(street_dry_deposition_velocity, dep_bin_list_aer[b]); 
 
 	    // Sedimentation velocity does not impact deposition on walls
 	    T wall_dry_deposition_velocity = 1. / Rs;
-            street->SetWallDryDepositionVelocity_aer(wall_dry_deposition_velocity, b);
+            street->SetWallDryDepositionVelocity_aer(wall_dry_deposition_velocity, dep_bin_list_aer[b]);
+            street->SetTreeDryDepositionVelocity_aer(tree_dry_deposition_velocity, dep_bin_list_aer[b]); 
 
-            street->SetTreeDryDepositionVelocity_aer(tree_dry_deposition_velocity, b);
           }
 	st += 1;
       }
@@ -1778,9 +1812,12 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for(int b = 0; b < this->Nbin_aer; b++)
 	  for (int j = 0; j < Nbin_scav_aer; ++j)
-	    if (b == j)
-	      StreetScavengingFlux_aer(b, ist) =
-                street->GetStreetScavengingFlux_aer(b);
+	   {
+            int scav_b = scav_bin_list_aer[j] - (this->Nbin_aer - Nbin_scav_aer);
+	    if (b == scav_bin_list_aer[j])
+	      StreetScavengingFlux_aer(scav_b, ist) =
+                street->GetStreetScavengingFlux_aer(scav_b);
+	   }
         ++ist;
       }
   }
@@ -1804,11 +1841,13 @@ namespace Polyphemus
         Street<T>* street = *iter;
 	for (int b = 0; b < this->Nbin_aer; b++)
 	  for (int j = 0; j < Nbin_scav_aer; ++j)
-	    if (b == j)
-	      StreetScavengingRate_aer(b, ist) =
-                street->GetStreetScavengingFlux_aer(b) *
+	   {	  
+            int scav_b = scav_bin_list_aer[j] - (this->Nbin_aer - Nbin_scav_aer);
+            if (b == scav_bin_list_aer[j])
+	      StreetScavengingRate_aer(scav_b, ist) =
+                street->GetStreetScavengingFlux_aer(scav_bin_list_aer[j]) *
                 street->GetWidth() * street->GetLength();
-
+	   }
         ++ist;
       }
   }
@@ -1856,6 +1895,8 @@ namespace Polyphemus
 	Rho_bin = 0.0;
 	dist = 0;
 	for (b = 0; b < Nb_scav_aer; b++)
+	 {	
+	  int scav_b = scav_bin_list_aer[b] - (this->Nbin_aer - Nbin_scav_aer);
 	  for (ic = 0; ic < Nc; ic++)
 	    {
 	      TotalMass = 0.0;
@@ -1863,20 +1904,25 @@ namespace Polyphemus
 		{
 		  it_begin = bin_scav_list.begin();
 		  it_end = bin_scav_list.end();
-		  pos = find(it_begin,it_end,b);
+		  pos = find(it_begin,it_end,scav_b);
 		  dist = distance(it_begin, pos);
 
 		  if (dist < int(bin_scav_list.size()))
 		    {
-		      TotalMass = TotalMass + StreetConcentration_aer(s,dist*Nc+ic,st);
-		      Conc_aer_tmp(s) = StreetConcentration_aer(s,dist*Nc+ic,st);
+		      TotalMass = TotalMass + StreetConcentration_aer(s,scav_bin_list_aer[b]*Nc+ic,st);
+		      Conc_aer_tmp(s) = StreetConcentration_aer(s,scav_bin_list_aer[b]*Nc+ic,st);
 		    }
 		}
-              Rho_bin(dist*Nc+ic) = 1e9 *
+
+              if (this->option_process["with_fixed_density"])
+                Rho_bin(scav_b*Nc+ic) = fixed_density_aer; // Density per bin in kg / m^3.
+	      else	 
+              Rho_bin(scav_b*Nc+ic) = 1e9 *
                 ComputeDensity(Conc_aer_tmp,
-                               Rho_species_aer,
+                               Rho_species_aer, 
                                TotalMass, this->Ns_aer); // Density per bin in kg / m^3.
 	    }
+	 }
 
         T temperature_ = street->GetTemperature();
         T pressure_ = street->GetPressure();
@@ -1889,8 +1935,9 @@ namespace Polyphemus
 	for (b = 0; b < Nb_scav_aer; b++)
 	  {
 	    int pos_bin = scav_bin_list_aer[b];
+            int scav_b = pos_bin - (this->Nbin_aer - Nb_scav_aer);
 	    for(int id=0; id< this->Ncomposition_aer; id++)
-	      WetDiameter_scav_aer(b*this->Ncomposition_aer + id) =
+	      WetDiameter_scav_aer(scav_b*this->Ncomposition_aer + id) =
                 street->GetStreetWetDiameter_aer(pos_bin*this->Ncomposition_aer + id);
 	  } 
 	
@@ -3423,43 +3470,50 @@ namespace Polyphemus
 	FileNumberEmission_aer_i.SetZero();
 	FileNumberEmission_aer_f.SetZero();
       }
+
     
     for (i = 0; i < Ns_emis_aer; i++)
       {
-	species = species_list_emis_aer[i].first;
-	isize_section= species_list_emis_aer[i].second;
-	int CompositionID =
+        species = species_list_emis_aer[i].first;
+        isize_section= species_list_emis_aer[i].second;
+        int CompositionID =
           FindExternalCompositionID(species);
-	for (j = 0; j < int(isize_section.size()); j++)
-	  {
-	    species_bin = species + string("_") + to_str(isize_section[j]);
-	    string filename
-	      = this->input_files["emission_aer"](species_bin);
+        for (j = 0; j < int(isize_section.size()); j++)
+          {
+            species_bin = species + string("_") + to_str(isize_section[j]);
+            string filename
+              = this->input_files["emission_aer"](species_bin);
 
+            // Dimension of Emission_aer_f is Nb_emis_aer 
+            // which differs to Nbin_aer.
+            //
+            int emis_b = isize_section[j] -
+              (this->Nbin_aer - int(isize_section.size()));
+            
             //! External mixing using internal mixing format data.
-	    if (aerosol_emission_format == "Internal" && Nfraction_aer > 1)
-	      {
-		this->InitData(filename, date, Delta_t,
-			       FileEmission_aer_i,
-			       FileEmission_aer_f,
-			       this->current_date,
-			       i,
-			       j,
-			       CompositionID,
-			       Emission_aer_f);
-	      }
-	    else
-	      {
-		this->InitData(filename, date, Delta_t,
-			       FileEmission_aer_i,
-			       FileEmission_aer_f,
-			       this->current_date,
-			       i,
-			       j,
-			       Emission_aer_f,
-			       this->Ncomposition_aer);		  
-	      }   
-	  }
+            if (aerosol_emission_format == "Internal" && Nfraction_aer > 1)
+              {
+        	this->InitData(filename, date, Delta_t,
+        		       FileEmission_aer_i,
+        		       FileEmission_aer_f,
+        		       this->current_date,
+        		       i,
+                               emis_b,
+        		       CompositionID,
+        		       Emission_aer_f);
+              }
+            else
+              {
+        	this->InitData(filename, date, Delta_t,
+        		       FileEmission_aer_i,
+        		       FileEmission_aer_f,
+        		       this->current_date,
+        		       i,
+                               emis_b, 
+        		       Emission_aer_f,
+        		       this->Ncomposition_aer);		  
+              }   
+          }
       }
 
     //! Read or Compute aerosol emission data in number
@@ -3478,6 +3532,9 @@ namespace Polyphemus
               species_bin = "Number_"  + to_str(emis_bin_list_aer[j]);
               filename = this->input_files["emission_aer"](species_bin);
             }
+
+          int emis_b = emis_bin_list_aer[j] -
+            (this->Nbin_aer - Nb_emis_aer);
           
 	  if (exists(filename))
 	    {
@@ -3507,7 +3564,8 @@ namespace Polyphemus
 			{
 			  species = species_list_emis_aer[s].first;
 			  int CompositionID=FindExternalCompositionID(species);
-			  int RealID=this->Ncomposition_aer*j+CompositionID;
+                          int RealID=this->Ncomposition_aer *
+                            emis_b + CompositionID;
 			  TotalMass+=Emission_aer_f(s,RealID,st);
 			  CompositionMass(CompositionID)+=Emission_aer_f(s,RealID,st);
 			}
@@ -3515,7 +3573,8 @@ namespace Polyphemus
 			{
 			  if(TotalMass>0)
 			    {
-			      int RealID=this->Ncomposition_aer*j+id;
+                              int RealID=this->Ncomposition_aer *
+                                emis_b + id;
 			      NumberEmission_aer_f(RealID,st)=CurrentData_extract(st)*CompositionMass(id)/TotalMass;
 			      FileNumberEmission_aer_i(RealID,st)=FileData_extract_i(st)*CompositionMass(id)/TotalMass;
 			      FileNumberEmission_aer_f(RealID,st)=FileData_extract_f(st)*CompositionMass(id)/TotalMass;
@@ -3528,7 +3587,8 @@ namespace Polyphemus
 		  this->InitData(filename, date, Delta_t,
 				 FileNumberEmission_aer_i,
 				 FileNumberEmission_aer_f,
-				 this->current_date, j,
+				 this->current_date,
+                                 emis_b,
 				 NumberEmission_aer_f,
 				 this->Ncomposition_aer);
 		}
@@ -3568,6 +3628,11 @@ namespace Polyphemus
 		species_bin = species + string("_") + to_str(isize_section[j]);
 		string filename
 		  = this->input_files["bg_concentration_aer"](species_bin);
+
+                // 
+                int bg_b = isize_section[j] -
+                  (this->Nbin_aer - int(isize_section.size()));
+                
 		if(aerosol_bg_format=="Internal"&&Nfraction_aer > 1)
 		  {
 		    this->InitData(filename, date, Delta_t,
@@ -3575,7 +3640,7 @@ namespace Polyphemus
 				   FileBackground_aer_f,
 				   this->current_date,
 				   i,
-				   j,
+                                   bg_b,
 				   CompositionID,
 				   Background_aer_f);
 		  }
@@ -3586,7 +3651,7 @@ namespace Polyphemus
 				   FileBackground_aer_f,
 				   this->current_date,
 				   i,
-				   j,
+                                   bg_b,
 				   Background_aer_f,
 				   this->Ncomposition_aer);		  
 		  }
@@ -3599,6 +3664,10 @@ namespace Polyphemus
 	    {
 	      species_bin = "Number_"  + to_str(bg_bin_list_aer[j]);
               string filename = this->input_files["bg_number_concentration"](species_bin);
+
+              int bg_b = bg_bin_list_aer[j] -
+                (this->Nbin_aer - Nb_bg_aer);
+              
 	      if (exists(filename) and
                   this->option_process["with_bg_number_concentration_data"])
 		{
@@ -3625,7 +3694,8 @@ namespace Polyphemus
 			    { 
 			      species = species_list_bg_aer[s].first;
 			      int CompositionID=FindExternalCompositionID(species);
-			      int RealID=this->Ncomposition_aer*j+CompositionID;
+                              int RealID = this->Ncomposition_aer *
+                                bg_b + CompositionID;
 			      TotalMass+=Background_aer_f(s,RealID,st);
 			      CompositionMass(CompositionID)+=Background_aer_f(s,RealID,st);
 			    }
@@ -3633,7 +3703,9 @@ namespace Polyphemus
 			    {
 			      if(TotalMass>0)
 				{
-				  int RealID=this->Ncomposition_aer*j+id;
+                                  int RealID=this->Ncomposition_aer *
+                                    bg_b + id;
+                                  
 				  NumberBackground_aer_f(RealID,st)=CurrentData_extract(st)*CompositionMass(id)/TotalMass;
 				  FileNumberBackground_aer_i(RealID,st)=FileData_extract_i(st)*CompositionMass(id)/TotalMass;
 				  FileNumberBackground_aer_f(RealID,st)=FileData_extract_f(st)*CompositionMass(id)/TotalMass;
@@ -3646,7 +3718,8 @@ namespace Polyphemus
 		      this->InitData(filename, date, Delta_t,
 				     FileNumberBackground_aer_i,
 				     FileNumberBackground_aer_f,
-				     this->current_date, j,
+				     this->current_date,
+                                     bg_b,
 				     NumberBackground_aer_f, this->Ncomposition_aer);
 		    }
 		}
@@ -3879,12 +3952,19 @@ namespace Polyphemus
 	    species_bin = species + string("_") + to_str(isize_section[j]);
 	    string filename
 	      = this->input_files["emission_aer"](species_bin);
+
+            //
+            int emis_b = isize_section[j] -
+              (this->Nbin_aer - int(isize_section.size()));
+            
 	    if(aerosol_emission_format == "Internal" && Nfraction_aer > 1)
 	      {		  
 		this->UpdateData(filename, date, Delta_t,
 				 FileEmission_aer_i,
 				 FileEmission_aer_f,
-				 i, j,CompositionID,
+				 i,
+                                 emis_b,
+                                 CompositionID,
 				 Emission_aer_i,
 				 Emission_aer_f);
 	      }
@@ -3894,7 +3974,7 @@ namespace Polyphemus
 				 FileEmission_aer_i,
 				 FileEmission_aer_f,
 				 i,
-				 j,
+                                 emis_b,
 				 Emission_aer_i,
 				 Emission_aer_f,
 				 this->Ncomposition_aer);
@@ -3919,6 +3999,9 @@ namespace Polyphemus
               species_bin = "Number_"  + to_str(emis_bin_list_aer[j]);
               filename = this->input_files["emission_aer"](species_bin);
             }
+
+          int emis_b = emis_bin_list_aer[j] -
+            (this->Nbin_aer - Nb_emis_aer);
           
 	  if (exists(filename))
 	    {
@@ -3947,7 +4030,9 @@ namespace Polyphemus
 			{
 			  species = species_list_emis_aer[s].first;
 			  int CompositionID = FindExternalCompositionID(species);
-			  int RealID = this->Ncomposition_aer * j + CompositionID;
+                          int RealID = this->Ncomposition_aer *
+                            emis_b + CompositionID;
+                          
 			  TotalMass += Emission_aer_f(s, RealID, st);
 			  CompositionMass(CompositionID) += Emission_aer_f(s, RealID, st);
 			}
@@ -3955,7 +4040,9 @@ namespace Polyphemus
 			{
 			  if(TotalMass>0)
 			    {
-			      int RealID = this->Ncomposition_aer * j + id;
+                              int RealID = this->Ncomposition_aer *
+                                emis_b + id;
+                              
 			      NumberEmission_aer_i(RealID, st) =
                                 CurrentData_extract_i(st) * CompositionMass(id) / TotalMass;
 			      NumberEmission_aer_f(RealID, st) =
@@ -3973,7 +4060,7 @@ namespace Polyphemus
 		  this->UpdateData(filename, date, Delta_t,
 				   FileNumberEmission_aer_i,
 				   FileNumberEmission_aer_f,
-				   j,
+                                   emis_b,
 				   NumberEmission_aer_i,
 				   NumberEmission_aer_f,
 				   this->Ncomposition_aer);
@@ -3983,9 +4070,11 @@ namespace Polyphemus
 	    {
 	      for(int id = 0 ; id < this->Ncomposition_aer; id++ )
 		for (st = 0; st < this->total_nstreet; st++)
-		  NumberEmission_aer_i(j * this->Ncomposition_aer + id, st) =
-		    NumberEmission_aer_f(j * this->Ncomposition_aer + id, st);
-		    
+                  NumberEmission_aer_i(int(emis_b) *
+                                       this->Ncomposition_aer + id, st) =
+                    NumberEmission_aer_f(int(emis_b) *
+                                         this->Ncomposition_aer + id, st);
+                  
 	      ComputeNumberEmission_aer(int(emis_bin_list_aer[j]));
 	    }
 	}
@@ -4006,12 +4095,20 @@ namespace Polyphemus
 		species_bin = species + string("_") + to_str(isize_section[j]);
 		string filename
 		  = this->input_files["bg_concentration_aer"](species_bin);
+
+                // 
+                int bg_b = isize_section[j] -
+                  (this->Nbin_aer - int(isize_section.size()));
+                
+                
 		if (aerosol_bg_format == "Internal" && Nfraction_aer > 1)
 		  {		  
 		    this->UpdateData(filename, date, Delta_t,
 				     FileBackground_aer_i,
 				     FileBackground_aer_f,
-				     i, j,CompositionID,
+				     i,
+                                     bg_b,
+                                     CompositionID,
 				     Background_aer_i,
 				     Background_aer_f);
 		  }
@@ -4022,7 +4119,7 @@ namespace Polyphemus
 				     FileBackground_aer_i,
 				     FileBackground_aer_f,
 				     i,
-				     j,
+                                     bg_b,
 				     Background_aer_i,
 				     Background_aer_f,
 				     this->Ncomposition_aer);
@@ -4035,6 +4132,11 @@ namespace Polyphemus
 	    {
 	      species_bin = "Number_"  + to_str(bg_bin_list_aer[j]);
 	      string filename = this->input_files["bg_number_concentration"](species_bin);
+
+              //
+              int bg_b = bg_bin_list_aer[j] -
+                (this->Nbin_aer - Nb_bg_aer);
+              
 	      if (exists(filename))
 		{
 		  if (aerosol_bg_format == "Internal" && Nfraction_aer > 1)
@@ -4063,7 +4165,9 @@ namespace Polyphemus
 			    {
 			      species = species_list_bg_aer[s].first;
 			      int CompositionID = FindExternalCompositionID(species);
-			      int RealID = this->Ncomposition_aer * j + CompositionID;
+			      int RealID = this->Ncomposition_aer *
+                                bg_b + CompositionID;
+  
 			      TotalMass += Background_aer_f(s, RealID, st);
 			      CompositionMass(CompositionID) +=
                                 Background_aer_f(s, RealID, st);
@@ -4072,7 +4176,9 @@ namespace Polyphemus
 			    {
 			      if (TotalMass > 0)
 				{
-				  int RealID = this->Ncomposition_aer * j + id;
+				  int RealID = this->Ncomposition_aer *
+                                    bg_b + id;
+                                  
 				  NumberBackground_aer_i(RealID, st) =
                                     CurrentData_extract_i(st) * CompositionMass(id) / TotalMass;
 				  NumberBackground_aer_f(RealID, st) =
@@ -4090,7 +4196,8 @@ namespace Polyphemus
 
 		      this->UpdateData(filename, date, Delta_t,
 				       FileNumberBackground_aer_i,
-				       FileNumberBackground_aer_f, j,
+				       FileNumberBackground_aer_f,
+                                       bg_b,
 				       NumberBackground_aer_i,
 				       NumberBackground_aer_f, this->Ncomposition_aer);
 		    }
@@ -4099,9 +4206,11 @@ namespace Polyphemus
 		{
 		  for(int id =0 ; id < this->Ncomposition_aer; id++ )
 		    for (st = 0; st < this->total_nstreet; st++)
-		      NumberBackground_aer_i(j * this->Ncomposition_aer + id, st) =
-			NumberBackground_aer_f(j * this->Ncomposition_aer + id, st);
-			
+		      NumberBackground_aer_i(bg_b
+                                             * this->Ncomposition_aer + id, st) =
+			NumberBackground_aer_f(bg_b
+                                               * this->Ncomposition_aer + id, st);
+                  
 		  ComputeNumberBackground_aer(int(bg_bin_list_aer[j]));
 		}
 	    } 
@@ -4158,15 +4267,19 @@ namespace Polyphemus
             {
               if (this->species_list_aer[i] == species_list_emis_aer[j].first)
                 {
-                  for (b = 0; b < Nb_emis_aer; ++b)
+                  for (b = 0; b < Nb_emis_aer; ++b)                                      
                     {
-                      emission_rate_aer(i, b) = Emission_aer_f(j, b, st);
+                      int emis_b = emis_bin_list_aer[b];
+                      emission_rate_aer(i, emis_b) = Emission_aer_f(j, b, st);                      
                     }
                 }
             }
 
         for (b = 0; b < Nb_emis_aer; ++b)
-	  number_emission_rate(b) = NumberEmission_aer_f(b, st);
+          {
+            int emis_b = emis_bin_list_aer[b];
+            number_emission_rate(emis_b) = NumberEmission_aer_f(b, st);           
+          }
 
 	street->SetEmission_aer(emission_rate_aer);
 	street->SetNumberEmission(number_emission_rate);
@@ -4178,27 +4291,30 @@ namespace Polyphemus
                 if (this->species_list_aer[i] == species_list_bg_aer[j].first)
                   for (b = 0; b < Nb_bg_aer; ++b)
                     {
+                      int bg_b = bg_bin_list_aer[b];
                       street->SetBackgroundConcentration_aer
-                        (Background_aer_f(j, b, st), i, b);		      
+                        (Background_aer_f(j, b, st), i, bg_b);                      
+
                       if (!this->option_process["with_initial_condition_aer"])
                         {
                           //Concentration at streets equal to Cbg in first time step
                           if(this->current_date == this->Date_min)
                             street->SetStreetConcentration_aer
-                              (Background_aer_f(j, b, st), i, b);
+                              (Background_aer_f(j, b, st), i, bg_b);
                         }
                     }
 	    if (this->option_process["with_number_concentration"])
               {
                 for (b = 0; b < Nb_bg_aer; ++b)
                   {
-                    street->SetBackgroundNumberConcentration(NumberBackground_aer_f(b, st), b);
+                    int bg_b = bg_bin_list_aer[b];
+                    street->SetBackgroundNumberConcentration(NumberBackground_aer_f(b, st), bg_b);                    
 
                     if (!this->option_process["with_initial_condition_number_aer"])
                       {
                         //Concentration at streets equal to Cbg in first time step
                         if(this->current_date == this->Date_min)
-                          street->SetStreetNumberConcentration(NumberBackground_aer_f(b, st), b);
+                          street->SetStreetNumberConcentration(NumberBackground_aer_f(b, st), bg_b);
                       }
                   }  
               }
