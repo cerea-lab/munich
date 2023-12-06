@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import pyproj
 import numpy as np
 import datetime as dt
@@ -35,6 +35,22 @@ def is_holiday(date, country_code):
         return False
 
     return date.date() in country_holidays
+
+""" (Re)Compile atmopy/talos/extract_configuration
+"""
+def compile_atmopy():
+ 
+    cwd = os.getcwd()
+    
+    path_to_atmopy = "atmopy/talos"
+    os.chdir(path_to_atmopy)
+
+    command = "scons -c extract_configuration"
+    os.system(command)
+    command = "scons extract_configuration"
+    os.system(command)
+    
+    os.chdir(cwd)
 
 
 # From http://www.johndcook.com/blog/python_longitude_latitude/

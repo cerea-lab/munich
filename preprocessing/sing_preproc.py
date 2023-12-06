@@ -115,6 +115,9 @@ content = [('indir', '[input]', 'String'),
            ("Nt_polair", "[gridded_emission]", "Int")
            ]
 
+# Compile atmopy/talos/extract_configuration
+compile_atmopy()
+
 config = talos.Config(config_file, content)
 
 # Clear and create output directories
