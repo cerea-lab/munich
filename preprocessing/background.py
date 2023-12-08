@@ -3,7 +3,7 @@
 import math, re, datetime, sys
 import numpy as np
 from io_tools import *
-
+from misc import *
 
 # Read background binary files from Polair3D output
 def read_bkgd_bin(bkgd_species, indir, Nt, Nx, Ny, Nz):
@@ -113,29 +113,85 @@ def get_polair_ind(polair_lon, polair_lat, street):
         i = i + 1
     return indx, indy
 
-def get_chimere_background_concentration(current_date, street_list, melchior_spec_list,molar_mass_melchior2,chimout_dir,chimout_lab) :
+def get_chimere_background_concentration(current_date, street_list, \
+                                         melchior_spec_list, molar_mass_melchior2,\
+                                         chimout_dir, chimout_lab, cnt_time) :
 
     import netCDF4
     import os,sys
 
     str_date = current_date.strftime("%Y%m%d")
     input_file=chimout_dir+'/out.'+str_date+'00_'+chimout_lab+'.nc'
-    if not os.path.isfile(input_file) :
-       print(('CHIMERE background conditions are requested but the file is not found: '+str(input_file)))
-       sys.exit()
+    if os.path.isfile(input_file):
+        print('CHIMERE file found: ', input_file)
+    else:
+        print(('CHIMERE background conditions are requested but the file is not found: '+str(input_file)))
+        sys.exit()
 
     nc = netCDF4.Dataset(input_file, 'r')
     chim_times = nc.variables["Times"][:]
     lons = nc.variables["lon"][:]
     lats = nc.variables["lat"][:]
+
     new_spec_list=[] 
     # New melchior species list from what is actually present in the CHIMERE out file
-    for spec in melchior_spec_list:
-        if spec in list(nc.variables.keys()):
+    print('Species we choose in the configuration file : ')
+    print(melchior_spec_list)
+    print('--------')
+    if cnt_time==0:
+        print('All the variables (with the species) of the output file of CHIMERE : ')
+        print(list(nc.variables.keys()))
+
+    # Prevent the "casse" between majuscule and minuscule
+    nc_variables_keys_tab=[]
+    for i in list(nc.variables.keys()):
+        nc_variables_keys_tab.append(i)
+
+    melchior_spec_list_lower=[ispec.lower() for ispec in melchior_spec_list]
+        
+    for spec in nc_variables_keys_tab:
+        if spec.lower() in melchior_spec_list_lower:
            new_spec_list.append(spec)
         else:
-           print(('Warning!! '+spec+' not found in CHIMERE output file'))
+            if cnt_time==0:
+                print(('Warning!! ' + spec + ' (in CHIMERE output file) ' + \
+                       'not found in chimere_species'))            
 
+    
+    # We divide new_spec_list into no_bin, per_bin and pm 
+    new_spec_list_no_bin=[]
+    new_spec_list_per_bin=[]
+    new_spec_list_pm=[]
+    new_spec_list_number=[]
+    
+    for ispec in new_spec_list:
+        #print("ispec : ",ispec[0:4])
+        if (ispec[0]=='b'):
+            new_spec_list_per_bin.append(ispec)
+        elif (ispec== 'Number'):
+            new_spec_list_number.append(ispec)
+        elif (ispec[0]=='p' or ispec[0:4]=='PM10' or ispec[0:4]=='PM25' ):
+            new_spec_list_pm.append(ispec)
+        else:
+            new_spec_list_no_bin.append(ispec)
+
+    print('\n')
+    print('===============')
+    print('All the species that we can integrate : ')
+    print(new_spec_list)
+    print('===============')
+    print('\n')
+    print('gas species : \n',new_spec_list_no_bin)
+    print('\n')
+    print('particular species per bin: ',new_spec_list_per_bin)
+    print('\n')
+    print('particular species : ',new_spec_list_pm)
+    print('\n')
+    print('particle Number : ',new_spec_list_number)
+    print('\n')
+
+
+                
     # Transform CHIMERE date-time to python datetime
 
     N=chim_times.shape[0] #number of hours to parse
@@ -152,10 +208,28 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
             times.append(datetime.datetime(int(YEAR),int(MONTH),int(DAY),int(HOUR)))
     times=np.array(times)
 
-    for spec in new_spec_list:
+    for spec in new_spec_list_no_bin: #gas species
         for s in range(len(street_list)):
             street = street_list[s]
             street.background[spec]=0.0
+
+        
+    for spec in new_spec_list_per_bin: #particular species per bin
+        for s in range(len(street_list)):
+            street = street_list[s]
+            street.background_bin[spec]=0.0
+
+        
+    for spec in new_spec_list_pm: #particular species
+        for s in range(len(street_list)):
+            street = street_list[s]
+            street.background_pm[spec]=0.0
+
+    for spec in new_spec_list_number: #number
+        for s in range(len(street_list)):
+            street = street_list[s]
+            street.background_number[spec]=0.0
+            
 
 
     hasBackground = False
@@ -170,38 +244,148 @@ def get_chimere_background_concentration(current_date, street_list, melchior_spe
         print("Error: background data are not available")
         sys.exit()
 
-    print((lons.shape))
-    nx = lons.shape[1]
-    ny = lons.shape[0]
+    print("Data extraction of the netcdf file ...")
+    dict_data_netcdf={}
+    for ispec in new_spec_list:
+        dict_data_netcdf[ispec]=nc.variables[str(ispec)][ind_t,:]
+    print('done')
 
+        
     for s in range(len(street_list)):
-       street = street_list[s]
-       lat1 = street.lat_cen
-       lon1 = street.lon_cen
-       init_length = 9999.0
-       for i in range(nx):
-           for j in range(ny):
-               lat2 = lats[j, i]
-               lon2 = lons[j, i]
-               length = distance_on_unit_sphere(lat1, lon1, lat2, lon2)
-               if length < init_length:
-                   init_length = length
-                   ind_i = i
-                   ind_j = j
-       print((ind_i,ind_j))
-       tem2=nc.variables['tem2'][ind_t,ind_j,ind_i] #Kelvin
-       psfc=nc.variables['pres'][ind_t,0,ind_j,ind_i] #Pascal
 
-       if psfc > 0 :
-          molecular_volume=22.41 * (tem2/273.)  * (1013*10**2)/psfc
-       else :
-          molecular_volume=22.41
+        street = street_list[s]
 
-       for spec in new_spec_list:
-           conc_ppb=nc.variables[spec][ind_t,0,ind_j,ind_i]
-           molecular_mass=molar_mass_melchior2[spec]
-           ppb2ug=molecular_mass / molecular_volume   #
-           if spec=='NO2' : print((s,ind_t,0,ind_j,ind_i,conc_ppb,conc_ppb * ppb2ug))
-           street.background[spec]=conc_ppb * ppb2ug
+        """This line cannot be used in this version
+        But, it could be used in next updates.
+        """
+        # if cnt_time == 0:
 
-    return 0     #street.background in ug/m3
+        nx = lons.shape[1]
+        ny = lons.shape[0]
+
+        lat1 = street.lat_cen
+        lon1 = street.lon_cen
+        init_length = 9999.0
+        for i in range(nx):
+            for j in range(ny):
+                lat2 = lats[j, i]
+                lon2 = lons[j, i]
+                length = distance_on_unit_sphere(lat1, lon1, lat2, lon2)
+                # Does 'distance_on_unit_sphere_C' estimate better?
+                # length = distance_on_unit_sphere_C(lat1, lon1, lat2, lon2)
+                if length < init_length:
+                    init_length = length
+                    street.chim_izo = i
+                    street.chim_ime = j
+        
+        ind_i = street.chim_izo
+        ind_j = street.chim_ime
+
+        tem2=nc.variables['tem2'][ind_t,ind_j,ind_i] #Kelvin
+        psfc=nc.variables['pres'][ind_t,0,ind_j,ind_i] #Pascal
+
+        if psfc > 0 :
+            molecular_volume=22.41 * (tem2/273.)  * (1013*10**2)/psfc
+        else :
+            molecular_volume=22.41
+          
+
+          
+        for spec in new_spec_list_no_bin:  #gas species
+
+            conc_ppb=dict_data_netcdf[spec][0,ind_j,ind_i]
+            molecular_mass=molar_mass_melchior2[spec]
+            ppb2ug=molecular_mass / molecular_volume
+            street.background[spec]=conc_ppb * ppb2ug
+       
+        for spec in new_spec_list_per_bin: #particular species per bin
+           
+            street.background_bin[spec]={}
+            for b in range(len(nc.dimensions['nbins'])):
+                street.background_bin[spec][b] = \
+                    dict_data_netcdf[spec][b,0,ind_j,ind_i] # la sortie chimere par bin est déja ug/m3
+
+        for spec in new_spec_list_number: #particular species per bin
+           
+            street.background_number[spec]={}
+            for b in range(len(nc.dimensions['nbins'])):
+                street.background_number[spec][b] = \
+                    dict_data_netcdf[spec][b,0,ind_j,ind_i] 
+
+                
+        for spec in new_spec_list_pm: #particular species
+           
+            street.background_pm[spec] = \
+                dict_data_netcdf[spec][0,ind_j,ind_i]
+
+    return 0
+
+
+def write_output_background(street_list_eff, current_date, output_dir):
+
+    background={}
+    street0=street_list_eff[0]
+
+    print("species in street.back : ",street0.background.keys())
+    for spec in list(street0.background.keys()): #gas species
+        background[spec]=np.zeros((len(street_list_eff)), 'float')
+
+    print("species in street.back_pm : ",street0.background_pm.keys())
+    for spec in list(street0.background_pm.keys()): #particular species
+        background[spec]=np.zeros((len(street_list_eff)), 'float')
+
+    print('species background : ',list(background.keys()))
+    for i in range(len(street_list_eff)):
+        street = street_list_eff[i]
+        for spec in list(street0.background.keys()): #list(background.keys()): #gas species
+            background[spec][i]=street.background[spec]
+            
+        for spec in list(street0.background_pm.keys()): #list(background_pm.keys()): #particular species
+            background[spec][i]=street.background_pm[spec]
+            
+    return background
+
+
+def write_output_background_bin(street_list_eff, current_date, output_dir):
+
+    background_bin={}
+    street0=street_list_eff[0]
+    
+    for spec in list(street0.background_bin.keys()):
+        background_bin[spec]={}
+        
+        for b in range(len(street0.background_bin[spec].keys())):
+            background_bin[spec][b]=np.zeros((len(street_list_eff)), 'float')
+
+    for i in range(len(street_list_eff)):
+        street = street_list_eff[i]
+        for spec in list(background_bin.keys()): 
+            for b in range(len(street.background_bin[spec].keys())):
+                
+                background_bin[spec][b][i]=street.background_bin[spec][b]
+            
+    return background_bin
+
+
+def write_output_background_number(street_list_eff, current_date, output_dir):
+
+    background_number={}
+    street0=street_list_eff[0]
+    
+    for spec in list(street0.background_number.keys()):
+        background_number[spec]={}
+        
+        for b in range(len(street0.background_number[spec].keys())):
+            background_number[spec][b]=np.zeros((len(street_list_eff)), 'float')
+
+    for i in range(len(street_list_eff)):
+        street = street_list_eff[i]
+        for spec in list(background_number.keys()): 
+            for b in range(len(street.background_number[spec].keys())):
+                
+                background_number[spec][b][i]=street.background_number[spec][b]
+                
+            
+    return background_number
+
+    

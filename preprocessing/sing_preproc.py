@@ -217,7 +217,7 @@ if config.create_network:
     print('--------------------')
     print('Write LUTs: ', end='')
     if config.write_luts:
-        write_luts(node_list_eff, street_list, config.indir)
+        write_luts(node_list_eff, street_list, config.outdir)
         print('yes')
     else:
         print('no')
@@ -297,19 +297,25 @@ if config.generate_meteo:
 
 # Initialize background information
 if config.generate_bkgd:
-    # Output binary files to append to for streets
-    bkgd_files = {x: config.bkgd_outdir + x + '.bin' for x in config.bkgd_species}
 
     if config.bkgd_type == 'bin':
         # Load files using memmap and return a dict
         bkgd_data = read_bkgd_bin(config.bkgd_species, config.bkgd_indir, config.Nt_bkgd,
                                   config.Nx_bkgd, config.Ny_bkgd, config.Nz_bkgd)
 
+        # Output binary files to append to for streets
+        bkgd_files = {x: config.bkgd_outdir + x + '.bin' \
+                      for x in config.bkgd_species}
+        
     elif config.bkgd_type == 'csv':
         pass
 
     elif config.bkgd_type == 'chimere':
 
+        # Output binary files to append to for streets
+        bkgd_files = {x: config.bkgd_outdir + x + '.bin' \
+                      for x in config.chimere_species}
+        
         melchior_spec_list=config.chimere_species
         chimere_dir=config.chimere_dir
         chimout_lab=config.chimout_lab
@@ -323,6 +329,11 @@ if config.generate_bkgd:
                 molar_mass_melchior2[spec]=val
         f.close()
 
+        textfile_dir_backgr = config.bkgd_outdir+'textfile/' 
+        if not os.path.exists(textfile_dir_backgr):
+            os.mkdir(textfile_dir_backgr)
+            os.mkdir(textfile_dir_backgr+'nt'+str(config.Nt))
+        textfile_dir_backgr=textfile_dir_backgr+'nt'+str(config.Nt)
 
     else:
         sys.exit('ERROR: bkgd_type {} not valid.'.format(config.bkgd_type))
@@ -490,16 +501,29 @@ for t in range(nt):
 
             print("Read the input data (segment coordinates and emission rates) from the file --- ",input_file)
 
-            street_list_eff, node_list_eff = \
-                read_street_emission(input_file,
-                                     config.emission_species,
-                                     config.epsg_code,
-                                     config.manual_street_merging,
-                                     config.manual_street_merging_file,
-                                     config.manual_node_merging,
-                                     config.manual_node_merging_file,
-                                     config.outdir,
-                                     config.min_distance)
+            """The old version "read_street_emission" is 
+            temporally not removed.
+            """
+            fast_emission = True
+            if (fast_emission):
+                read_street_emission_fast(street_list,
+                                          street_list_eff,
+                                          input_file,
+                                          config.emission_species,
+                                          config.epsg_code,
+                                          config.outdir,
+                                          config.min_distance)
+            else:
+                street_list_eff, node_list_eff = \
+                    read_street_emission(input_file,
+                                         config.emission_species,
+                                         config.epsg_code,
+                                         config.manual_street_merging,
+                                         config.manual_street_merging_file,
+                                         config.manual_node_merging,
+                                         config.manual_node_merging_file,
+                                         config.outdir,
+                                         config.min_distance)
 
         # Append data to output files
         append_emission_data(street_list_eff, config.emission_outdir,
@@ -543,7 +567,10 @@ for t in range(nt):
                          config.delta_t_bkgd, config.Nt_bkgd, config.x_min_bkgd,
                          config.y_min_bkgd, config.delta_x_bkgd, config.delta_y_bkgd,
                          config.Nx_bkgd, config.Ny_bkgd)
+            # Append data to output files
+            append_bkgd_data(street_list_eff, bkgd_files)
 
+            
         elif config.bkgd_type == 'csv':
             background_concentration_file = config.background_textfile
             get_background_concentration(background_concentration_file, \
@@ -553,11 +580,62 @@ for t in range(nt):
             get_chimere_background_concentration(current_date, street_list_eff, \
                                                  melchior_spec_list, \
                                                  molar_mass_melchior2, \
-                                                 chimere_dir,chimout_lab)            
+                                                 chimere_dir,chimout_lab, \
+                                                 t)
 
+            # Writing outputs
+            background = write_output_background(street_list_eff,
+                                                 current_date,
+                                                 textfile_dir_backgr)
 
-        # Append data to output files
-        append_bkgd_data(street_list_eff, bkgd_files)
+            background_bin = write_output_background_bin(street_list_eff,
+                                                         current_date,
+                                                         textfile_dir_backgr)
+
+            background_number = write_output_background_number(street_list_eff,
+                                                               current_date,
+                                                               textfile_dir_backgr)
+
+            output_bkgd = config.bkgd_outdir            
+            #print('background.keys : ',list(background.keys()))
+            for spec in list(background.keys()): #gas species and particular species
+                
+                filename = output_bkgd+spec +".bin"
+                append_binary(background[spec], filename)
+            '''
+            for spec in list(background_pm.keys()): #particular species
+                
+                filename = output_bkgd+spec +".bin"
+                append_binary(background_pm[spec], filename)
+            '''
+            # we fill every binary file "per bin" with some renaming to be consistent with CHIMERE species
+            for spec in list(background_bin.keys()): #particular species per bin
+                for b in range(len(background_bin[spec])):
+                    
+                    if(spec[1:]=='H2SO4'):
+                        filename = output_bkgd + 'PSO4' + "_" + str(b) + ".bin"
+                    elif(spec[1:]=='NH3'):
+                        filename = output_bkgd + 'PNH4' + "_" + str(b) + ".bin"
+                    elif(spec[1:]=='HNO3'):
+                        filename = output_bkgd + 'PNO3' + "_" + str(b) + ".bin"
+                    elif(spec[1:]=='WATER'):
+                        filename = output_bkgd + 'PH2O' + "_" + str(b) + ".bin"
+                    elif(spec[1:]=='PPM'):
+                        filename = output_bkgd + 'PPM' + "_" + str(b) + ".bin"
+                    else:
+                        filename = output_bkgd + 'P' + spec[1:] + "_" + str(b) + ".bin"
+                        
+                    append_binary(background_bin[spec][b], filename)
+
+            # for Number
+            for spec in list(background_number.keys()): #particular species per bin
+                for b in range(len(background_number[spec])):
+                    
+                    filename = output_bkgd + spec + "_" + str(b) + ".bin"
+                    append_binary(background_number[spec][b], filename)
+                
+            print('End of the time step '+str(t)+' for background data')
+
         print('-> Background files generated.')
 
     else:

@@ -56,9 +56,17 @@ class Street:
         self.ust = 0.
         self.wdir = 0.
         self.wspd = 0.
-        # background
+        # Polair3d background
         self.bkgd = {} # in µg/m3
+        # Chimere background
+        self.background={}     # in ug/m3  # background
+        self.background_bin={}
+        self.background_number={}
+        self.background_pm={}
+        self.chim_izo = -999
+        self.chim_ime = -999
 
+        
 # ---------------------------
 # Check if two nodes are the same or near
 def are_nodes_same(node1, node2, min_distance):
@@ -130,7 +138,7 @@ def merging_street(output_file, node_list, street_list,
 # -------------------------------
 def manual_merging_street(street_list, species_list,
                           input_file):
-#    input_file = "street-merging.txt"
+
     input_merging = open(input_file)
     print("Manual merging using the street list in " + input_file)
     header = input_merging.readline()
@@ -142,6 +150,16 @@ def manual_merging_street(street_list, species_list,
             break
         else:
             removed_street_id, remained_street_id = int(line_info[0]), int(line_info[1])
+
+            """Check if there are streets which have been
+            removed by the previous merging to a street which will be removed
+            by this merging.
+            """
+            for i in range(len(street_list)):
+                if (street_list[i].id != street_list[i].eff_id) and \
+                   (street_list[i].eff_id == removed_street_id):
+                    street_list[i].eff_id = remained_street_id
+
             for i in range(len(street_list)):
                 if (street_list[i].id == remained_street_id):
                     for j in range(len(street_list)):
@@ -150,7 +168,9 @@ def manual_merging_street(street_list, species_list,
                             street_list[j].eff_begin = street_list[i].begin
                             street_list[j].eff_end = street_list[i].end
                             for spe in species_list:
-                                street_list[i].emission[spe] = street_list[i].emission[spe] + street_list[j].emission[spe]
+                                street_list[i].emission[spe] = \
+                                    street_list[i].emission[spe] + \
+                                    street_list[j].emission[spe]
                                 street_list[j].emission[spe] = 0.0
                             street_list[j].removed = True
                             ntemp = ntemp + 1
@@ -366,14 +386,15 @@ def read_traffic_data(input_file, emis_species_list, epsg_code):
             sys.exit("Error: a street has two same intersection coordinate " + \
                      "for the node " + str(node_id) + ", lon: " + str(lon1) + \
                      ", lat: " + str(lat1))
-        
-        # Street length
-        length = distance_on_unit_sphere(lat1, lon1, lat2, lon2) # in meter
+
+            
+        # Street morphology
+        _, _, length = geod.inv(lon1, lat1, lon2, lat2) # in meter
         width = 0.0
         height = 0.0
-        lon_cen = (lon1 + lon2) * 0.5
-        lat_cen = (lat1 + lat2) * 0.5
-
+        mid_point = geod.npts(lon1, lat1, lon2, lat2, 1)        
+        lon_cen, lat_cen = mid_point[0][0], mid_point[0][1]
+        
         # Conversion of the unit of the emission input data
         # from ug/km/h to ug/s
 #        emission = np.zeros([len(species_ind)], 'float')
@@ -487,8 +508,9 @@ def read_street_data(street_file, epsg_code):
             width = float(line_info[5])
             height = float(line_info[6])
             mid_point = geod.npts(lon1, lat1, lon2, lat2, 1)
+            emission = {}
             street = Street(street_id, id_begin, id_end, length, width, height,
-                            mid_point[0][0], mid_point[0][1], 0)
+                            mid_point[0][0], mid_point[0][1], emission)
             street_list.append(street)
 
     return node_list, street_list
@@ -611,6 +633,17 @@ def manual_street_merging(street_list, street_file):
                 sys.exit('ERROR: more than 2 columns in manual street merging file.')
             removed_id = int(line_info[0])
             remained_id = int(line_info[1])
+
+            """Check if there are streets which have been
+            removed by the previous merging to a street which will be removed
+            by this merging.
+            """
+            for i in range(len(street_list)):
+                if (street_list[i].id != street_list[i].eff_id) and \
+                   (street_list[i].eff_id == removed_id):
+                    street_list[i].eff_id = remained_id
+
+            
             for i in range(n_street):
                 if street_list[i].id == remained_id:
                     if street_list[i].removed:

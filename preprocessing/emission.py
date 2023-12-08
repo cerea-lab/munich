@@ -75,6 +75,7 @@ def append_emission_data(street_list, outdir, species_list):
         data = np.zeros((len(street_list)), 'float')
         for j in range(len(street_list)):
             data[j] = street_list[j].emission[species]
+
         outfile = outdir + species + '.bin'
         append_binary(data, outfile)
 
@@ -187,8 +188,11 @@ def read_street_emission(input_file,
                 street.eff_end = node.eff_id
 
     outfile = output_dir + 'textfile/street_all.csv'
-    shutil.rmtree(output_dir + 'textfile')
-    os.makedirs(output_dir + 'textfile')
+    try:
+        os.makedirs(output_dir + 'textfile')
+    except:
+        pass
+    
     with open(outfile, 'w') as f:
         f.write('id' + ',' + 'eff_id' + ',' + 'node_begin'\
             + ',' + 'node_eff_begin' + ',' + 'node_end' + ','\
@@ -200,4 +204,68 @@ def read_street_emission(input_file,
                     + str(street.eff_end) + '\n')
 
     return street_list_eff, node_list_eff
+
+
+
+def read_street_emission_fast(street_list,
+                              street_list_eff,
+                              input_file,
+                              emis_species_list,
+                              epsg_code,
+                              output_dir,
+                              min_distance):
+
+    # Define Geod to compute distance on Earth and midpoint
+    geod = pyproj.Geod(ellps='WGS84')
+    
+    street_list_traf, node_list_traf = read_traffic_data(input_file,
+                                                         emis_species_list,
+                                                         epsg_code)
+
+    # Initialization of the dictionary
+    # with the species list for the emission
+    for s_eff in range(len(street_list_eff)):
+        street_eff = street_list_eff[s_eff]
+        for emis in emis_species_list:
+            street_eff.emission[emis] = 0.0
+    
+    for s in range(len(street_list)):
+        # street_list and street_list_traf should be same.
+        # It means that street.csv and emission file
+        # have the same order of the streets.
+        street = street_list[s]
+        street_traf = street_list_traf[s]
         
+        for s_eff in range(len(street_list_eff)):
+            street_eff = street_list_eff[s_eff]
+            if (street.eff_id == street_eff.id):
+                break
+
+        # Matching test between street.csv and emission file
+        _, _, length = geod.inv(street_traf.lon_cen, \
+                                street_traf.lat_cen, \
+                                street.lon_cen, street.lat_cen) # in meter
+        if (length > 1.0):
+            print("Street matching test: Fail !")
+            sys.exit()
+        else:
+            for emis_species in street_traf.emission.keys():
+                street_eff.emission[emis_species] += \
+                    street_traf.emission[emis_species]
+
+    outfile = output_dir + 'textfile/street_all.csv'
+    try:
+        os.makedirs(output_dir + 'textfile')
+    except:
+        pass
+    
+    with open(outfile, 'w') as f:
+        f.write('id' + ',' + 'eff_id' + ',' + 'node_begin'\
+            + ',' + 'node_eff_begin' + ',' + 'node_end' + ','\
+            + 'node_eff_end' + '\n')
+
+        for street in street_list:
+            f.write(str(street.id) + ',' + str(street.eff_id) + ',' + str(street.begin)\
+                    + ',' + str(street.eff_begin) + ',' + str(street.end) + ','\
+                    + str(street.eff_end) + '\n')
+

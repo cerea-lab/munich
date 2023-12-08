@@ -32,6 +32,8 @@ src/munich
 *.sav
 *.old
 preprocessing/street-merging-lookup-table.txt
+preprcessing/input/node_lut.csv
+preprcessing/input/street_lut.csv
 
 ### SCons files
 *.scon*
