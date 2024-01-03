@@ -2,6 +2,34 @@ o----------------o
 | MUNICH HISTORY |
 o----------------o
 
+# MUNICH version 2.2 release (2024-01-XX)
+-----------------------------------------
+
+## Model
+
+- Added the CFL test
+- Improved the paramterization for the vertical exchange concerning LMO and PBL height.
+
+## Preprocessing
+
+- Updated readers for Chimere and Polair3D output.
+- Faster generation of the street network
+- Modified reader for WRF output. Before, only one-day files were accepted.
+- Added PM speciation.
+- Functions moved into new python scripts depending on their types: meteo, emission, background, street_network, misc
+
+## Environment
+
+- Using MPI C binding
+- A specific street is backtraced in the debug mode.
+- Depends
+
+  SSH-aerosol v1.3
+  AtmoData v1.7
+  SeldonData v1.8
+  Talos v1.4.2
+  AtmoPy v1.8.2
+
 
 # MUNICH version 2.1 release (2022-09-29)
 -----------------------------------------
