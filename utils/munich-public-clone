@@ -10,8 +10,8 @@ fi
 
 git clone https://github.com/cerea-lab/munich.git $DIR
 git clone https://github.com/sshaerosol/ssh-aerosol.git $DIR/include/ssh-aerosol
-git clone https://gitlab.com/polyphemus/atmodata.git $DIR/include/AtmoData
-git clone https://gitlab.com/polyphemus/seldondata.git $DIR/include/SeldonData
-git clone https://gitlab.com/polyphemus/talos.git $DIR/include/Talos
-git clone https://gitlab.com/polyphemus/atmopy.git $DIR/include/atmopy
+git clone https://github.com/cerea-lab/atmodata.git $DIR/include/AtmoData
+git clone https://github.com/cerea-lab/seldondata.git $DIR/include/SeldonData
+git clone https://github.com/cerea-lab/talos.git $DIR/include/Talos
+git clone https://github.com/cerea-lab/atmopy.git $DIR/include/atmopy
 
